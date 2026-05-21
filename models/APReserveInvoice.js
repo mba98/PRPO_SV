@@ -56,6 +56,8 @@ const apReserveInvoiceSchema = new mongoose.Schema(
 apReserveInvoiceSchema.index({ portalAPNumber: 1 }, { unique: true, sparse: true });
 apReserveInvoiceSchema.index({ relatedPOId: 1 });
 apReserveInvoiceSchema.index({ sapAPDocEntry: 1 });
+apReserveInvoiceSchema.index({ status: 1, createdAt: -1 });
+apReserveInvoiceSchema.index({ vendor: 1 });
 
 export default mongoose.models.APReserveInvoice ||
   mongoose.model('APReserveInvoice', apReserveInvoiceSchema);

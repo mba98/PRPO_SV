@@ -10,6 +10,7 @@ const STATUS_STYLES = {
   'Creating in SAP': 'bg-blue-100 text-blue-800',
   'Created in SAP': 'bg-emerald-100 text-emerald-800',
   'Failed to Create in SAP': 'bg-rose-100 text-rose-800',
+  'Ready for AP Reserve Invoice': 'bg-violet-100 text-violet-800',
   Completed: 'bg-emerald-100 text-emerald-800',
 };
 

@@ -388,3 +388,48 @@ Seeded admin login should work after deploy when MongoDB is connected and seed h
 ### Phase 4 alignment
 
 Phase 4 (4A + 4B) is now aligned with the spec: portal PO from approved PR, matrix-driven approval, SAP PO after finance approval, list/detail/approve pages, and duplicate guards.
+
+---
+
+## Phase 5 — A/P Reserve Invoice module (2026-05-21)
+
+### Scope delivered
+
+- **APRI from PO:** `POST /api/ap-reserve-invoices/from-po/[poId]` — only POs with status `Created in SAP` and `sapPODocEntry`; duplicate guard per PO; copies header/lines with SAP PO `LineNum` base refs; immediate SAP `/PurchaseInvoices` with `ReserveInvoice: 'tYES'`, `BaseType: 22`
+- **APRI APIs:** list, get detail, retry SAP (`admin.settings` / `view.all`)
+- **SAP:** `lib/sap/mappers/apReserveInvoiceToSap.js`, `lib/sap/apriSap.js` — integration logs, approval history, sanitized API errors
+- **Emails:** `apri.sap.created` (Finance, WHS, Procurement), `apri.sap.failed` (Admin) via EmailGroup override
+- **Pages:** `/ap-reserve-invoices`, `/ap-reserve-invoices/[id]`; `/purchase-orders/ready-for-ap-reserve-invoice` with Create APRI action (excludes POs that already have an APRI)
+- **Validators:** `lib/validators/apReserveInvoice.js`
+- **Indexes:** `status` + `createdAt`, `vendor` on `APReserveInvoice`
+
+### Key files
+
+- `lib/apReserveInvoicesService.js`, `lib/poApriReadiness.js`
+- `lib/sap/mappers/apReserveInvoiceToSap.js`, `lib/sap/apriSap.js`
+- `app/api/ap-reserve-invoices/**`
+- `components/ap-reserve-invoices/ApriListManager.jsx`, `ApriDetailView.jsx`
+- `app/(portal)/ap-reserve-invoices/**`, updated `ready-for-ap-reserve-invoice/page.js`
+- Tests: `apReserveInvoiceToSap.test.js`, `poApriReadiness.test.js`, `apriDuplicateGuard.test.js`, `validators/apReserveInvoice.test.js`
+
+### Env
+
+- No new environment variables (reuses existing SAP Service Layer config).
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 95 tests |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `phase-5: ap reserve invoice module`
+
+### Pending notes
+
+- Phase 6 (attachments UI on APRI detail) not started.
+- Failed APRI must be retried via `/ap-reserve-invoices/[id]` (not a second `from-po` call).
+- SAP PO `sapResponse.DocumentLines` must include `LineNum` for each item before APRI creation succeeds.
