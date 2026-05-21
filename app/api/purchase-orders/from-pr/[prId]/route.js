@@ -31,9 +31,6 @@ async function postHandler(request, { params }, user) {
     ) {
       return jsonError(result.message, result.error, 400);
     }
-    if (result.error === 'SAP_FAILED') {
-      return jsonError('Failed to create purchase order in SAP', 'SAP_FAILED', 502);
-    }
     return jsonSuccess(result, undefined, 201);
   } catch (err) {
     return handleServiceError(err);

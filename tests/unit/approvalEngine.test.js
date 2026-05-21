@@ -47,4 +47,13 @@ describe('approvalEngine', () => {
     expect(getCurrentStep(STEPS, 2)?.stepName).toBe('Project Manager Approval');
     expect(getCurrentStep(STEPS, 0)).toBeNull();
   });
+
+  it('supports PO document type statuses', () => {
+    const poSteps = [
+      { stepOrder: 1, requiredPermission: 'po.approve.pm' },
+      { stepOrder: 2, requiredPermission: 'po.approve.finance' },
+    ];
+    expect(getInitialSubmitState(poSteps, 'PO').status).toBe('Pending Project Manager Approval');
+    expect(getStateAfterApproval(poSteps, 1, 'PO').status).toBe('Pending Finance Approval');
+  });
 });

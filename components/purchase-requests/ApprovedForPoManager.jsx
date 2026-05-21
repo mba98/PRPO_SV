@@ -42,7 +42,7 @@ export default function ApprovedForPoManager() {
     setVendor(defaultVendor);
   }, [selectedId, selected]);
 
-  async function handleCreatePo(retry = false) {
+  async function handleCreatePo() {
     if (!selectedId || !vendor.trim()) {
       setError('Select a PR and enter a vendor code');
       return;
@@ -50,29 +50,25 @@ export default function ApprovedForPoManager() {
     setSubmitting(true);
     setError('');
     setMessage('');
-    const path = retry
-      ? `/api/purchase-orders/from-pr/${selectedId}/retry`
-      : `/api/purchase-orders/from-pr/${selectedId}`;
-    const { json } = await apiFetch(path, {
+    const { json } = await apiFetch(`/api/purchase-orders/from-pr/${selectedId}`, {
       method: 'POST',
       body: JSON.stringify({ vendor: vendor.trim() }),
     });
     if (json.success) {
+      const poId = json.data.po?.id;
       setMessage(
-        `PO created: ${json.data.po?.portalPONumber} (SAP ${json.data.po?.sapPODocNum || '—'})`,
+        `Portal PO ${json.data.po?.portalPONumber} created — pending Project Manager approval.`,
       );
-      setSelectedId('');
+      if (poId) {
+        window.location.href = `/purchase-orders/${poId}`;
+        return;
+      }
       await load();
     } else {
       setError(json.message || 'PO creation failed');
     }
     setSubmitting(false);
   }
-
-  const canRetry =
-    selected?.sapPOCreationStatus === 'Failed' || selected?.existingPOs?.some(
-      (o) => o.status === 'Failed to Create in SAP',
-    );
 
   return (
     <div className="space-y-6">
@@ -155,7 +151,10 @@ export default function ApprovedForPoManager() {
           </div>
 
           <div className="card space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900">Create SAP Purchase Order</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Create Purchase Order</h2>
+            <p className="text-xs text-slate-500">
+              Creates a portal PO for approval. SAP PO is created after Finance approval.
+            </p>
             {!selected ? (
               <p className="text-sm text-slate-500">Select a purchase request from the list.</p>
             ) : (
@@ -198,24 +197,11 @@ export default function ApprovedForPoManager() {
                     type="button"
                     className="btn-primary"
                     disabled={submitting || !vendor.trim()}
-                    onClick={() => handleCreatePo(false)}
+                    onClick={handleCreatePo}
                   >
-                    {submitting ? 'Creating PO in SAP…' : 'Create PO in SAP'}
+                    {submitting ? 'Creating…' : 'Create purchase order'}
                   </button>
-                  {canRetry && (
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      disabled={submitting || !vendor.trim()}
-                      onClick={() => handleCreatePo(true)}
-                    >
-                      Retry failed PO
-                    </button>
-                  )}
                 </div>
-                {selected.sapPOErrorMessage && (
-                  <p className="text-xs text-red-600">Last error: {selected.sapPOErrorMessage}</p>
-                )}
               </>
             )}
           </div>

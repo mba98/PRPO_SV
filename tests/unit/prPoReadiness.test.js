@@ -16,10 +16,10 @@ describe('prPoReadiness', () => {
     expect(prHasOpenPoSlots(basePr, [])).toBe(true);
   });
 
-  it('closes slots when all vendors have SAP PO', () => {
+  it('closes slots when each vendor already has a portal PO', () => {
     const orders = [
-      { relatedPRId: 'pr1', vendor: 'V1', sapPODocEntry: 1 },
-      { relatedPRId: 'pr1', vendor: 'V2', sapPODocEntry: 2 },
+      { relatedPRId: 'pr1', vendor: 'V1', status: 'Pending Project Manager Approval' },
+      { relatedPRId: 'pr1', vendor: 'V2', status: 'Created in SAP', sapPODocEntry: 2 },
     ];
     expect(prHasOpenPoSlots(basePr, orders)).toBe(false);
   });

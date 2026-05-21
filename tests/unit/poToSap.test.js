@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import {
   mapPoFromPrToSap,
+  mapPoToSapFromPortalRecord,
   linesForVendor,
   vendorsFromPrLines,
   resolvePrBaseLineNum,
@@ -48,5 +49,20 @@ describe('poToSap mapper', () => {
     expect(payload.DocumentLines[0].BaseEntry).toBe(42);
     expect(payload.DocumentLines[0].BaseLine).toBe(0);
     expect(payload.DocumentLines[0].Quantity).toBe(5);
+  });
+
+  it('maps approved portal PO record for SAP', () => {
+    const po = {
+      portalPONumber: 'PO-1',
+      relatedPRNumber: 'PR-1',
+      relatedSAPPRDocEntry: 42,
+      vendor: 'V1',
+      department: 'IT',
+      requiredDate: new Date('2026-05-21'),
+      lines: [{ itemCode: 'A1', quantity: 2, unitPrice: 5, sapPRBaseLine: 1 }],
+    };
+    const payload = mapPoToSapFromPortalRecord(po, { sapPRDocEntry: 42 }, {});
+    expect(payload.DocumentLines[0].BaseEntry).toBe(42);
+    expect(payload.DocumentLines[0].BaseLine).toBe(1);
   });
 });

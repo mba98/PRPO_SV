@@ -351,3 +351,40 @@ Seeded admin login should work after deploy when MongoDB is connected and seed h
 
 - Full portal PO approval workflow (PM → Finance → SAP) is spec Phase 4B — not implemented; this phase creates SAP PO directly from approved PR page.
 - Confirm `SAP_PR_BASE_TYPE` matches your SAP B1 version if base document errors occur.
+
+---
+
+## Phase 4B — PO approval workflow (2026-05-21)
+
+### Scope delivered
+
+- **Portal-first PO:** `/purchase-requests/approved-for-po` creates MongoDB PO with `Pending Project Manager Approval` (no immediate SAP)
+- **Approval matrix (PO):** PM (`po.approve.pm`) → Finance (`po.approve.finance`); SAP only after final approval
+- **Pages:** `/purchase-orders`, `/purchase-orders/[id]`, `/purchase-orders/[id]/approve`, `/purchase-orders/ready-for-ap-reserve-invoice`
+- **APIs:** list, get, put, approve, reject, create-sap-po, retry-sap, from-pr, ready-for-ap-reserve-invoice
+- **Emails:** `po.created`, `po.pm.approved`, `po.finance.approved`, `po.rejected`, `po.sap.created`, `po.sap.failed`
+- **Guards:** duplicate portal PO per PR/vendor; duplicate SAP on `sapPODocEntry`
+- **Admin SAP:** `POST .../create-sap-po` and `retry-sap` for manual retry (view.all / admin.settings)
+
+### Key files
+
+- `lib/approvalEngine.js` (PO status mapping), `lib/purchaseOrdersService.js`, `lib/sap/poFromPrSap.js`, `lib/sap/poSap.js`
+- `lib/sap/mappers/poToSap.js` (`mapPoToSapFromPortalRecord`)
+- `app/api/purchase-orders/**`, `components/purchase-orders/**`, `app/(portal)/purchase-orders/**`
+- Tests: `poApproval.test.js`, `poFromPrFlow.test.js`, `poSap.test.js`, `validators/purchaseOrder.test.js`
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 80 tests |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `phase-4b: po approval workflow`
+
+### Phase 4 alignment
+
+Phase 4 (4A + 4B) is now aligned with the spec: portal PO from approved PR, matrix-driven approval, SAP PO after finance approval, list/detail/approve pages, and duplicate guards.
