@@ -67,6 +67,11 @@ purchaseRequestSchema.index({ portalPRNumber: 1 }, { unique: true, sparse: true 
 purchaseRequestSchema.index({ status: 1, currentApprovalStep: 1 });
 purchaseRequestSchema.index({ requester: 1, createdAt: -1 });
 purchaseRequestSchema.index({ sapPRDocEntry: 1 });
+purchaseRequestSchema.index({ sapPRDocNum: 1 });
+purchaseRequestSchema.index({ department: 1, createdAt: -1 });
+purchaseRequestSchema.index({ project: 1 });
+purchaseRequestSchema.index({ warehouse: 1 });
+purchaseRequestSchema.index({ createdAt: -1 });
 
 export default mongoose.models.PurchaseRequest ||
   mongoose.model('PurchaseRequest', purchaseRequestSchema);

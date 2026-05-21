@@ -254,3 +254,58 @@ Login called `User.populate('role')` but `Role` was not registered in the Next.j
 ### Login
 
 Seeded admin login should work after deploy when MongoDB is connected and seed has run (`SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` from `.env.local`).
+
+---
+
+## Phase 3 — Purchase Request Module (2026-05-21)
+
+### Scope delivered
+
+- **PR APIs:** list, create, get, update, submit, approve, reject, create-sap-pr, retry-sap, approved-for-po, comments
+- **SAP items:** HANA search/detail (`validFor = 'Y'`, case-insensitive), Service Layer create with `item_creation_logs`
+- **Attachments:** pre-signed PUT (`sign-upload`) + metadata persistence (S3 keys only in MongoDB)
+- **Approval flow:** driven by `approval_matrix` (no hardcoded steps); permission check per step; `approval_history` on submit/approve/reject/SAP events
+- **SAP PR creation:** on final approval via `lib/sap/prSap.js`; duplicate guard on `sapPRDocEntry`; ODBC/SL errors sanitized for clients
+- **Email notifications:** `pr.created`, `pr.whs.approved`, `pr.rejected`, `pr.sap.created`, `pr.sap.failed` via `email_groups`
+- **UI:** `/purchase-requests` (tabs + filters), `/create`, `/[id]`, `/[id]/approve`, `/approved-for-po`; item search + Create New Item modal (`items.create`)
+
+### Files changed / added
+
+**Services & lib**
+
+- `lib/purchaseRequestsService.js`, `lib/commentsService.js`, `lib/attachmentsService.js`, `lib/sapItems.js`, `lib/sap/prSap.js`
+- `lib/approvalEngine.js`, `lib/auditHistory.js`, `lib/emailNotify.js`, `lib/dateUtils.js`, `lib/uploadClient.js`
+- `lib/validators/purchaseRequest.js`, `lib/sap/mappers/prToSap.js`, `lib/apiHelpers.js`
+- `models/PurchaseRequest.js` (list filter indexes)
+
+**API routes**
+
+- `app/api/purchase-requests/**`, `app/api/sap/items/**`, `app/api/attachments/**`
+
+**UI**
+
+- `components/purchase-requests/*`, `app/(portal)/purchase-requests/**`, `app/globals.css` (shared form/button/card classes)
+
+**Config & tests**
+
+- `.env.local.example` — `SAP_PR_REQ_TYPE`, `SAP_DEFAULT_BRANCH_ID`
+- `tests/unit/validators/purchaseRequest.test.js`, `approvalEngine.test.js`, `prToSap.test.js`, `sapItems.test.js`, `purchaseRequestsApi.test.js`
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 60 tests |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `phase-3: purchase request module`
+
+### Pending / review notes
+
+- **SAP / HANA / S3 / SMTP** must be configured in `.env.local` for full E2E (item search, SAP PR create, attachments, emails).
+- **Create New Item** button appears when user has `items.create` (manual trigger from line row; wire `noResultsLine` UX if desired).
+- **Phase 4** not started (PO from PR, duplicate PO guard, etc.).
+- Mongoose duplicate-index warnings on `portalPRNumber` (pre-existing pattern) — cosmetic at runtime.
