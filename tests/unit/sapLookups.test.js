@@ -1,10 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import {
   mapVendorRow,
   mapWarehouseRow,
   mapProjectRow,
   mapCostCenterRow,
+  searchSapWarehouses,
 } from '@/lib/sapLookups';
+import { clearLookupCache } from '@/lib/sapLookupCache';
+
+vi.mock('@/lib/sapServiceLayer.js', () => ({
+  getVendors: vi.fn(),
+  getWarehouses: vi.fn(),
+  getProjects: vi.fn(),
+  getCostCenters: vi.fn(),
+}));
+
+import { getWarehouses } from '@/lib/sapServiceLayer.js';
 
 describe('sapLookups normalization', () => {
   it('maps vendor row', () => {
@@ -25,10 +36,17 @@ describe('sapLookups normalization', () => {
     });
   });
 
-  it('maps warehouse row', () => {
-    expect(mapWarehouseRow({ WhsCode: '01', WhsName: 'Main' })).toEqual({
-      warehouseCode: '01',
+  it('maps warehouse row from Service Layer fields', () => {
+    expect(mapWarehouseRow({ WarehouseCode: 'RAN001', WarehouseName: 'Main' })).toEqual({
+      warehouseCode: 'RAN001',
       warehouseName: 'Main',
+    });
+  });
+
+  it('falls back to HANA OWHS field names for warehouse row', () => {
+    expect(mapWarehouseRow({ WhsCode: '01', WhsName: 'Legacy' })).toEqual({
+      warehouseCode: '01',
+      warehouseName: 'Legacy',
     });
   });
 
@@ -47,5 +65,44 @@ describe('sapLookups normalization', () => {
       name: 'Ops',
       dimension: 1,
     });
+  });
+});
+
+describe('searchSapWarehouses', () => {
+  beforeEach(() => {
+    clearLookupCache();
+    getWarehouses.mockReset();
+  });
+
+  it('unwraps { value: [...] } and normalizes', async () => {
+    getWarehouses.mockResolvedValue({
+      value: [{ WarehouseCode: 'WH1', WarehouseName: 'Main' }],
+    });
+    expect(await searchSapWarehouses('')).toEqual([
+      { warehouseCode: 'WH1', warehouseName: 'Main' },
+    ]);
+  });
+
+  it('handles a direct array payload (already unwrapped)', async () => {
+    getWarehouses.mockResolvedValue([{ WarehouseCode: 'WH2', WarehouseName: 'Spare' }]);
+    expect(await searchSapWarehouses('spare')).toEqual([
+      { warehouseCode: 'WH2', warehouseName: 'Spare' },
+    ]);
+  });
+
+  it('returns [] when no record matches the query', async () => {
+    getWarehouses.mockResolvedValue({
+      value: [{ WarehouseCode: 'WH1', WarehouseName: 'Main' }],
+    });
+    expect(await searchSapWarehouses('nomatch')).toEqual([]);
+  });
+
+  it('serves cached rows without a second SAP call', async () => {
+    getWarehouses.mockResolvedValue({
+      value: [{ WarehouseCode: 'WH1', WarehouseName: 'Main' }],
+    });
+    await searchSapWarehouses('');
+    await searchSapWarehouses('main');
+    expect(getWarehouses).toHaveBeenCalledTimes(1);
   });
 });

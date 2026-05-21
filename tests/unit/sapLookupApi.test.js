@@ -22,4 +22,31 @@ describe('sapLookupApi', () => {
     const body = await res.json();
     expect(body.error).toBe('HANA_UNAVAILABLE');
   });
+
+  it('maps a tagged SAP login failure to SAP_LOGIN_FAILED', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const err = new Error('SAP Service Layer login transport error: DEPTH_ZERO_SELF_SIGNED_CERT');
+    err.code = 'SAP_LOGIN_FAILED';
+    const res = sapLookupFailureResponse('sap/warehouses', err, 'Failed to load warehouses');
+    const body = await res.json();
+    expect(res.status).toBe(503);
+    expect(body.success).toBe(false);
+    expect(body.message).toBe('Failed to connect to SAP Service Layer');
+    expect(body.error).toBe('SAP_LOGIN_FAILED');
+    expect(body.message).not.toContain('CERT');
+    consoleSpy.mockRestore();
+  });
+
+  it('returns SAP_LOOKUP_FAILED for an authenticated lookup error', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = sapLookupFailureResponse(
+      'sap/warehouses',
+      new Error('Warehouses request failed'),
+      'Failed to load warehouses',
+    );
+    const body = await res.json();
+    expect(body.error).toBe('SAP_LOOKUP_FAILED');
+    expect(body.message).toBe('Failed to load warehouses');
+    consoleSpy.mockRestore();
+  });
 });

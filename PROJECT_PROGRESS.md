@@ -472,3 +472,50 @@ Phase 4 (4A + 4B) is now aligned with the spec: portal PO from approved PR, matr
 
 - If item search still fails on your HANA build, set `HANA_SQL_LIMIT_STYLE=fetch` in `.env.local`.
 - Populate `system_settings.branch_map` in MongoDB for department list + SAP branch resolution.
+
+---
+
+## Fix — SAP warehouse lookup errors (2026-05-22)
+
+### Root cause
+
+`GET /api/sap/warehouses` returned `{ success: false, error: "SAP_LOOKUP_FAILED" }`. Two distinct bugs:
+
+1. **TLS (primary):** the SAP B1 Service Layer (`https://<host>:50000/b1s/v1`) is published on the internal HANA host with a **self-signed certificate**. Node's global `fetch` rejected it (`DEPTH_ZERO_SELF_SIGNED_CERT`), so `login()` threw a generic `fetch failed` that the error mapper bucketed as `SAP_LOOKUP_FAILED` — masking a connection problem as a lookup problem.
+2. **Field mapping (secondary):** `mapWarehouseRow` read `WhsCode`/`WhsName` (HANA `OWHS` columns), but the Service Layer `/Warehouses` endpoint returns `WarehouseCode`/`WarehouseName`. Even a successful call would have normalized to empty rows.
+
+### Changes
+
+- **`lib/sapServiceLayer.js`** — rewrote the transport from `fetch` to `node:https`/`node:http` so TLS is controllable per-connection:
+  - `SAP_SL_CA_CERT` (preferred — pin the cert, keep verification on) or `SAP_SL_INSECURE_TLS=true` (internal/dev only; scoped to the SAP SL agent, not global).
+  - Login/connection failures now throw an error tagged `code: 'SAP_LOGIN_FAILED'` (with HTTP status when available).
+  - Collects **all** Set-Cookie values (`B1SESSION` + `ROUTEID`) for load-balanced setups.
+  - Added opt-in safe debug logging (`SAP_DEBUG=true`): host, company DB, endpoint, HTTP status only — never password, cookie, or session id.
+- **`lib/sapLookups.js`** — `mapWarehouseRow` now reads `WarehouseCode`/`WarehouseName` with `WhsCode`/`WhsName` fallback. `slRows` already unwraps both `{ value: [...] }` and a direct array.
+- **`lib/sapLookupApi.js`** — maps `SAP_LOGIN_FAILED` → `{ success: false, message: "Failed to connect to SAP Service Layer", error: "SAP_LOGIN_FAILED" }`; authenticated lookup errors still map to `SAP_LOOKUP_FAILED`. Real technical error logged server-side only.
+- **`.env.local.example`** — documented that SAP Service Layer vars are **required** for vendors, warehouses, projects, and cost centers; added `SAP_SL_CA_CERT`, `SAP_SL_INSECURE_TLS`, `SAP_DEBUG`.
+- **`.env.local`** (server, gitignored) — set `SAP_SL_INSECURE_TLS=true` for the internal self-signed host.
+- Tests: `tests/unit/sapLookups.test.js` (Service Layer + HANA field mapping, `value`/array unwrap, no-match → `[]`, cache reuse) and `tests/unit/sapLookupApi.test.js` (login vs lookup error mapping, no secret leakage).
+
+### Verification (live SAP `SV_DEMO_19052026`)
+
+- `POST /Login` → 200 with `SAP_SL_INSECURE_TLS=true`; cookies `B1SESSION`, `ROUTEID`.
+- `GET /Warehouses` → 200; 6 warehouses normalized to `{ warehouseCode, warehouseName }`.
+- `?query=` (no match) → `{ success: true, data: [] }`.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass — no ESLint warnings or errors |
+| `npm test` | Pass — 116 tests, 35 files |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `fix: handle sap warehouse lookup errors`
+
+### Server next steps
+
+- Preferred over `SAP_SL_INSECURE_TLS`: export the SAP SL certificate and set `SAP_SL_CA_CERT=/path/to/cert.pem` to keep TLS verification on.
+- Set `SAP_DEBUG=true` temporarily if a lookup still fails — logs host/DB/endpoint/status with no secrets.
