@@ -1,0 +1,277 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import { apiFetch } from '@/lib/apiClient';
+import { ALL_PERMISSIONS } from '@/lib/permissions';
+import { AnimatedModal, AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import SettingsTable from './SettingsTable';
+
+const EMPTY = {
+  documentType: 'PR',
+  stepOrder: 1,
+  stepName: '',
+  requiredPermission: 'pr.approve.whs',
+  approverRole: '',
+  isActive: true,
+};
+
+export default function ApprovalMatrixManager() {
+  const [steps, setSteps] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [filterType, setFilterType] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(EMPTY);
+  const [saving, setSaving] = useState(false);
+
+  const loadRoles = useCallback(async () => {
+    const { json } = await apiFetch('/api/roles?limit=100');
+    if (json.success) setRoles(json.data);
+  }, []);
+
+  const loadSteps = useCallback(async () => {
+    setLoading(true);
+    const qs = filterType ? `?documentType=${filterType}&limit=100` : '?limit=100';
+    const { json } = await apiFetch(`/api/approval-matrix${qs}`);
+    if (json.success) setSteps(json.data);
+    else setError(json.message || 'Failed to load approval matrix');
+    setLoading(false);
+  }, [filterType]);
+
+  useEffect(() => {
+    loadRoles();
+  }, [loadRoles]);
+
+  useEffect(() => {
+    loadSteps();
+  }, [loadSteps]);
+
+  function openCreate() {
+    setEditing(null);
+    setForm({ ...EMPTY, documentType: filterType || 'PR' });
+    setModalOpen(true);
+  }
+
+  function openEdit(step) {
+    setEditing(step);
+    setForm({
+      documentType: step.documentType,
+      stepOrder: step.stepOrder,
+      stepName: step.stepName,
+      requiredPermission: step.requiredPermission,
+      approverRole: step.approverRole?.id || '',
+      isActive: step.isActive,
+    });
+    setModalOpen(true);
+  }
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+
+    const payload = {
+      documentType: form.documentType,
+      stepOrder: Number(form.stepOrder),
+      stepName: form.stepName,
+      requiredPermission: form.requiredPermission,
+      approverRole: form.approverRole,
+      isActive: form.isActive,
+    };
+
+    let result;
+    if (editing) {
+      payload.__v = editing.__v;
+      result = await apiFetch(`/api/approval-matrix/${editing.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+    } else {
+      result = await apiFetch('/api/approval-matrix', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    }
+
+    if (result.json.success) {
+      setModalOpen(false);
+      await loadSteps();
+    } else {
+      setError(result.json.message || 'Save failed');
+    }
+    setSaving(false);
+  }
+
+  const columns = [
+    { key: 'documentType', label: 'Type' },
+    { key: 'stepOrder', label: 'Order' },
+    { key: 'stepName', label: 'Step' },
+    { key: 'requiredPermission', label: 'Permission' },
+    {
+      key: 'approverRole',
+      label: 'Approver role',
+      render: (s) => s.approverRole?.name || '—',
+    },
+    {
+      key: 'isActive',
+      label: 'Active',
+      render: (s) => (
+        <AnimatedStatusBadge status={s.isActive ? 'Approved' : 'Draft'} />
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (s) => (
+        <button
+          type="button"
+          onClick={() => openEdit(s)}
+          className="text-sm font-medium text-brand-600 hover:text-brand-700"
+        >
+          Edit
+        </button>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-slate-600">Document type</label>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="h-9 rounded-md border border-slate-300 px-2 text-sm"
+          >
+            <option value="">All</option>
+            <option value="PR">PR</option>
+            <option value="PO">PO</option>
+          </select>
+        </div>
+        <button
+          type="button"
+          onClick={openCreate}
+          className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+        >
+          Add step
+        </button>
+      </div>
+
+      {error && (
+        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>
+      )}
+
+      {loading ? (
+        <AnimatedSkeletonLoader variant="table" rows={6} />
+      ) : (
+        <SettingsTable
+          columns={columns}
+          rows={steps.map((s) => ({ key: s.id, data: s }))}
+          emptyMessage="No approval steps configured."
+        />
+      )}
+
+      <AnimatedModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editing ? 'Edit approval step' : 'Add approval step'}
+        size="lg"
+      >
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Document type</label>
+              <select
+                value={form.documentType}
+                onChange={(e) => setForm({ ...form, documentType: e.target.value })}
+                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+              >
+                <option value="PR">PR</option>
+                <option value="PO">PO</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Step order</label>
+              <input
+                type="number"
+                min={1}
+                required
+                value={form.stepOrder}
+                onChange={(e) => setForm({ ...form, stepOrder: e.target.value })}
+                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-sm font-medium text-slate-700">Step name</label>
+              <input
+                required
+                value={form.stepName}
+                onChange={(e) => setForm({ ...form, stepName: e.target.value })}
+                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Required permission
+              </label>
+              <select
+                value={form.requiredPermission}
+                onChange={(e) => setForm({ ...form, requiredPermission: e.target.value })}
+                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+              >
+                {ALL_PERMISSIONS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Approver role</label>
+              <select
+                required
+                value={form.approverRole}
+                onChange={(e) => setForm({ ...form, approverRole: e.target.value })}
+                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+              >
+                <option value="">Select role</option>
+                {roles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.isActive}
+              onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+            />
+            Active
+          </label>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="rounded-md border border-slate-200 px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </form>
+      </AnimatedModal>
+    </div>
+  );
+}

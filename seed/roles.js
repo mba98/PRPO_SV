@@ -1,18 +1,6 @@
-export const ALL_PERMISSIONS = [
-  'pr.create',
-  'pr.approve.whs',
-  'pr.approve.pm',
-  'po.create',
-  'po.approve.pm',
-  'po.approve.finance',
-  'apinvoice.create',
-  'items.create',
-  'admin.users',
-  'admin.roles',
-  'admin.approval_matrix',
-  'admin.settings',
-  'view.all',
-];
+import { ALL_PERMISSIONS } from '../lib/permissions.js';
+
+export { ALL_PERMISSIONS };
 
 export const DEFAULT_ROLES = [
   {

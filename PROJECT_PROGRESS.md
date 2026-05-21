@@ -65,3 +65,35 @@
 - Phase 2 not started (users, roles, approval matrix CRUD).
 - Health probes still require real SAP/HANA/S3/SMTP env; UI shows per-dependency status when run.
 - Seed admin then sign in → Dashboard or Settings → SAP Integration → **Run health check**.
+
+---
+
+## Env documentation (2026-05-21)
+
+### Files changed
+
+- `.env.local.example` — reorganized with grouped comments and placeholders for all required variables
+- `.gitignore` — explicit `.env.local` entry (also covered by `.env*.local`)
+- `PROJECT_PROGRESS.md` — this entry
+
+### Environment variables confirmed
+
+| Group | Variables |
+|-------|-----------|
+| App / Runtime | `NODE_ENV` (auto), `PORT`, `NEXT_PUBLIC_APP_URL` (optional, documented) |
+| MongoDB | `MONGODB_URI` |
+| Auth / JWT | `JWT_SECRET`, `JWT_EXPIRES_IN` |
+| First-run seed | `SEED_ADMIN_USERNAME`, `SEED_ADMIN_PASSWORD` |
+| SAP Service Layer | `SAP_SL_BASE_URL`, `SAP_SL_USERNAME`, `SAP_SL_PASSWORD`, `SAP_SL_COMPANY_DB` |
+| SAP HANA ODBC | `HANA_CONNECTION_STRING` (+ `HANA_DSN` noted in spec, not used in code yet) |
+| AWS S3 | `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET` |
+| SMTP / Email | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` |
+
+All `process.env.*` references in application code (`lib/`, `seed/`) are covered. `NODE_ENV` is used in `lib/auth.js` for cookie `Secure` flag (set by Next.js).
+
+### Tests run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 22 tests |
