@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    @apply h-full;
+  }
+
+  body {
+    @apply min-h-full bg-white text-slate-900 antialiased;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    @apply text-slate-900;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-slate-400;
+  }
+}

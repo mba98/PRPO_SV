@@ -3,6 +3,7 @@ export default {
   content: [
     './app/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
+    './stores/**/*.{js,jsx}',
   ],
   theme: {
     extend: {

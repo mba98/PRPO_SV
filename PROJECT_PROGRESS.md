@@ -131,3 +131,31 @@ All `process.env.*` references in application code (`lib/`, `seed/`) are covered
 - Phase 3 not started (purchase requests).
 - User extra `permissions[]` on model supported in API but not exposed in UI (role-only assignment in forms).
 - Approval matrix step reordering is manual via `stepOrder` field (no drag-and-drop).
+
+---
+
+## Fix — Login page visibility (2026-05-21)
+
+### Root cause
+
+`AnimatedPageWrapper` used Framer Motion `initial: { opacity: 0 }`, which SSR/hydration could leave the login card invisible (white page; form still validated).
+
+### Files changed
+
+- `app/login/LoginForm.jsx` — removed motion wrapper; explicit contrast (slate-100 page, white card, dark text, bordered inputs, indigo button)
+- `app/login/page.js` — static CSS loading fallback (no skeleton motion)
+- `components/ui/AnimatedPageWrapper.jsx` — render visible static wrapper until client-mounted
+- `app/globals.css` — base body/input text and background colors
+- `tailwind.config.js` — include `stores/**` in content paths
+
+### Tests run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 37 tests |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `fix: make login page visible`
