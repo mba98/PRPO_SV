@@ -1,0 +1,38 @@
+# Quick Coding Standards — Read Before Every Task
+
+## Plan
+- Follow the project plan exactly. Do not skip phases.
+- Stay within the current task scope. No unrelated changes.
+- If something is unclear, ask ONE focused question before coding.
+- Do not assume business logic — confirm it.
+
+## Code Quality
+- Clean, readable, production-ready code.
+- No placeholder code, no dead code, no unused imports.
+- No TODOs unless the plan explicitly requires future work.
+- Clear, descriptive names for files, functions, variables, components.
+- No duplicate logic — extract and reuse.
+- No hardcoded values that belong in config or DB.
+
+## Structure
+- Every module in its own clear folder.
+- Separate concerns: UI in `/components`, logic in `/lib`, data in `/models`, validation in `/lib/validators`.
+- API routes thin — business logic lives in `/lib`.
+- One responsibility per file. Split large files.
+
+## API & Data
+- Use the standard response envelope (success/failure).
+- Validate every `POST` / `PUT` / `PATCH` body before DB work.
+- Return clear validation errors, never generic 500s.
+- Close DB/ODBC connections in `finally`.
+
+## Safety
+- Never log secrets, tokens, passwords, or credentials.
+- Never expose raw integration errors to users.
+- Add duplicate guards before creating external documents.
+
+## Finishing a Task
+- Run lint and tests. Do not finish if they fail.
+- Append the result to `PROJECT_PROGRESS.md`.
+- Reply in chat with: files changed, tests run, lint result, any blocker.
+- No long explanations in chat.
