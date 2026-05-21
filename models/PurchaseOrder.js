@@ -17,6 +17,7 @@ const poLineSchema = new mongoose.Schema(
     uDepartment: String,
     uDelDate: Date,
     uRate: Number,
+    sapPRBaseLine: Number,
   },
   { _id: true },
 );
@@ -66,6 +67,7 @@ const purchaseOrderSchema = new mongoose.Schema(
 purchaseOrderSchema.index({ portalPONumber: 1 }, { unique: true, sparse: true });
 purchaseOrderSchema.index({ status: 1, currentApprovalStep: 1 });
 purchaseOrderSchema.index({ relatedPRId: 1 });
+purchaseOrderSchema.index({ relatedPRId: 1, vendor: 1 });
 purchaseOrderSchema.index({ sapPODocEntry: 1 });
 
 export default mongoose.models.PurchaseOrder ||

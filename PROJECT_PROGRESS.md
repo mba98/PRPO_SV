@@ -309,3 +309,45 @@ Seeded admin login should work after deploy when MongoDB is connected and seed h
 - **Create New Item** button appears when user has `items.create` (manual trigger from line row; wire `noResultsLine` UX if desired).
 - **Phase 4** not started (PO from PR, duplicate PO guard, etc.).
 - Mongoose duplicate-index warnings on `portalPRNumber` (pre-existing pattern) — cosmetic at runtime.
+
+---
+
+## Phase 4 — PO creation from approved PR (2026-05-21)
+
+### Scope delivered
+
+- **Entry page:** `/purchase-requests/approved-for-po` — lists PRs ready for PO (SAP PR exists, remaining line qty / pending vendors)
+- **API:** `POST /api/purchase-orders/from-pr/[prId]` (body: `vendor`), `POST .../retry`
+- **SAP PO:** Service Layer `/PurchaseOrders` with PR base document (`BaseType` / `BaseEntry` / `BaseLine` from `sapResponse`)
+- **Duplicate guard:** per `relatedPRId` + `vendor` when `sapPODocEntry` already set on portal PO
+- **PR fields:** `sapPODocEntry`, `sapPODocNum`, `sapPOCreationStatus`, `sapPOErrorMessage`, `relatedPortalPONumber`; status → `Partially Ordered` / `Fully Ordered`
+- **Portal PO record:** `PurchaseOrder` with link to PR; `approval_history` + `sap_integration_logs` + emails `po.sap.created` / `po.sap.failed`
+
+### Key files
+
+- `lib/sap/poFromPrSap.js`, `lib/sap/mappers/poToSap.js`, `lib/purchaseOrdersService.js`, `lib/prPoReadiness.js`
+- `app/api/purchase-orders/from-pr/[prId]/route.js`, `.../retry/route.js`
+- `components/purchase-requests/ApprovedForPoManager.jsx`
+- `models/PurchaseRequest.js`, `models/PurchaseOrder.js`
+- Tests: `poToSap.test.js`, `prPoReadiness.test.js`, `poFromPrFlow.test.js`
+
+### Env
+
+- `.env.local.example` — `SAP_PR_BASE_TYPE` (default `1470000113`)
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 71 tests |
+| `npm run build` | Pass (from Phase 4 implementation run) |
+
+### Commit
+
+- Message: `phase-4: po creation from approved pr`
+
+### Pending notes
+
+- Full portal PO approval workflow (PM → Finance → SAP) is spec Phase 4B — not implemented; this phase creates SAP PO directly from approved PR page.
+- Confirm `SAP_PR_BASE_TYPE` matches your SAP B1 version if base document errors occur.
