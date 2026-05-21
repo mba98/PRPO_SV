@@ -223,3 +223,34 @@ Ensure `.env.local` defines `MONGODB_URI`, `SEED_ADMIN_USERNAME`, and `SEED_ADMI
 2. Atlas **Network Access** → add server public IP.
 3. Run `npm run db:check` — if SRV fails, use non-SRV URI from Atlas Connect.
 4. Fresh DB → `npm run seed`.
+
+---
+
+## Fix — Mongoose model registration for login (2026-05-21)
+
+### Root cause
+
+Login called `User.populate('role')` but `Role` was not registered in the Next.js API route bundle (only `User` was imported).
+
+### Files changed
+
+- `models/index.js` — central registration for all 14 models
+- `lib/mongodb.js`, `lib/authLogin.js`, `lib/auth.js`, `lib/usersService.js`, `lib/approvalMatrixService.js`, `lib/approvalEngine.js`, `lib/rolesService.js`, `lib/email.js`, `lib/numbering.js`
+- `app/api/auth/login/route.js` — generic client error; server-side `console.error` only
+- `tests/unit/modelsRegister.test.js`
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 47 tests |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `fix: register mongoose models for populated refs`
+
+### Login
+
+Seeded admin login should work after deploy when MongoDB is connected and seed has run (`SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` from `.env.local`).

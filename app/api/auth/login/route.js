@@ -28,8 +28,12 @@ export async function POST(request) {
     const response = NextResponse.json(successResponse({ user: result.user }));
     return setSessionCookie(response, result.token);
   } catch (err) {
+    console.error('[auth/login]', err.message);
     return NextResponse.json(
-      failureResponse('Login failed', err.message || 'LOGIN_ERROR'),
+      failureResponse(
+        'Unable to sign in. Please try again later.',
+        'LOGIN_ERROR',
+      ),
       { status: 500 },
     );
   }
