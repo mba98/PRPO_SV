@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { schemaOptions } from './schemaOptions';
+import { schemaOptions } from './schemaOptions.js';
 
 const recipientSchema = new mongoose.Schema(
   {

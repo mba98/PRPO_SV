@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { schemaOptions } from './schemaOptions';
+import { schemaOptions } from './schemaOptions.js';
 
 const prLineSchema = new mongoose.Schema(
   {

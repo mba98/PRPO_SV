@@ -159,3 +159,33 @@ All `process.env.*` references in application code (`lib/`, `seed/`) are covered
 ### Commit
 
 - Message: `fix: make login page visible`
+
+---
+
+## Fix — ESM import extensions for seed (2026-05-21)
+
+### Root cause
+
+`npm run seed` runs `node seed/index.js` directly. Node ESM requires explicit `.js` on relative imports. Models imported `./schemaOptions` without extension → `ERR_MODULE_NOT_FOUND`.
+
+### Files changed
+
+- All 14 `models/*.js` — `./schemaOptions` → `./schemaOptions.js`
+- `lib/validators/auth.js`, `user.js`, `approvalMatrix.js` — `./common` → `./common.js`
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run seed` | **Pass** (module load) — fails only if `MONGODB_URI` missing or MongoDB unreachable |
+| `npm run lint` | Pass |
+| `npm test` | Pass — 37 tests |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `fix: add esm import extensions for seed runtime`
+
+### Note for server
+
+Ensure `.env.local` defines `MONGODB_URI`, `SEED_ADMIN_USERNAME`, and `SEED_ADMIN_PASSWORD` before seeding.
