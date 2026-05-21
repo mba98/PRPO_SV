@@ -1,6 +1,9 @@
 import { withAuth } from '@/lib/auth';
 import { getSapItem } from '@/lib/sapItems.js';
-import { jsonSuccess, handleServiceError, jsonError } from '@/lib/apiHelpers';
+import { jsonSuccess, jsonError } from '@/lib/apiHelpers';
+import { sapLookupFailureResponse } from '@/lib/sapLookupApi';
+
+const PERMS = ['pr.create', 'pr.approve.whs', 'pr.approve.pm', 'po.create', 'apinvoice.create', 'view.all'];
 
 async function getHandler(_request, { params }) {
   try {
@@ -10,19 +13,8 @@ async function getHandler(_request, { params }) {
     }
     return jsonSuccess(item);
   } catch (err) {
-    if (err.message?.includes('HANA_CONNECTION_STRING')) {
-      const wrapped = new Error('Item lookup is temporarily unavailable');
-      wrapped.code = 'HANA_UNAVAILABLE';
-      return handleServiceError(wrapped);
-    }
-    return handleServiceError(err);
+    return sapLookupFailureResponse('sap/items/detail', err, 'Failed to load SAP item');
   }
 }
 
-export const GET = withAuth(getHandler, [
-  'pr.create',
-  'pr.approve.whs',
-  'pr.approve.pm',
-  'po.create',
-  'view.all',
-]);
+export const GET = withAuth(getHandler, PERMS);

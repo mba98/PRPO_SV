@@ -1,29 +1,23 @@
 import { withAuth } from '@/lib/auth';
 import { searchSapItems } from '@/lib/sapItems.js';
-import { jsonSuccess, handleServiceError } from '@/lib/apiHelpers';
+import { jsonSuccess } from '@/lib/apiHelpers';
+import { parseSapLookupQuery } from '@/lib/validators/sapLookup';
+import { sapLookupFailureResponse } from '@/lib/sapLookupApi';
+
+const PERMS = ['pr.create', 'pr.approve.whs', 'pr.approve.pm', 'po.create', 'apinvoice.create', 'view.all'];
 
 async function getHandler(request) {
   try {
-    const query = new URL(request.url).searchParams.get('query') || '';
+    const { searchParams } = new URL(request.url);
+    const { query, limit } = parseSapLookupQuery(searchParams);
     if (!query.trim()) {
       return jsonSuccess([]);
     }
-    const items = await searchSapItems(query);
+    const items = await searchSapItems(query, limit);
     return jsonSuccess(items);
   } catch (err) {
-    if (err.message?.includes('HANA_CONNECTION_STRING')) {
-      const wrapped = new Error('Item search is temporarily unavailable');
-      wrapped.code = 'HANA_UNAVAILABLE';
-      return handleServiceError(wrapped);
-    }
-    return handleServiceError(err);
+    return sapLookupFailureResponse('sap/items/search', err, 'Failed to search SAP items');
   }
 }
 
-export const GET = withAuth(getHandler, [
-  'pr.create',
-  'pr.approve.whs',
-  'pr.approve.pm',
-  'po.create',
-  'view.all',
-]);
+export const GET = withAuth(getHandler, PERMS);

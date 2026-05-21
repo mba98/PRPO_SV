@@ -433,3 +433,42 @@ Phase 4 (4A + 4B) is now aligned with the spec: portal PO from approved PR, matr
 - Phase 6 (attachments UI on APRI detail) not started.
 - Failed APRI must be retried via `/ap-reserve-invoices/[id]` (not a second `from-po` call).
 - SAP PO `sapResponse.DocumentLines` must include `LineNum` for each item before APRI creation succeeds.
+
+---
+
+## Fix — SAP lookup dropdowns for PR master data (2026-05-21)
+
+### Scope delivered
+
+- **HANA item search:** `OITM` + `OITB` join with quoted schema (`SAP_SL_COMPANY_DB` / `HANA_SCHEMA`); parameterized `%query%`; normalized fields (`itemCode`, `itemName`, `uom`, `purchaseUom`, `inventoryUom`, `itemGroupCode`, `itemGroupName`); friendly API errors (no raw ODBC text)
+- **Lookup APIs:** `GET /api/sap/vendors`, `/warehouses`, `/projects`, `/cost-centers` (Service Layer + 5‑min cache); `GET /api/lookups/departments` (branch_map keys + active user departments)
+- **PR create UI:** searchable dropdowns for item, vendor, warehouse, project, cost center, department; UoM/item name/item group read-only from SAP item; header defaults propagate to new lines
+- **Components:** `components/lookups/*` (`SapLookupCombobox`, `ItemSearchInput`, `VendorSelect`, etc.)
+
+### Key files
+
+- `lib/sap/hanaSql.js`, `lib/sapHana.js`, `lib/sapItems.js`, `lib/sapLookups.js`, `lib/sapLookupCache.js`, `lib/sapLookupApi.js`, `lib/lookups/departments.js`
+- `app/api/sap/**`, `app/api/lookups/departments/route.js`
+- `components/purchase-requests/PrCreateForm.jsx`, `components/lookups/**`
+- Tests: `sapHanaSql.test.js`, `sapLookups.test.js`, `sapLookupApi.test.js`, `validators/sapLookup.test.js`, updated `sapItems.test.js`
+
+### Env
+
+- `.env.local.example` — optional `HANA_SCHEMA`, `HANA_SQL_LIMIT_STYLE` (`limit` | `fetch`)
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 106 tests |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `fix: add sap lookup dropdowns for pr master data`
+
+### Pending notes
+
+- If item search still fails on your HANA build, set `HANA_SQL_LIMIT_STYLE=fetch` in `.env.local`.
+- Populate `system_settings.branch_map` in MongoDB for department list + SAP branch resolution.

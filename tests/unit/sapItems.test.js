@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { searchSapItems } from '@/lib/sapItems';
+import { searchSapItems, mapHanaItemRow } from '@/lib/sapItems';
 
 vi.mock('@/lib/sapHana.js', () => ({
   searchItems: vi.fn(),
@@ -23,13 +23,39 @@ describe('sapItems search helper', () => {
     expect(searchItems).not.toHaveBeenCalled();
   });
 
-  it('maps HANA rows to API shape', async () => {
+  it('maps HANA rows to normalized API shape', async () => {
     searchItems.mockResolvedValue([
-      { ItemCode: 'A1', ItemName: 'Widget', PurPackMsr: 'EA', ItmsGrpNam: 'Parts' },
+      {
+        ItemCode: 'A1',
+        ItemName: 'Widget',
+        PurPackMsr: 'EA',
+        BuyUnitMsr: 'BX',
+        InvntryUom: 'EA',
+        ItmsGrpCod: 10,
+        ItmsGrpNam: 'Parts',
+      },
     ]);
     const rows = await searchSapItems('wid');
-    expect(rows).toEqual([
-      { itemCode: 'A1', itemName: 'Widget', uom: 'EA', itemGroup: 'Parts' },
-    ]);
+    expect(rows[0]).toMatchObject({
+      itemCode: 'A1',
+      itemName: 'Widget',
+      uom: 'EA',
+      purchaseUom: 'EA',
+      inventoryUom: 'EA',
+      itemGroupCode: 10,
+      itemGroupName: 'Parts',
+      itemGroup: 'Parts',
+    });
+  });
+
+  it('mapHanaItemRow handles uppercase ODBC keys', () => {
+    const row = mapHanaItemRow({
+      ITEMCODE: 'X',
+      ITEMNAME: 'Y',
+      PURPACKMSR: 'PC',
+      ITMSGRPNAM: 'G',
+    });
+    expect(row.itemCode).toBe('X');
+    expect(row.uom).toBe('PC');
   });
 });
