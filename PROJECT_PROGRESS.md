@@ -97,3 +97,37 @@ All `process.env.*` references in application code (`lib/`, `seed/`) are covered
 |---------|--------|
 | `npm run lint` | Pass |
 | `npm test` | Pass — 22 tests |
+
+---
+
+## Phase 2 — Users, Roles & Approval Matrix (2026-05-21)
+
+### Completed
+
+- **Users API** (`admin.users`): `GET/POST /api/users`, `PUT/DELETE /api/users/[id]` — DELETE deactivates (`isActive: false`).
+- **Roles API** (`admin.roles`): `GET/POST /api/roles`, `PUT/DELETE /api/roles/[id]` — delete blocked when role assigned to users (409).
+- **Approval Matrix API** (`admin.approval_matrix`): `GET/POST /api/approval-matrix`, `PUT /api/approval-matrix/[id]`.
+- Zod validators: `lib/validators/user.js`, `role.js`, `approvalMatrix.js`.
+- Services: `lib/usersService.js`, `lib/rolesService.js`, `lib/approvalMatrixService.js`.
+- Settings pages: `/settings/users`, `/settings/roles`, `/settings/approval-matrix` with list/create/edit UI.
+- Passwords hashed with bcrypt (cost 12); `passwordHash` never returned to client.
+- Optimistic concurrency via optional `__v` on PUT.
+- Central permission list: `lib/permissions.js` (seed re-exports).
+
+### Tests run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 37 tests, 14 files |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `phase-2: users roles approval matrix`
+
+### Pending / review notes
+
+- Phase 3 not started (purchase requests).
+- User extra `permissions[]` on model supported in API but not exposed in UI (role-only assignment in forms).
+- Approval matrix step reordering is manual via `stepOrder` field (no drag-and-drop).
