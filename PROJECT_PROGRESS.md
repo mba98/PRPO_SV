@@ -189,3 +189,37 @@ All `process.env.*` references in application code (`lib/`, `seed/`) are covered
 ### Note for server
 
 Ensure `.env.local` defines `MONGODB_URI`, `SEED_ADMIN_USERNAME`, and `SEED_ADMIN_PASSWORD` before seeding.
+
+---
+
+## Fix — MongoDB seed connection diagnostics (2026-05-21)
+
+### Changes
+
+- `lib/mongodbUri.js` — URI validation, typo fix (`mmongodb` → `mongodb`), safe host summary, actionable error hints (SRV / timeout / auth / IP whitelist)
+- `lib/mongodb.js` — shared `connectMongo()` / `disconnectMongo()`, driver timeouts; no `url.parse` in project code
+- `lib/loadEnvLocal.js` — shared env loader for seed and scripts
+- `scripts/check-mongodb.js` + `npm run db:check` — connectivity test (scheme/hosts only, no password)
+- `seed/index.js` — uses shared connect + enriched errors
+- `.env.local.example` — Atlas SRV + non-SRV formats, Atlas checklist, Node 20 note
+- `.nvmrc` / `engines` — Node 20 LTS recommended (`>=20 <25`)
+- `tests/unit/mongodbUri.test.js` — 9 tests
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 46 tests |
+| `npm run build` | Pass |
+
+### Commit
+
+- Message: `fix: improve mongodb seed connection diagnostics`
+
+### Server next steps
+
+1. Install **Node.js 20 LTS** (replace Node 24 if possible).
+2. Atlas **Network Access** → add server public IP.
+3. Run `npm run db:check` — if SRV fails, use non-SRV URI from Atlas Connect.
+4. Fresh DB → `npm run seed`.

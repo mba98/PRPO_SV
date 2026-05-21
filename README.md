@@ -12,11 +12,14 @@ JavaScript-only Next.js 14 App Router procurement portal. See `cursor-prompt-pro
 
 ```bash
 cp .env.local.example .env.local
-# Edit .env.local with your values
+# Edit .env.local with your values (see MongoDB SRV vs non-SRV formats in the example file)
 npm install
-npm run seed    # fresh database only
+npm run db:check   # verify Atlas/local connectivity (no secrets logged)
+npm run seed       # fresh database only
 npm run dev
 ```
+
+**Windows Server + MongoDB Atlas:** Use Node.js **20 LTS** (see `.nvmrc`). If `mongodb+srv` fails with `querySrv ECONNREFUSED`, switch to the non-SRV URI from Atlas Connect → Drivers. Whitelist the server's public IP in Atlas Network Access.
 
 ## Scripts
 

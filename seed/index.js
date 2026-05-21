@@ -1,33 +1,14 @@
-import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
-import mongoose from 'mongoose';
 import Role from '../models/Role.js';
 import User from '../models/User.js';
 import ApprovalMatrix from '../models/ApprovalMatrix.js';
 import EmailGroup from '../models/EmailGroup.js';
+import { loadEnvLocal } from '../lib/loadEnvLocal.js';
+import { connectMongo, disconnectMongo, getMongoUriSummary } from '../lib/mongodb.js';
+import { formatMongoConnectionError } from '../lib/mongodbUri.js';
 import { DEFAULT_ROLES } from './roles.js';
 import { DEFAULT_APPROVAL_MATRIX } from './approvalMatrix.js';
 import { DEFAULT_EMAIL_GROUPS } from './emailGroups.js';
 import { buildAdminUser, getAdminSeedCredentials, hashPassword } from './admin.js';
-
-function loadEnvLocal() {
-  const envPath = resolve(process.cwd(), '.env.local');
-  if (!existsSync(envPath)) {
-    return;
-  }
-  const content = readFileSync(envPath, 'utf8');
-  for (const line of content.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eq = trimmed.indexOf('=');
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim();
-    if (!process.env[key]) {
-      process.env[key] = value;
-    }
-  }
-}
 
 async function assertEmptyDatabase() {
   const [userCount, roleCount] = await Promise.all([
@@ -83,12 +64,18 @@ async function seedAdminUser(roleByName) {
 async function main() {
   loadEnvLocal();
 
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    throw new Error('MONGODB_URI is required');
+  if (!process.env.MONGODB_URI) {
+    throw new Error(
+      'MONGODB_URI is required. Copy .env.local.example to .env.local and set your Atlas URI.',
+    );
   }
 
-  await mongoose.connect(uri);
+  const { summary } = getMongoUriSummary();
+  if (summary?.ok) {
+    console.log(`MongoDB target: ${summary.scheme}://${summary.hosts}`);
+  }
+
+  await connectMongo();
   console.log('Connected to MongoDB');
 
   try {
@@ -107,11 +94,12 @@ async function main() {
 
     console.log('Seed completed successfully');
   } finally {
-    await mongoose.disconnect();
+    await disconnectMongo();
   }
 }
 
 main().catch((err) => {
-  console.error('Seed failed:', err.message);
+  const message = err.cause ? formatMongoConnectionError(err.cause) : err.message;
+  console.error('Seed failed:', message);
   process.exit(1);
 });
