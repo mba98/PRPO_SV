@@ -6,7 +6,13 @@ async function getHandler() {
   try {
     const result = await checkAllDependencies();
     const status = result.success ? 200 : 503;
-    return Response.json(successResponse(result), { status });
+    return Response.json(
+      successResponse({
+        dependencies: result.dependencies,
+        checkedAt: result.checkedAt,
+      }),
+      { status },
+    );
   } catch (err) {
     return Response.json(
       failureResponse('Health check failed', err.message || 'UNKNOWN_ERROR'),
