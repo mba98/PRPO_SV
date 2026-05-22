@@ -616,6 +616,41 @@ Set `sapRequesterCode` on portal users (Settings → Users) to the SAP employee 
 | `npm run lint` | Pass |
 | `npm test` | Pass — 141 tests, 39 files |
 
+## Fix — Failed SAP list visibility, retry button, requester SAP codes
+
+### Root causes
+
+1. **PR missing from list (project.manager)** — `approved` tab scoped post-approval PRs to `requester` only; approvers could open detail but not see failed SAP PRs in any tab.
+2. **No Retry SAP for PM** — Button required `view.all` only; API already allowed `admin.settings` too.
+3. **SAP error** — `requester` user has no `sapRequesterCode` in DB; seed did not set it from env.
+
+### Changes
+
+- **`lib/prPermissions.js`** — Post-approval statuses, `canRetrySapPurchaseRequest`, approver list rules.
+- **`lib/purchaseRequestsService.js`** — `failed-sap` tab filter; approvers see all post-approval PRs; detail fields `canRetrySap`, `requesterMissingSapCode`.
+- **`PrListManager.jsx`** — Post-approval / Failed SAP tabs; status dropdown with all PR statuses.
+- **`PrDetailView.jsx`** — Retry for admin only + note for others; SAP failed panel.
+- **`seed/users.js`** — `upsertSapRequesterCodes()` from `SAP_REQUESTER_CODE_REQUESTER` / `DEFAULT_SAP_REQUESTER_CODE`.
+
+### Configure SAP requester (local)
+
+Add to `.env.local` then run `npm run seed:users`:
+
+```
+SAP_REQUESTER_CODE_REQUESTER=YOUR_SAP_EMPLOYEE_CODE
+# or
+DEFAULT_SAP_REQUESTER_CODE=YOUR_SAP_EMPLOYEE_CODE
+```
+
+Optional: `FORCE_UPDATE_SAP_REQUESTER_CODES=true` to overwrite existing codes.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 151 tests, 42 files |
+
 ## Fix — standalone Node seed (`seed:users`)
 
 ### Problem

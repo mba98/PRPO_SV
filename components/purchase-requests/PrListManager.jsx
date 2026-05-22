@@ -6,11 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import { PR_STATUSES } from '@/lib/prPermissions';
 
 const TABS = [
   { id: 'my', label: 'My PRs' },
   { id: 'pending', label: 'Pending My Approval' },
-  { id: 'approved', label: 'Approved' },
+  { id: 'approved', label: 'Post-approval' },
+  { id: 'failed-sap', label: 'Failed SAP' },
   { id: 'rejected', label: 'Rejected' },
   { id: 'sap', label: 'Created in SAP' },
   { id: 'all', label: 'All', perm: 'view.all' },
@@ -24,6 +26,12 @@ export default function PrListManager() {
   const canCreate = hasPermission('pr.create');
   const canSeePending =
     hasAnyPermission(['pr.approve.whs', 'pr.approve.pm', 'view.all']);
+  const canSeeFailedSap = hasAnyPermission(['view.all', 'admin.settings']);
+  const canSeePostApproval =
+    hasPermission('pr.create') ||
+    canSeePending ||
+    canSeeFailedSap ||
+    hasPermission('view.all');
 
   const tab = searchParams.get('tab') || 'my';
   const [items, setItems] = useState([]);
@@ -75,6 +83,8 @@ export default function PrListManager() {
 
   const visibleTabs = TABS.filter((t) => {
     if (t.id === 'pending') return canSeePending;
+    if (t.id === 'approved') return canSeePostApproval;
+    if (t.id === 'failed-sap') return canSeeFailedSap;
     if (t.perm) return hasPermission(t.perm);
     return true;
   });
@@ -110,18 +120,33 @@ export default function PrListManager() {
           ['department', 'Department'],
           ['project', 'Project'],
           ['warehouse', 'Warehouse'],
-          ['status', 'Status'],
+          ['status', 'Status (any)'],
           ['from', 'From date'],
           ['to', 'To date'],
         ].map(([key, label]) => (
           <label key={key} className="text-sm">
             <span className="text-slate-600">{label}</span>
-            <input
-              className="input-field mt-1"
-              type={key === 'from' || key === 'to' ? 'date' : 'text'}
-              value={filters[key]}
-              onChange={(e) => setFilters((f) => ({ ...f, [key]: e.target.value }))}
-            />
+            {key === 'status' ? (
+              <select
+                className="input-field mt-1"
+                value={filters.status}
+                onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
+              >
+                <option value="">All statuses</option>
+                {PR_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                className="input-field mt-1"
+                type={key === 'from' || key === 'to' ? 'date' : 'text'}
+                value={filters[key]}
+                onChange={(e) => setFilters((f) => ({ ...f, [key]: e.target.value }))}
+              />
+            )}
           </label>
         ))}
         <div className="flex items-end">

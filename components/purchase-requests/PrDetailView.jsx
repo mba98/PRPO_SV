@@ -54,6 +54,8 @@ export default function PrDetailView({ id }) {
   if (!pr) return <p className="text-red-600">{error || 'Not found'}</p>;
 
   const canApprove = pr.canApproveCurrentStep === true;
+  const canRetrySap = pr.canRetrySap === true;
+  const showRetryDeniedNote = pr.status === 'Failed to Create in SAP' && !canRetrySap;
 
   const tabs = ['details', 'attachments', 'comments', 'history'];
 
@@ -81,7 +83,7 @@ export default function PrDetailView({ id }) {
               Approve / Reject
             </Link>
           )}
-          {pr.status === 'Failed to Create in SAP' && hasPermission('view.all') && (
+          {canRetrySap && (
             <button type="button" className="btn-secondary" onClick={retrySap}>
               Retry SAP
             </button>
@@ -115,6 +117,7 @@ export default function PrDetailView({ id }) {
               ['Warehouse', pr.warehouse],
               ['Required date', pr.requiredDate ? new Date(pr.requiredDate).toLocaleDateString() : '—'],
               ['Requester', pr.requesterName || pr.requesterEmail],
+              ['SAP requester code', pr.requesterSapRequesterCode || '—'],
               ['SAP PR', pr.sapPRDocNum || '—'],
             ].map(([label, val]) => (
               <div key={label}>
@@ -128,10 +131,22 @@ export default function PrDetailView({ id }) {
                 <p className="mt-1 text-sm text-slate-900">{pr.remarks}</p>
               </div>
             )}
-            {pr.sapErrorMessage && (
-              <div className="sm:col-span-2 lg:col-span-3">
-                <p className="text-xs font-medium uppercase text-rose-600">SAP error</p>
-                <p className="mt-1 text-sm text-rose-700">{pr.sapErrorMessage}</p>
+            {pr.status === 'Failed to Create in SAP' && (
+              <div className="sm:col-span-2 lg:col-span-3 rounded-md border border-rose-200 bg-rose-50 px-4 py-3">
+                <p className="text-xs font-medium uppercase text-rose-700">SAP creation failed</p>
+                {pr.sapErrorMessage && (
+                  <p className="mt-1 text-sm text-rose-800">{pr.sapErrorMessage}</p>
+                )}
+                {pr.requesterMissingSapCode && (
+                  <p className="mt-2 text-sm text-rose-800">
+                    Original requester is missing SAP requester code.
+                  </p>
+                )}
+                {showRetryDeniedNote && (
+                  <p className="mt-2 text-sm text-slate-600">
+                    SAP retry is available to Admin users only.
+                  </p>
+                )}
               </div>
             )}
           </section>

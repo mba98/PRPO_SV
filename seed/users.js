@@ -93,6 +93,45 @@ async function loadRoleByName() {
  * Upsert default test users (skips existing username or email).
  * @param {{ roleByName?: Record<string, { _id: import('mongoose').Types.ObjectId, permissions?: string[] }>, skipUsernames?: string[] }} [options]
  */
+function envSapCodeForUsername(username) {
+  const key = `SAP_REQUESTER_CODE_${username.toUpperCase().replace(/\./g, '_')}`;
+  return process.env[key]?.trim() || null;
+}
+
+/**
+ * Set sapRequesterCode on existing users from env (dev/local).
+ */
+export async function upsertSapRequesterCodes() {
+  const force = process.env.FORCE_UPDATE_SAP_REQUESTER_CODES === 'true';
+  const defaultCode = process.env.DEFAULT_SAP_REQUESTER_CODE?.trim() || null;
+  const requesterCode =
+    process.env.SAP_REQUESTER_CODE_REQUESTER?.trim() || defaultCode;
+  const results = { updated: [], unchanged: [] };
+
+  for (const spec of DEFAULT_TEST_USERS) {
+    const code =
+      spec.username === 'requester'
+        ? requesterCode
+        : envSapCodeForUsername(spec.username) || null;
+    if (!code) continue;
+
+    const user = await User.findOne({ username: spec.username }).lean();
+    if (!user) continue;
+
+    if (user.sapRequesterCode && !force) {
+      results.unchanged.push(spec.username);
+      console.log(`SAP requester code unchanged: ${spec.username}`);
+      continue;
+    }
+
+    await User.updateOne({ _id: user._id }, { $set: { sapRequesterCode: code } });
+    results.updated.push(spec.username);
+    console.log(`Updated SAP requester code for ${spec.username}`);
+  }
+
+  return results;
+}
+
 export async function seedDefaultUsers(options = {}) {
   assertCanSeedTestUsers();
 
@@ -121,6 +160,12 @@ export async function seedDefaultUsers(options = {}) {
     const role = roleByName[spec.roleName];
     const plainPassword = spec.resolvePassword ? spec.resolvePassword() : spec.password;
     const passwordHash = await hashPassword(plainPassword);
+    const defaultCode = process.env.DEFAULT_SAP_REQUESTER_CODE?.trim() || null;
+    const requesterEnvCode = process.env.SAP_REQUESTER_CODE_REQUESTER?.trim() || defaultCode;
+    const sapRequesterCode =
+      spec.username === 'requester'
+        ? requesterEnvCode
+        : envSapCodeForUsername(spec.username) || undefined;
 
     await User.create({
       name: spec.name,
@@ -131,6 +176,7 @@ export async function seedDefaultUsers(options = {}) {
       department: spec.department,
       isActive: true,
       permissions: [],
+      ...(sapRequesterCode ? { sapRequesterCode } : {}),
     });
 
     results.created.push(spec.username);
@@ -161,6 +207,10 @@ async function main() {
     const results = await seedDefaultUsers();
     console.log(
       `Default users seed completed (${results.created.length} created, ${results.skipped.length} skipped)`,
+    );
+    const sapCodes = await upsertSapRequesterCodes();
+    console.log(
+      `SAP requester codes (${sapCodes.updated.length} updated, ${sapCodes.unchanged.length} unchanged)`,
     );
   } finally {
     await disconnectMongo();
