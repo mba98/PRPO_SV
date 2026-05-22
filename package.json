@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "seed": "node seed/index.js",
     "seed:users": "node seed/users.js",
+    "seed:settings": "node seed/settings.js",
     "db:check": "node scripts/check-mongodb.js"
   },
   "dependencies": {

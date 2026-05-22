@@ -7,6 +7,7 @@ import { connectMongo, disconnectMongo, getMongoUriSummary } from '../lib/mongod
 import { formatMongoConnectionError } from '../lib/mongodbUri.js';
 import { hashPassword } from './admin.js';
 import { resolveDefaultSapRequesterCode } from '../lib/sap/sapRequesterConfig.js';
+import { upsertSapPrSettings } from './settings.js';
 
 function resolveAdminPassword() {
   const fromEnv = process.env.SEED_ADMIN_PASSWORD;
@@ -208,6 +209,10 @@ async function main() {
     const sapCodes = await upsertSapRequesterCodes();
     console.log(
       `SAP requester codes (${sapCodes.updated.length} updated, ${sapCodes.unchanged.length} unchanged)`,
+    );
+    const sapSettings = await upsertSapPrSettings();
+    console.log(
+      `SAP PR settings (${sapSettings.updated.length} updated, ${sapSettings.unchanged.length} unchanged)`,
     );
   } finally {
     await disconnectMongo();

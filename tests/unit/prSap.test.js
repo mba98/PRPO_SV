@@ -78,7 +78,12 @@ describe('createSapPurchaseRequest', () => {
     vi.clearAllMocks();
     updateOne.mockResolvedValue({});
     settingsFind.mockImplementation(({ key }) => {
-      if (key === 'branch_map') return Promise.resolve({ value: { IT: 2 } });
+      if (key === 'branch_map') {
+        return Promise.resolve({ value: { Procurement: -2, default: -2, IT: 2 } });
+      }
+      if (key === 'sap_department_map') {
+        return Promise.resolve({ value: { Procurement: 'General', default: 'General' } });
+      }
       if (key === 'sap_default_requester') return Promise.resolve(null);
       return Promise.resolve(null);
     });
@@ -149,9 +154,28 @@ describe('createSapPurchaseRequest', () => {
     expect(createPR).not.toHaveBeenCalled();
   });
 
+  it('sends Procurement branch -2 and DocType for approved PR', async () => {
+    findById.mockResolvedValue({
+      ...basePr,
+      department: 'Procurement',
+      requester: { _id: REQUESTER_ID, username: 'requester', sapRequesterCode: '12' },
+    });
+    createPR.mockResolvedValue({ DocEntry: 1, DocNum: 1 });
+    await createSapPurchaseRequest(PR_ID, adminUser);
+    expect(createPR).toHaveBeenCalledWith(
+      expect.objectContaining({
+        Requester: '12',
+        BPL_IDAssignedToInvoice: -2,
+        DocType: 'dDocument_Items',
+        U_Department: 'General',
+      }),
+    );
+  });
+
   it('omits costing code when retrying after SAP failure', async () => {
     findById.mockResolvedValue({
       ...basePr,
+      department: 'Procurement',
       status: 'Failed to Create in SAP',
       lines: [
         {
@@ -171,13 +195,20 @@ describe('createSapPurchaseRequest', () => {
   it('uses dev default requester code 12 when user sapRequesterCode is missing', async () => {
     findById.mockResolvedValue({
       ...basePr,
+      department: 'Procurement',
       requester: { _id: REQUESTER_ID, username: 'requester', sapRequesterCode: null },
     });
     createPR.mockResolvedValue({ DocEntry: 1, DocNum: 1 });
     const result = await createSapPurchaseRequest(PR_ID, adminUser);
     expect(result.success).toBe(true);
     expect(createPR).toHaveBeenCalledWith(
-      expect.objectContaining({ Requester: 12 }),
+      expect.objectContaining({
+        Requester: '12',
+        BPL_IDAssignedToInvoice: -2,
+        DocType: 'dDocument_Items',
+        ReqType: 12,
+        U_Department: 'General',
+      }),
     );
   });
 

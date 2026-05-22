@@ -709,3 +709,30 @@ SAP payload had valid-looking codes but **cost center `Project`** on the line (n
 |---------|--------|
 | `npm run lint` | Pass |
 | `npm test` | Pass — 161 tests, 43 files |
+
+## Fix — SAP PR defaults (ReqType 12, Requester 12, Branch -2, DocType items)
+
+### Confirmed SAP GUI values
+
+- Requester Type `ReqType`: 12 (User)
+- Requester code: 12 (manager)
+- Branch Main: `BPL_IDAssignedToInvoice` -2
+- Department: General (`U_Department`)
+- Item document: `DocType` `dDocument_Items`
+
+### Changes
+
+- **`lib/sap/mappers/prToSap.js`** — `DocType`, branch via `sapBranchConfig`, department via `sapDepartmentConfig`, string Requester `"12"`, omit invalid optional codes (incl. `Project` cost center), no Branch=1 fallback.
+- **`lib/sap/sapBranchConfig.js`**, **`lib/sap/sapDepartmentConfig.js`** — Dev defaults -2 / General; production requires mapping.
+- **`lib/sap/prSap.js`** — Loads `sap_department_map`; debug summary includes DocType.
+- **`seed/settings.js`**, **`seed/users.js`**, **`seed/index.js`** — `branch_map` and `sap_department_map` upsert; `npm run seed:settings`.
+- **`.env.local.example`** — `DEFAULT_SAP_REQUESTER_CODE=12`, `SAP_DEFAULT_BRANCH_ID=-2`, etc.
+- **`tests/unit/prToSap.test.js`**, **`tests/unit/prSap.test.js`** — Default payload tests.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 163 tests, 43 files |
+| `npm run seed:settings` | Pass |
