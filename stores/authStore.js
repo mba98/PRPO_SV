@@ -42,3 +42,15 @@ export const useAuthStore = create((set, get) => ({
     return permissions.some((p) => user?.permissions?.includes(p));
   },
 }));
+
+/**
+ * Sync server-loaded user into the store before child render (avoids hydration mismatch).
+ */
+export function initializeAuthStore(user) {
+  if (!user) return;
+  const state = useAuthStore.getState();
+  if (state.user?.id === user.id && state.user?.permissions?.length === user.permissions?.length) {
+    return;
+  }
+  useAuthStore.setState({ user, loading: false, error: null });
+}
