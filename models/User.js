@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },
     department: { type: String },
+    sapRequesterCode: { type: String },
     isActive: { type: Boolean, default: true },
     permissions: [{ type: String }],
     failedLoginAttempts: { type: Number, default: 0 },

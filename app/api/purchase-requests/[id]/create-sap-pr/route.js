@@ -19,8 +19,11 @@ async function postHandler(_request, { params }, user) {
     if (result.error === 'DUPLICATE_SAP') {
       return jsonError(result.message, 'DUPLICATE_SAP', 409);
     }
+    if (result.error === 'SAP_VALIDATION') {
+      return jsonError(result.message, 'SAP_VALIDATION', 400);
+    }
     if (result.error === 'SAP_FAILED') {
-      return jsonError('Failed to create purchase request in SAP', 'SAP_FAILED', 502);
+      return jsonError(result.message || 'Failed to create purchase request in SAP', 'SAP_FAILED', 502);
     }
     const refreshed = await PurchaseRequest.findById(params.id).lean();
     return jsonSuccess({ pr: sanitizePr(refreshed), sapResult: result });

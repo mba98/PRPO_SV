@@ -569,6 +569,31 @@ Creating a Purchase Request failed with: `Updating the path 'value.seq' would cr
 
 `admin`, `requester`, `whs.approver`, `project.manager`, `finance`, `procurement` (passwords in task spec / `SEED_ADMIN_PASSWORD` for admin).
 
+## Fix — SAP PR ODBC -2028 (invalid Requester / reference codes)
+
+### Root cause
+
+Service Layer POST `/PurchaseRequests` failed with `No matching records found (ODBC -2028)` because `mapPrToSap` fell back to `String(pr.requester)` when `requesterEmail` was absent — sending a **MongoDB ObjectId** as SAP `Requester`. SAP validates master data internally (ODBC), even though creation uses Service Layer, not portal HANA ODBC.
+
+### Changes
+
+- **`lib/sap/mappers/prToSap.js`** — Resolve `Requester` from `user.sapRequesterCode` or `system_settings.sap_default_requester`; never ObjectId/email; pre-SAP validation; debug meta builder.
+- **`lib/sap/prSap.js`** — Load requester user + settings; validate before SAP; log `{ sap, debug }` in `sap_integration_logs`; friendly API errors; raw ODBC kept in logs.
+- **`models/User.js`** — `sapRequesterCode` field.
+- **`lib/usersService.js`**, **`lib/validators/user.js`**, **`app/api/purchase-requests/[id]/create-sap-pr/route.js`**, **`lib/apiHelpers.js`** — Support mapping + `SAP_VALIDATION` responses.
+- **`tests/unit/prToSap.test.js`**, **`tests/unit/prSap.test.js`** — Mapper and service tests.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 131 tests, 36 files |
+
+### Configure requester mapping
+
+Set `sapRequesterCode` on portal users (Settings → Users) to the SAP employee code, or add MongoDB `system_settings` key `sap_default_requester` with value `"EMP001"` or `{ "code": "EMP001" }`.
+
 ## Fix — standalone Node seed (`seed:users`)
 
 ### Problem
