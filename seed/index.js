@@ -9,6 +9,7 @@ import { DEFAULT_ROLES } from './roles.js';
 import { DEFAULT_APPROVAL_MATRIX } from './approvalMatrix.js';
 import { DEFAULT_EMAIL_GROUPS } from './emailGroups.js';
 import { buildAdminUser, getAdminSeedCredentials, hashPassword } from './admin.js';
+import { seedDefaultUsers } from './users.js';
 
 async function assertEmptyDatabase() {
   const [userCount, roleCount] = await Promise.all([
@@ -91,6 +92,15 @@ async function main() {
 
     await seedAdminUser(roleByName);
     console.log('Seeded admin user');
+
+    const adminUsername = process.env.SEED_ADMIN_USERNAME?.trim();
+    const userResults = await seedDefaultUsers({
+      roleByName,
+      skipUsernames: adminUsername ? [adminUsername] : [],
+    });
+    console.log(
+      `Seeded default test users (${userResults.created.length} created, ${userResults.skipped.length} skipped)`,
+    );
 
     console.log('Seed completed successfully');
   } finally {

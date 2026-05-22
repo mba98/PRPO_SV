@@ -542,3 +542,47 @@ Creating a Purchase Request failed with: `Updating the path 'value.seq' would cr
 ### Commit
 
 - Message: `fix: resolve numbering counter update conflict`
+
+## Default test users seed (pre–Phase 6)
+
+### Completed
+
+- **`seed/users.js`** — Six default test users (Admin, Requester, WHS Approver, Project Manager, Finance, Procurement); bcrypt cost 12; upsert by username/email; production guard (`ALLOW_DEFAULT_TEST_USERS=true`); `npm run seed:users` for non-empty dev DBs.
+- **`seed/index.js`** — Calls `seedDefaultUsers` after admin seed (skips username already created by `SEED_ADMIN_USERNAME`).
+- **`seed/roles.js`** — Aligned PM, Finance, and Procurement permissions with plan for E2E workflow testing.
+- **`package.json`** — Added `seed:users` script.
+- **`tests/unit/seed-data.test.js`** — Role permission and default user definition tests.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 119 tests, 35 files |
+
+### Local testing
+
+- Fresh DB: `npm run seed` (requires `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD`).
+- Existing dev DB: `npm run seed:users`.
+
+### Login usernames
+
+`admin`, `requester`, `whs.approver`, `project.manager`, `finance`, `procurement` (passwords in task spec / `SEED_ADMIN_PASSWORD` for admin).
+
+## Fix — standalone Node seed (`seed:users`)
+
+### Problem
+
+`npm run seed:users` failed with `ERR_MODULE_NOT_FOUND` for `@/models` because `lib/mongodb.js` imported `@/models/index.js`, which only resolves under Next.js (not plain `node`).
+
+### Change
+
+- **`lib/mongodb.js`** — Removed `@/models/index.js` import. Model registration stays in each service via its own `import '@/models/index.js'` (unchanged for Next.js).
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run seed:users` | Pass — connected and seeded users |
+| `npm run lint` | Pass |
+| `npm test` | Pass — 119 tests, 35 files |

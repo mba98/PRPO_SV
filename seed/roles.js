@@ -17,14 +17,14 @@ export const DEFAULT_ROLES = [
   },
   {
     name: 'Project Manager',
-    permissions: ['pr.approve.pm', 'po.approve.pm'],
+    permissions: ['pr.approve.pm', 'po.create', 'po.approve.pm'],
   },
   {
     name: 'Finance',
-    permissions: ['po.approve.finance'],
+    permissions: ['po.approve.finance', 'apinvoice.create'],
   },
   {
     name: 'Procurement',
-    permissions: ['po.create', 'apinvoice.create'],
+    permissions: ['po.create', 'apinvoice.create', 'items.create'],
   },
 ];
