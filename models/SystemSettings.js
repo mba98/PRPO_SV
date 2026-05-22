@@ -4,7 +4,9 @@ import { schemaOptions } from './schemaOptions.js';
 const systemSettingsSchema = new mongoose.Schema(
   {
     key: { type: String, required: true },
-    value: { type: mongoose.Schema.Types.Mixed, default: () => ({ seq: 0 }) },
+    type: { type: String },
+    seq: { type: Number, default: 0 },
+    value: { type: mongoose.Schema.Types.Mixed },
   },
   schemaOptions,
 );

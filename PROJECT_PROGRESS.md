@@ -519,3 +519,26 @@ Phase 4 (4A + 4B) is now aligned with the spec: portal PO from approved PR, matr
 
 - Preferred over `SAP_SL_INSECURE_TLS`: export the SAP SL certificate and set `SAP_SL_CA_CERT=/path/to/cert.pem` to keep TLS verification on.
 - Set `SAP_DEBUG=true` temporarily if a lookup still fails — logs host/DB/endpoint/status with no secrets.
+
+## Bugfix — portal numbering counter MongoDB path conflict (pre–Phase 6)
+
+### Problem
+
+Creating a Purchase Request failed with: `Updating the path 'value.seq' would create a conflict at 'value'` — caused by `$setOnInsert: { value: { seq: 0 } }` and `$inc: { 'value.seq': 1 }` in the same update.
+
+### Changes
+
+- **`lib/numbering.js`** — Store counter sequence in top-level `seq`; atomic `$inc: { seq: 1 }`; legacy `value.seq` migration via `updateOne` before increment; read fallback `doc.seq ?? doc.value?.seq`.
+- **`models/SystemSettings.js`** — Added optional `type` and `seq` fields; kept `value` for non-counter settings (e.g. `branch_map`).
+- **`tests/unit/numbering.test.js`** — Updated mocks for top-level `seq`; added legacy migration and fallback tests.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass — no ESLint warnings or errors |
+| `npm test` | Pass — 118 tests, 35 files |
+
+### Commit
+
+- Message: `fix: resolve numbering counter update conflict`
