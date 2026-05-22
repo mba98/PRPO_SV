@@ -43,6 +43,12 @@ describe('approvalEngine', () => {
     expect(userCanApproveStep({ permissions: ['view.all'] }, STEPS[0])).toBe(true);
   });
 
+  it('uses role permissions when user.permissions is empty', () => {
+    const pmUser = { permissions: [], role: { permissions: ['pr.approve.pm'] } };
+    expect(userCanApproveStep(pmUser, STEPS[1])).toBe(true);
+    expect(userCanApproveStep(pmUser, STEPS[0])).toBe(false);
+  });
+
   it('resolves current step by order', () => {
     expect(getCurrentStep(STEPS, 2)?.stepName).toBe('Project Manager Approval');
     expect(getCurrentStep(STEPS, 0)).toBeNull();

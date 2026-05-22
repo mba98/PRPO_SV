@@ -594,6 +594,28 @@ Service Layer POST `/PurchaseRequests` failed with `No matching records found (O
 
 Set `sapRequesterCode` on portal users (Settings → Users) to the SAP employee code, or add MongoDB `system_settings` key `sap_default_requester` with value `"EMP001"` or `{ "code": "EMP001" }`.
 
+## Fix — PM pending visibility, SAP retry requester, dynamic workflow stepper
+
+### Root causes
+
+1. **PM list empty** — Pending tab filtered by status only, not `currentApprovalStep` from `approval_matrix`. Some services also relied on `user.permissions` without merging role permissions defensively.
+2. **SAP retry “admin” error** — Validation referred to the acting user when PR requester was not populated on load; retry must use **original PR requester** `sapRequesterCode`, with admin only as `actionBy` / `actionPerformedBy` in logs.
+
+### Changes
+
+- **`lib/effectivePermissions.js`** — `getEffectivePermissions`, `userHasEffectivePermission`.
+- **`lib/auth.js`**, **`lib/approvalEngine.js`**, **`lib/purchaseRequestsService.js`** — Effective permissions + matrix-driven `buildPrPendingApprovalFilter` (`status` + `currentApprovalStep`).
+- **`lib/workflowSteps.js`**, **`components/workflow/WorkflowStepper.jsx`**, **`PrDetailView.jsx`** — Dynamic approval + SAP steps for all users.
+- **`lib/sap/prRequester.js`**, **`lib/sap/prSap.js`** — Populate PR requester; SAP payload uses PR requester mapping; `actionPerformedBy` in logs.
+- Tests: `effectivePermissions`, `prPendingApproval`, `workflowSteps`, updated `prSap`, `approvalEngine`.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 141 tests, 39 files |
+
 ## Fix — standalone Node seed (`seed:users`)
 
 ### Problem

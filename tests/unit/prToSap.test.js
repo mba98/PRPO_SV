@@ -80,7 +80,9 @@ describe('prToSap mapper', () => {
     const payload = mapPrToSap(pr, { branchMap: { IT: 2 } });
     const validation = validatePrSapPayload(pr, payload, { requesterUsername: 'requester' });
     expect(validation.ok).toBe(false);
-    expect(validation.errors.join('; ')).toMatch(/Missing SAP requester code for user requester/);
+    expect(validation.errors.join('; ')).toMatch(
+      /Missing SAP requester code for PR requester requester/,
+    );
   });
 
   it('maps PR document to SAP payload shape', () => {

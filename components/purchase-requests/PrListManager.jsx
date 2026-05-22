@@ -20,7 +20,10 @@ export default function PrListManager() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasPermission = useAuthStore((s) => s.hasPermission);
+  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const canCreate = hasPermission('pr.create');
+  const canSeePending =
+    hasAnyPermission(['pr.approve.whs', 'pr.approve.pm', 'view.all']);
 
   const tab = searchParams.get('tab') || 'my';
   const [items, setItems] = useState([]);
@@ -70,7 +73,11 @@ export default function PrListManager() {
     load();
   }
 
-  const visibleTabs = TABS.filter((t) => !t.perm || hasPermission(t.perm));
+  const visibleTabs = TABS.filter((t) => {
+    if (t.id === 'pending') return canSeePending;
+    if (t.perm) return hasPermission(t.perm);
+    return true;
+  });
 
   return (
     <div className="space-y-6">

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import WorkflowStepper from '@/components/workflow/WorkflowStepper';
 
 export default function PrDetailView({ id }) {
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -52,14 +53,14 @@ export default function PrDetailView({ id }) {
   if (loading) return <AnimatedSkeletonLoader rows={8} />;
   if (!pr) return <p className="text-red-600">{error || 'Not found'}</p>;
 
-  const canApprove =
-    ['Pending Warehouse Approval', 'Pending Project Manager Approval'].includes(pr.status) &&
-    (hasPermission('pr.approve.whs') || hasPermission('pr.approve.pm') || hasPermission('view.all'));
+  const canApprove = pr.canApproveCurrentStep === true;
 
   const tabs = ['details', 'attachments', 'comments', 'history'];
 
   return (
     <div className="space-y-6">
+      {pr.workflowSteps?.length > 0 && <WorkflowStepper steps={pr.workflowSteps} />}
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-slate-500">
