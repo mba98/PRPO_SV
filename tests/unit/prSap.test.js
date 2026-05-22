@@ -97,7 +97,7 @@ describe('createSapPurchaseRequest', () => {
     const result = await createSapPurchaseRequest(PR_ID, adminUser);
     expect(result.success).toBe(true);
     expect(createPR).toHaveBeenCalledWith(
-      expect.objectContaining({ Requester: 'EMP-REQ' }),
+      expect.objectContaining({ Requester: 'EMP-REQ' }), // string when non-numeric
     );
     expect(logCreate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -149,6 +149,25 @@ describe('createSapPurchaseRequest', () => {
     expect(createPR).not.toHaveBeenCalled();
   });
 
+  it('omits costing code when retrying after SAP failure', async () => {
+    findById.mockResolvedValue({
+      ...basePr,
+      status: 'Failed to Create in SAP',
+      lines: [
+        {
+          itemCode: 'ITEM1',
+          quantity: 1,
+          warehouseCode: 'WH01',
+          costCenter: 'Project',
+        },
+      ],
+    });
+    createPR.mockResolvedValue({ DocEntry: 1, DocNum: 1 });
+    await createSapPurchaseRequest(PR_ID, adminUser);
+    const payload = createPR.mock.calls[0][0];
+    expect(payload.DocumentLines[0].CostingCode).toBeUndefined();
+  });
+
   it('uses dev default requester code 12 when user sapRequesterCode is missing', async () => {
     findById.mockResolvedValue({
       ...basePr,
@@ -158,7 +177,7 @@ describe('createSapPurchaseRequest', () => {
     const result = await createSapPurchaseRequest(PR_ID, adminUser);
     expect(result.success).toBe(true);
     expect(createPR).toHaveBeenCalledWith(
-      expect.objectContaining({ Requester: '12' }),
+      expect.objectContaining({ Requester: 12 }),
     );
   });
 

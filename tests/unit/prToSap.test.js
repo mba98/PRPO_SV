@@ -1,8 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import {
   buildPrSapDebugMeta,
+  formatSapReferenceSummary,
   isMongoObjectIdString,
   mapPrToSap,
+  normalizeSapRequesterValue,
   resolveBranchId,
   resolveRequesterSapCode,
   validatePrSapPayload,
@@ -37,6 +39,26 @@ describe('prToSap mapper', () => {
     const payload = mapPrToSap(pr, { branchMap: { IT: 2 } });
     expect(payload.Requester).toBeUndefined();
     expect(String(payload.Requester || '')).not.toBe(OBJECT_ID);
+  });
+
+  it('normalizes numeric requester codes to integers', () => {
+    expect(normalizeSapRequesterValue('12')).toBe(12);
+    expect(normalizeSapRequesterValue('EMP-42')).toBe('EMP-42');
+  });
+
+  it('omits costing code when omitCostingCode option is set', () => {
+    const pr = {
+      department: 'IT',
+      requiredDate: new Date('2026-05-21'),
+      lines: [{ itemCode: 'ITEM1', quantity: 1, warehouseCode: 'WH01', costCenter: 'CC1' }],
+    };
+    const payload = mapPrToSap(pr, {
+      branchMap: { IT: 2 },
+      requesterSapCode: '12',
+      omitCostingCode: true,
+    });
+    expect(payload.DocumentLines[0].CostingCode).toBeUndefined();
+    expect(payload.Requester).toBe(12);
   });
 
   it('uses user sapRequesterCode when provided', () => {
@@ -135,5 +157,20 @@ describe('prToSap mapper', () => {
     expect(meta.sapRequesterCode).toBe('EMP001');
     expect(meta.lines[0].ItemCode).toBe('ITEM1');
     expect(JSON.stringify(meta)).not.toMatch(/password|cookie|B1SESSION/i);
+  });
+
+  it('formats SAP reference summary for error messages', () => {
+    const payload = {
+      Requester: 12,
+      BPL_IDAssignedToInvoice: 1,
+      DocumentLines: [{ ItemCode: 'A1', WarehouseCode: 'WH1', CostingCode: 'Project' }],
+    };
+    const summary = formatSapReferenceSummary(payload, {
+      sapRequesterCode: 12,
+      header: { BPL_IDAssignedToInvoice: 1, ReqType: 12 },
+      lines: [{ ItemCode: 'A1', WarehouseCode: 'WH1', CostingCode: 'Project' }],
+    });
+    expect(summary).toMatch(/Requester=12/);
+    expect(summary).toMatch(/CostCenter=Project/);
   });
 });

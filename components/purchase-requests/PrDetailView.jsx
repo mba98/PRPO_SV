@@ -137,6 +137,11 @@ export default function PrDetailView({ id }) {
                 {pr.sapErrorMessage && (
                   <p className="mt-1 text-sm text-rose-800">{pr.sapErrorMessage}</p>
                 )}
+                {pr.sapReferenceSummary && (
+                  <p className="mt-2 text-xs text-rose-900/90 font-mono break-all">
+                    {pr.sapReferenceSummary}
+                  </p>
+                )}
                 {pr.requesterMissingSapCode && (
                   <p className="mt-2 text-sm text-rose-800">
                     Original requester is missing SAP requester code.

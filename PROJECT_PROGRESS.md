@@ -689,3 +689,23 @@ SAP PR create failed (ODBC -2028) when portal `requester` had no `sapRequesterCo
 | `npm run seed:users` | Pass — updated `requester` SAP code to `12` |
 | `npm run lint` | Pass |
 | `npm test` | Pass — 157 tests, 43 files |
+
+## Fix — SAP ODBC -2028 diagnostics and retry without invalid cost center
+
+### Root cause (PR-20260522-0002)
+
+SAP payload had valid-looking codes but **cost center `Project`** on the line (not a SAP distribution rule code). Requester `12` was already set; failure was likely cost center and/or branch/item/warehouse in `SV_DEMO_19052026`.
+
+### Changes
+
+- **`lib/sap/mappers/prToSap.js`** — Numeric requester as integer; omit empty project/costing; `formatSapReferenceSummary()`; on **retry** after `Failed to Create in SAP`, omit `CostingCode` from lines.
+- **`lib/sap/prSap.js`** — Error message lists values sent; hint when cost center is `Project`.
+- **`lib/purchaseRequestsService.js`**, **`PrDetailView.jsx`** — Show `sapReferenceSummary` on failed PR detail.
+- **`scripts/validateSapPrRefs.mjs`** — Local SAP reference check helper.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 161 tests, 43 files |
