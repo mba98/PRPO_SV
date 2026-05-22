@@ -6,6 +6,7 @@ import { loadEnvLocal } from '../lib/loadEnvLocal.js';
 import { connectMongo, disconnectMongo, getMongoUriSummary } from '../lib/mongodb.js';
 import { formatMongoConnectionError } from '../lib/mongodbUri.js';
 import { hashPassword } from './admin.js';
+import { resolveDefaultSapRequesterCode } from '../lib/sap/sapRequesterConfig.js';
 
 function resolveAdminPassword() {
   const fromEnv = process.env.SEED_ADMIN_PASSWORD;
@@ -103,9 +104,7 @@ function envSapCodeForUsername(username) {
  */
 export async function upsertSapRequesterCodes() {
   const force = process.env.FORCE_UPDATE_SAP_REQUESTER_CODES === 'true';
-  const defaultCode = process.env.DEFAULT_SAP_REQUESTER_CODE?.trim() || null;
-  const requesterCode =
-    process.env.SAP_REQUESTER_CODE_REQUESTER?.trim() || defaultCode;
+  const requesterCode = resolveDefaultSapRequesterCode();
   const results = { updated: [], unchanged: [] };
 
   for (const spec of DEFAULT_TEST_USERS) {
@@ -160,11 +159,9 @@ export async function seedDefaultUsers(options = {}) {
     const role = roleByName[spec.roleName];
     const plainPassword = spec.resolvePassword ? spec.resolvePassword() : spec.password;
     const passwordHash = await hashPassword(plainPassword);
-    const defaultCode = process.env.DEFAULT_SAP_REQUESTER_CODE?.trim() || null;
-    const requesterEnvCode = process.env.SAP_REQUESTER_CODE_REQUESTER?.trim() || defaultCode;
     const sapRequesterCode =
       spec.username === 'requester'
-        ? requesterEnvCode
+        ? resolveDefaultSapRequesterCode()
         : envSapCodeForUsername(spec.username) || undefined;
 
     await User.create({

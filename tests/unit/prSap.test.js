@@ -126,14 +126,40 @@ describe('createSapPurchaseRequest', () => {
   });
 
   it('returns validation error for original requester without sapRequesterCode', async () => {
+    const prevNodeEnv = process.env.NODE_ENV;
+    const prevDefault = process.env.DEFAULT_SAP_REQUESTER_CODE;
+    const prevRequester = process.env.SAP_REQUESTER_CODE_REQUESTER;
+    process.env.NODE_ENV = 'production';
+    delete process.env.DEFAULT_SAP_REQUESTER_CODE;
+    delete process.env.SAP_REQUESTER_CODE_REQUESTER;
+
     findById.mockResolvedValue({
       ...basePr,
       requester: { _id: REQUESTER_ID, username: 'requester', sapRequesterCode: null },
     });
     const result = await createSapPurchaseRequest(PR_ID, adminUser);
+    process.env.NODE_ENV = prevNodeEnv;
+    if (prevDefault !== undefined) process.env.DEFAULT_SAP_REQUESTER_CODE = prevDefault;
+    else delete process.env.DEFAULT_SAP_REQUESTER_CODE;
+    if (prevRequester !== undefined) process.env.SAP_REQUESTER_CODE_REQUESTER = prevRequester;
+    else delete process.env.SAP_REQUESTER_CODE_REQUESTER;
+
     expect(result.error).toBe('SAP_VALIDATION');
     expect(result.message).toMatch(/Missing SAP requester code for PR requester requester/);
     expect(createPR).not.toHaveBeenCalled();
+  });
+
+  it('uses dev default requester code 12 when user sapRequesterCode is missing', async () => {
+    findById.mockResolvedValue({
+      ...basePr,
+      requester: { _id: REQUESTER_ID, username: 'requester', sapRequesterCode: null },
+    });
+    createPR.mockResolvedValue({ DocEntry: 1, DocNum: 1 });
+    const result = await createSapPurchaseRequest(PR_ID, adminUser);
+    expect(result.success).toBe(true);
+    expect(createPR).toHaveBeenCalledWith(
+      expect.objectContaining({ Requester: '12' }),
+    );
   });
 
   it('maps ODBC -2028 to a friendly API message while logging raw error', async () => {

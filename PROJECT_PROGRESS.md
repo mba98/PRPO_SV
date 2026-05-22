@@ -668,3 +668,24 @@ Optional: `FORCE_UPDATE_SAP_REQUESTER_CODES=true` to overwrite existing codes.
 | `npm run seed:users` | Pass — connected and seeded users |
 | `npm run lint` | Pass |
 | `npm test` | Pass — 119 tests, 35 files |
+
+## Fix — default SAP requester code `12` (dev)
+
+### Problem
+
+SAP PR create failed (ODBC -2028) when portal `requester` had no `sapRequesterCode` and env was not set.
+
+### Changes
+
+- **`lib/sap/sapRequesterConfig.js`** — `DEV_DEFAULT_SAP_REQUESTER_CODE = '12'`; `resolveDefaultSapRequesterCode()` (env overrides, then dev fallback outside production).
+- **`seed/users.js`** — Uses shared resolver for create + `upsertSapRequesterCodes`.
+- **`lib/sap/prSap.js`** — SAP settings fallback uses same default when `system_settings.sap_default_requester` is unset.
+- **`tests/unit/sapRequesterConfig.test.js`**, **`tests/unit/prSap.test.js`** — Resolver + dev default `12` coverage.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run seed:users` | Pass — updated `requester` SAP code to `12` |
+| `npm run lint` | Pass |
+| `npm test` | Pass — 157 tests, 43 files |
