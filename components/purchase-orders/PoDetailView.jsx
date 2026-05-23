@@ -144,6 +144,12 @@ export default function PoDetailView({ id }) {
                 <p className="mt-1 text-sm text-rose-700">{po.sapErrorMessage}</p>
               </div>
             )}
+            {po.sapWarnings && (
+              <div className="sm:col-span-2">
+                <p className="text-xs font-medium uppercase text-amber-600">SAP warnings</p>
+                <p className="mt-1 text-sm text-amber-800">{po.sapWarnings}</p>
+              </div>
+            )}
           </section>
           <section className="card overflow-x-auto">
             <h2 className="mb-4 text-lg font-semibold">Line items</h2>

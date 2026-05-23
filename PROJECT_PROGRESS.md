@@ -837,3 +837,25 @@ Run `npm run seed:users` on existing dev DBs to refresh role permission arrays f
 |---------|--------|
 | `npm run lint` | Pass — no ESLint warnings or errors |
 | `npm test` | Pass — 208 tests, 47 files |
+
+---
+
+## Fix — Standalone SAP PO (no PR base document) (2026-05-23)
+
+### Problem
+
+Creating SAP PO with `BaseType` / `BaseEntry` / `BaseLine` from SAP PR caused exchange-rate and quantity errors. Standalone PO with `DocCurrency` + `DocRate` works.
+
+### Solution
+
+- Standalone `/PurchaseOrders` payload (no base document lines)
+- After PO success: PATCH PR Comments (append), POST PR Close
+- Non-fatal warnings if PR comment/close fails; PO is not rolled back
+- Duplicate guard on `sapPODocEntry` unchanged
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 214 tests, 48 files |

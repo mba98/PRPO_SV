@@ -84,13 +84,15 @@ describe('PO uomCode and docRate', () => {
     expect(payload.DocRate).toBe(11500);
   });
 
-  it('poToSap omits DocRate when missing', () => {
+  it('poToSap includes DocCurrency and default DocRate in non-production', () => {
     const payload = mapPoToSap({
       vendor: 'V1',
       requiredDate: new Date('2026-05-21'),
-      lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5 }],
+      lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5, warehouseCode: 'RAN004' }],
     });
-    expect(payload.DocRate).toBeUndefined();
+    expect(payload.DocCurrency).toBe('USD');
+    expect(payload.DocRate).toBe(1350);
+    expect(payload.DocumentLines[0].BaseType).toBeUndefined();
   });
 
   it('poToSap maps line uomCode to UoMCode', () => {
@@ -105,6 +107,7 @@ describe('PO uomCode and docRate', () => {
       {},
     );
     expect(payload.DocumentLines[0].UoMCode).toBe('PCS');
+    expect(payload.DocumentLines[0].BaseEntry).toBeUndefined();
   });
 
   it('poToSap omits empty UoMCode', () => {
