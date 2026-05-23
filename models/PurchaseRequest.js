@@ -31,6 +31,7 @@ const purchaseRequestSchema = new mongoose.Schema(
     department: String,
     project: String,
     requiredDate: Date,
+    dueDate: Date,
     postingDate: Date,
     documentDate: Date,
     warehouse: String,

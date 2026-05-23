@@ -8,7 +8,10 @@ import { uploadAttachmentFile } from '@/lib/uploadClient';
 import { useAuthStore } from '@/stores/authStore';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import VendorSelect from '@/components/lookups/VendorSelect';
+import WarehouseSelect from '@/components/lookups/WarehouseSelect';
 import CreateItemModal from './CreateItemModal';
+
+const DEFAULT_WAREHOUSE_CODE = 'RAN004';
 
 const EMPTY_LINE = () => ({
   itemCode: '',
@@ -17,6 +20,8 @@ const EMPTY_LINE = () => ({
   uom: '',
   vendor: '',
   vendorLabel: '',
+  warehouseCode: DEFAULT_WAREHOUSE_CODE,
+  warehouseLabel: DEFAULT_WAREHOUSE_CODE,
   quantity: 1,
   estimatedUnitPrice: '',
   estimatedTotal: '',
@@ -35,6 +40,8 @@ export default function PrCreateForm() {
 
   const [header, setHeader] = useState({
     requiredDate: '',
+    documentDate: '',
+    dueDate: '',
     remarks: '',
   });
   const [lines, setLines] = useState([EMPTY_LINE()]);
@@ -44,6 +51,21 @@ export default function PrCreateForm() {
   const [itemModal, setItemModal] = useState(false);
   const [itemModalLine, setItemModalLine] = useState(0);
   const [noResultsLine, setNoResultsLine] = useState(null);
+
+  function updateHeader(patch) {
+    setHeader((prev) => {
+      const next = { ...prev, ...patch };
+      if (patch.requiredDate != null) {
+        if (!prev.documentDate || prev.documentDate === prev.requiredDate) {
+          next.documentDate = patch.requiredDate;
+        }
+        if (!prev.dueDate || prev.dueDate === prev.requiredDate) {
+          next.dueDate = patch.requiredDate;
+        }
+      }
+      return next;
+    });
+  }
 
   function updateLine(idx, patch) {
     setLines((prev) =>
@@ -69,14 +91,20 @@ export default function PrCreateForm() {
     setSaving(true);
     setError('');
 
+    const documentDate = header.documentDate || header.requiredDate;
+    const dueDate = header.dueDate || header.requiredDate;
+
     const payload = {
       requiredDate: header.requiredDate,
+      documentDate: documentDate || undefined,
+      dueDate: dueDate || undefined,
       remarks: header.remarks || undefined,
       lines: lines.map((l) => ({
         itemCode: l.itemCode,
         itemName: l.itemName || undefined,
         uom: l.uom || undefined,
         vendor: l.vendor || undefined,
+        warehouseCode: l.warehouseCode || undefined,
         quantity: Number(l.quantity),
         estimatedUnitPrice: l.estimatedUnitPrice ? Number(l.estimatedUnitPrice) : undefined,
         estimatedTotal: l.estimatedTotal ? Number(l.estimatedTotal) : undefined,
@@ -140,7 +168,25 @@ export default function PrCreateForm() {
               type="date"
               required
               value={header.requiredDate}
-              onChange={(e) => setHeader((h) => ({ ...h, requiredDate: e.target.value }))}
+              onChange={(e) => updateHeader({ requiredDate: e.target.value })}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="text-slate-600">Document date</span>
+            <input
+              className="input-field mt-1"
+              type="date"
+              value={header.documentDate}
+              onChange={(e) => updateHeader({ documentDate: e.target.value })}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="text-slate-600">Due date</span>
+            <input
+              className="input-field mt-1"
+              type="date"
+              value={header.dueDate}
+              onChange={(e) => updateHeader({ dueDate: e.target.value })}
             />
           </label>
           <label className="block text-sm sm:col-span-2">
@@ -149,7 +195,7 @@ export default function PrCreateForm() {
               className="input-field mt-1"
               rows={2}
               value={header.remarks}
-              onChange={(e) => setHeader((h) => ({ ...h, remarks: e.target.value }))}
+              onChange={(e) => updateHeader({ remarks: e.target.value })}
             />
           </label>
         </div>
@@ -202,6 +248,16 @@ export default function PrCreateForm() {
                     readOnly
                     value={line.itemName}
                     placeholder="From SAP item"
+                  />
+                </label>
+                <label className="text-sm">
+                  <span className="text-slate-600">Warehouse *</span>
+                  <WarehouseSelect
+                    valueCode={line.warehouseCode}
+                    valueLabel={line.warehouseLabel}
+                    onSelect={(code, label) =>
+                      updateLine(idx, { warehouseCode: code, warehouseLabel: label })
+                    }
                   />
                 </label>
                 <label className="text-sm">

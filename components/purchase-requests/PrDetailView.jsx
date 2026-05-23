@@ -113,16 +113,18 @@ export default function PrDetailView({ id }) {
           <section className="card grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ['Requester', pr.requesterName || pr.requesterEmail],
+              ['SAP requester code', pr.requesterSapRequesterCode || '—'],
               [
                 'Required date',
                 pr.requiredDate ? new Date(pr.requiredDate).toLocaleDateString() : '—',
               ],
+              [
+                'Document date',
+                pr.documentDate ? new Date(pr.documentDate).toLocaleDateString() : '—',
+              ],
+              ['Due date', pr.dueDate ? new Date(pr.dueDate).toLocaleDateString() : '—'],
               ['SAP PR DocNum', pr.sapPRDocNum || '—'],
               ['SAP PR DocEntry', pr.sapPRDocEntry || '—'],
-              // Legacy fields are only shown when an older PR actually has them.
-              ...(pr.department ? [['Department', pr.department]] : []),
-              ...(pr.project ? [['Project', pr.project]] : []),
-              ...(pr.warehouse ? [['Warehouse', pr.warehouse]] : []),
             ].map(([label, val]) => (
               <div key={label}>
                 <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
@@ -166,6 +168,7 @@ export default function PrDetailView({ id }) {
               <thead className="text-left text-xs uppercase text-slate-500">
                 <tr>
                   <th className="pb-2 pr-4">Item</th>
+                  <th className="pb-2 pr-4">Warehouse</th>
                   <th className="pb-2 pr-4">Qty</th>
                   <th className="pb-2 pr-4">Unit price</th>
                   <th className="pb-2 pr-4">Total</th>
@@ -179,6 +182,7 @@ export default function PrDetailView({ id }) {
                       <span className="font-medium">{line.itemCode}</span>
                       <span className="ml-2 text-slate-600">{line.itemName}</span>
                     </td>
+                    <td className="py-2 pr-4">{line.warehouseCode || '—'}</td>
                     <td className="py-2 pr-4">{line.quantity}</td>
                     <td className="py-2 pr-4">{line.estimatedUnitPrice ?? '—'}</td>
                     <td className="py-2 pr-4">{line.estimatedTotal ?? '—'}</td>

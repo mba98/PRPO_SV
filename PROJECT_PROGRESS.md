@@ -736,3 +736,55 @@ SAP payload had valid-looking codes but **cost center `Project`** on the line (n
 | `npm run lint` | Pass |
 | `npm test` | Pass — 163 tests, 43 files |
 | `npm run seed:settings` | Pass |
+
+## Fix — SAP PR Postman-aligned payload (RequriedDate, manager, RAN004)
+
+### Confirmed working Postman payload
+
+- Header: `ReqType` 12, `Requester` `manager`, `RequriedDate` (SAP misspelling), `DocDate`, `DocDueDate`, `Comments`
+- Lines: `ItemCode`, `LineVendor`, `Quantity`, `RequiredDate`, `WarehouseCode`, `UnitPrice`
+- Does **not** send: `DocType`, `BPL_IDAssignedToInvoice`, `CostingCode`, `ProjectCode`, `U_Department`, header `ReqDate`/`RequiredDate`
+
+### Changes
+
+- **`lib/sap/mappers/prToSap.js`** — Postman-shaped mapper; debug summary with Vendor/Qty/UnitPrice.
+- **`lib/sap/sapRequesterConfig.js`** — Dev default requester `manager`.
+- **`lib/sap/sapWarehouseConfig.js`** — Dev default warehouse `RAN004`.
+- **`lib/sap/prSap.js`** — Simplified settings load (requester only).
+- **`PrCreateForm.jsx`** — Required/document/due dates; warehouse + vendor on lines.
+- **`lib/validators/purchaseRequest.js`**, **`models/PurchaseRequest.js`**, **`purchaseRequestsService.js`**, **`PrDetailView.jsx`**
+- **`.env.local.example`** — `DEFAULT_SAP_REQUESTER_CODE=manager`, `DEFAULT_SAP_WAREHOUSE_CODE=RAN004`
+- **`lib/sap/mappers/poToSap.js`** — Import `resolveBranchId` from `sapBranchConfig`.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 176 tests, 43 files |
+
+## Fix — SAP PR Postman-aligned payload (RequriedDate, manager, RAN004)
+
+### Confirmed working Postman payload
+
+- Header: `ReqType` 12, `Requester` `manager`, `RequriedDate` (SAP misspelling), `DocDate`, `DocDueDate`, `Comments`
+- Lines: `ItemCode`, `LineVendor`, `Quantity`, `RequiredDate`, `WarehouseCode`, `UnitPrice`
+- Does **not** send: `DocType`, `BPL_IDAssignedToInvoice`, `CostingCode`, `ProjectCode`, `U_Department`, header `ReqDate`/`RequiredDate`
+
+### Changes
+
+- **`lib/sap/mappers/prToSap.js`** — Postman-shaped mapper; `formatSapReferenceSummary` with Vendor/Qty/UnitPrice.
+- **`lib/sap/sapRequesterConfig.js`** — Dev default requester `manager`.
+- **`lib/sap/sapWarehouseConfig.js`** — Dev default warehouse `RAN004`.
+- **`lib/sap/prSap.js`** — Simplified settings load (requester only).
+- **`PrCreateForm.jsx`** — Required/document/due dates; warehouse + vendor on lines; default `RAN004`.
+- **`lib/validators/purchaseRequest.js`**, **`models/PurchaseRequest.js`**, **`purchaseRequestsService.js`**, **`PrDetailView.jsx`**
+- **`.env.local.example`** — `DEFAULT_SAP_REQUESTER_CODE=manager`, `DEFAULT_SAP_WAREHOUSE_CODE=RAN004`
+- **`lib/sap/mappers/poToSap.js`** — Import `resolveBranchId` from `sapBranchConfig` (fix re-export removal).
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 176 tests, 43 files |

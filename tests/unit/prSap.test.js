@@ -56,19 +56,29 @@ const PR_ID = '507f1f77bcf86cd799439012';
 const REQUESTER_ID = '507f1f77bcf86cd799439099';
 const ADMIN_ID = '507f1f77bcf86cd799439088';
 
-const basePr = {
+const postmanPr = {
   _id: PR_ID,
-  portalPRNumber: 'PR-20260521-0001',
+  portalPRNumber: 'PR-20260522-0003',
   requester: {
     _id: REQUESTER_ID,
     username: 'requester',
-    sapRequesterCode: 'EMP-REQ',
+    sapRequesterCode: 'manager',
     email: 'requester@portal.local',
   },
-  department: 'IT',
-  requiredDate: new Date('2026-05-21'),
+  requiredDate: new Date('2026-05-18'),
+  documentDate: new Date('2026-05-18'),
+  dueDate: new Date('2026-05-19'),
+  remarks: 'Postman vendor test',
   status: 'Approved',
-  lines: [{ itemCode: 'ITEM1', quantity: 1, warehouseCode: 'WH01' }],
+  lines: [
+    {
+      itemCode: 'ALK00004SV',
+      vendor: 'V000001',
+      quantity: 3,
+      warehouseCode: 'RAN004',
+      estimatedUnitPrice: 200000,
+    },
+  ],
 };
 
 const adminUser = { _id: ADMIN_ID, username: 'admin', permissions: ['view.all'] };
@@ -77,33 +87,48 @@ describe('createSapPurchaseRequest', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     updateOne.mockResolvedValue({});
-    settingsFind.mockImplementation(({ key }) => {
-      if (key === 'branch_map') {
-        return Promise.resolve({ value: { Procurement: -2, default: -2, IT: 2 } });
-      }
-      if (key === 'sap_department_map') {
-        return Promise.resolve({ value: { Procurement: 'General', default: 'General' } });
-      }
-      if (key === 'sap_default_requester') return Promise.resolve(null);
-      return Promise.resolve(null);
-    });
+    settingsFind.mockResolvedValue(null);
   });
 
   it('returns DUPLICATE_SAP when sapPRDocEntry already exists', async () => {
-    findById.mockResolvedValue({ ...basePr, sapPRDocEntry: 99 });
+    findById.mockResolvedValue({ ...postmanPr, sapPRDocEntry: 49 });
     const result = await createSapPurchaseRequest(PR_ID, adminUser);
     expect(result.error).toBe('DUPLICATE_SAP');
     expect(createPR).not.toHaveBeenCalled();
   });
 
-  it('retry SAP as admin uses original PR requester sapRequesterCode', async () => {
-    findById.mockResolvedValue(basePr);
-    createPR.mockResolvedValue({ DocEntry: 10, DocNum: 100 });
+  it('posts Postman-aligned payload on SAP create', async () => {
+    findById.mockResolvedValue(postmanPr);
+    createPR.mockResolvedValue({ DocEntry: 49, DocNum: 2600007, DocType: 'dDocument_Items' });
     const result = await createSapPurchaseRequest(PR_ID, adminUser);
     expect(result.success).toBe(true);
-    expect(createPR).toHaveBeenCalledWith(
-      expect.objectContaining({ Requester: 'EMP-REQ' }), // string when non-numeric
-    );
+    expect(createPR).toHaveBeenCalledWith({
+      ReqType: 12,
+      Requester: 'manager',
+      RequriedDate: '2026-05-18',
+      DocDate: '2026-05-18',
+      DocDueDate: '2026-05-19',
+      Comments: 'Postman vendor test',
+      DocumentLines: [
+        {
+          ItemCode: 'ALK00004SV',
+          LineVendor: 'V000001',
+          Quantity: 3,
+          RequiredDate: '2026-05-18',
+          WarehouseCode: 'RAN004',
+          UnitPrice: 200000,
+        },
+      ],
+    });
+    expect(createPR.mock.calls[0][0].DocType).toBeUndefined();
+    expect(createPR.mock.calls[0][0].BPL_IDAssignedToInvoice).toBeUndefined();
+  });
+
+  it('retry SAP as admin uses original PR requester sapRequesterCode', async () => {
+    findById.mockResolvedValue(postmanPr);
+    createPR.mockResolvedValue({ DocEntry: 49, DocNum: 2600007 });
+    await createSapPurchaseRequest(PR_ID, adminUser);
+    expect(createPR).toHaveBeenCalledWith(expect.objectContaining({ Requester: 'manager' }));
     expect(logCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         requestPayload: expect.objectContaining({
@@ -116,21 +141,7 @@ describe('createSapPurchaseRequest', () => {
     );
   });
 
-  it('does not require admin.sapRequesterCode when admin retries', async () => {
-    findById.mockResolvedValue({
-      ...basePr,
-      requester: { _id: REQUESTER_ID, username: 'requester', sapRequesterCode: 'EMP-REQ' },
-    });
-    createPR.mockResolvedValue({ DocEntry: 1, DocNum: 1 });
-    const result = await createSapPurchaseRequest(PR_ID, {
-      _id: ADMIN_ID,
-      username: 'admin',
-    });
-    expect(result.error).toBeUndefined();
-    expect(result.success).toBe(true);
-  });
-
-  it('returns validation error for original requester without sapRequesterCode', async () => {
+  it('returns validation error for original requester without sapRequesterCode in production', async () => {
     const prevNodeEnv = process.env.NODE_ENV;
     const prevDefault = process.env.DEFAULT_SAP_REQUESTER_CODE;
     const prevRequester = process.env.SAP_REQUESTER_CODE_REQUESTER;
@@ -139,7 +150,7 @@ describe('createSapPurchaseRequest', () => {
     delete process.env.SAP_REQUESTER_CODE_REQUESTER;
 
     findById.mockResolvedValue({
-      ...basePr,
+      ...postmanPr,
       requester: { _id: REQUESTER_ID, username: 'requester', sapRequesterCode: null },
     });
     const result = await createSapPurchaseRequest(PR_ID, adminUser);
@@ -154,68 +165,19 @@ describe('createSapPurchaseRequest', () => {
     expect(createPR).not.toHaveBeenCalled();
   });
 
-  it('sends Procurement branch -2 and DocType for approved PR', async () => {
+  it('uses dev default requester manager when user sapRequesterCode is missing', async () => {
     findById.mockResolvedValue({
-      ...basePr,
-      department: 'Procurement',
-      requester: { _id: REQUESTER_ID, username: 'requester', sapRequesterCode: '12' },
-    });
-    createPR.mockResolvedValue({ DocEntry: 1, DocNum: 1 });
-    await createSapPurchaseRequest(PR_ID, adminUser);
-    expect(createPR).toHaveBeenCalledWith(
-      expect.objectContaining({
-        Requester: '12',
-        BPL_IDAssignedToInvoice: -2,
-        DocType: 'dDocument_Items',
-      }),
-    );
-    // Simplified flow: U_Department is no longer sent.
-    expect(createPR.mock.calls[0][0].U_Department).toBeUndefined();
-  });
-
-  it('does not send WarehouseCode or CostingCode by default', async () => {
-    findById.mockResolvedValue({
-      ...basePr,
-      department: 'Procurement',
-      lines: [
-        {
-          itemCode: 'ITEM1',
-          quantity: 1,
-          estimatedUnitPrice: 2222000,
-          warehouseCode: 'RAN001',
-          costCenter: 'Retail',
-        },
-      ],
-    });
-    createPR.mockResolvedValue({ DocEntry: 1, DocNum: 1 });
-    await createSapPurchaseRequest(PR_ID, adminUser);
-    const payload = createPR.mock.calls[0][0];
-    expect(payload.DocumentLines[0].WarehouseCode).toBeUndefined();
-    expect(payload.DocumentLines[0].CostingCode).toBeUndefined();
-    expect(payload.DocumentLines[0].UnitPrice).toBe(2222000);
-  });
-
-  it('uses dev default requester code 12 when user sapRequesterCode is missing', async () => {
-    findById.mockResolvedValue({
-      ...basePr,
-      department: 'Procurement',
+      ...postmanPr,
       requester: { _id: REQUESTER_ID, username: 'requester', sapRequesterCode: null },
     });
-    createPR.mockResolvedValue({ DocEntry: 1, DocNum: 1 });
+    createPR.mockResolvedValue({ DocEntry: 49, DocNum: 2600007 });
     const result = await createSapPurchaseRequest(PR_ID, adminUser);
     expect(result.success).toBe(true);
-    expect(createPR).toHaveBeenCalledWith(
-      expect.objectContaining({
-        Requester: '12',
-        BPL_IDAssignedToInvoice: -2,
-        DocType: 'dDocument_Items',
-        ReqType: 12,
-      }),
-    );
+    expect(createPR).toHaveBeenCalledWith(expect.objectContaining({ Requester: 'manager' }));
   });
 
   it('maps ODBC -2028 to a friendly API message while logging raw error', async () => {
-    findById.mockResolvedValue(basePr);
+    findById.mockResolvedValue(postmanPr);
     createPR.mockRejectedValue({
       message: 'Request failed',
       responseBody: {
