@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e 'try{const u=require\\(\"undici\"\\);console.log\\(\"undici resolved:\", !!u.Agent\\)}catch\\(e\\){console.log\\(\"undici require failed:\", e.message\\)}')",
+      "Bash(node -e ' *)",
+      "Bash(grep -q '^SAP_SL_INSECURE_TLS=' .env.local)",
+      "Bash(printf '\\\\n# SAP Service Layer TLS: internal HANA host uses a self-signed cert \\(added by warehouse-lookup fix\\)\\\\nSAP_SL_INSECURE_TLS=true\\\\n')"
+    ]
+  }
+}

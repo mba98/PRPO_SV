@@ -167,29 +167,32 @@ describe('createSapPurchaseRequest', () => {
         Requester: '12',
         BPL_IDAssignedToInvoice: -2,
         DocType: 'dDocument_Items',
-        U_Department: 'General',
       }),
     );
+    // Simplified flow: U_Department is no longer sent.
+    expect(createPR.mock.calls[0][0].U_Department).toBeUndefined();
   });
 
-  it('omits costing code when retrying after SAP failure', async () => {
+  it('does not send WarehouseCode or CostingCode by default', async () => {
     findById.mockResolvedValue({
       ...basePr,
       department: 'Procurement',
-      status: 'Failed to Create in SAP',
       lines: [
         {
           itemCode: 'ITEM1',
           quantity: 1,
-          warehouseCode: 'WH01',
-          costCenter: 'Project',
+          estimatedUnitPrice: 2222000,
+          warehouseCode: 'RAN001',
+          costCenter: 'Retail',
         },
       ],
     });
     createPR.mockResolvedValue({ DocEntry: 1, DocNum: 1 });
     await createSapPurchaseRequest(PR_ID, adminUser);
     const payload = createPR.mock.calls[0][0];
+    expect(payload.DocumentLines[0].WarehouseCode).toBeUndefined();
     expect(payload.DocumentLines[0].CostingCode).toBeUndefined();
+    expect(payload.DocumentLines[0].UnitPrice).toBe(2222000);
   });
 
   it('uses dev default requester code 12 when user sapRequesterCode is missing', async () => {
@@ -207,7 +210,6 @@ describe('createSapPurchaseRequest', () => {
         BPL_IDAssignedToInvoice: -2,
         DocType: 'dDocument_Items',
         ReqType: 12,
-        U_Department: 'General',
       }),
     );
   });
