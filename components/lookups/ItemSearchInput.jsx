@@ -43,10 +43,12 @@ export default function ItemSearchInput({ value, onSelect, disabled, onSearchErr
   }, [query, onSearchError]);
 
   function pick(item) {
+    const uomCode = item.uomCode || item.uom || item.purchaseUom || item.inventoryUom;
     onSelect({
       itemCode: item.itemCode,
       itemName: item.itemName,
       uom: item.uom || item.purchaseUom || item.inventoryUom,
+      uomCode,
       itemGroupCode: item.itemGroupCode,
       itemGroupName: item.itemGroupName || item.itemGroup,
     });

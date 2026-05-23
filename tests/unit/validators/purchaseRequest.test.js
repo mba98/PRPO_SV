@@ -6,6 +6,22 @@ import {
 } from '@/lib/validators/purchaseRequest';
 
 describe('purchaseRequest validators', () => {
+  it('accepts optional uomCode on lines', () => {
+    const valid = createPurchaseRequestSchema.safeParse({
+      requiredDate: '2026-05-21',
+      lines: [
+        {
+          itemCode: 'A001',
+          quantity: 2,
+          estimatedUnitPrice: 50,
+          uomCode: 'PCS',
+        },
+      ],
+    });
+    expect(valid.success).toBe(true);
+    expect(valid.data.lines[0].uomCode).toBe('PCS');
+  });
+
   it('accepts the simplified payload with warehouseCode and optional vendor', () => {
     const valid = createPurchaseRequestSchema.safeParse({
       requiredDate: '2026-05-18',

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import WorkflowStepper from '@/components/workflow/WorkflowStepper';
+import PoEditForm from '@/components/purchase-orders/PoEditForm';
 
 export default function PoDetailView({ id }) {
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -12,6 +14,7 @@ export default function PoDetailView({ id }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
+  const [editing, setEditing] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -44,6 +47,8 @@ export default function PoDetailView({ id }) {
 
   return (
     <div className="space-y-6">
+      {po.workflowSteps?.length > 0 && <WorkflowStepper steps={po.workflowSteps} />}
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-slate-500">
@@ -59,6 +64,11 @@ export default function PoDetailView({ id }) {
           </div>
         </div>
         <div className="flex gap-2">
+          {po.canEdit && !editing && (
+            <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>
+              Edit
+            </button>
+          )}
           {canApprove && (
             <Link href={`/purchase-orders/${id}/approve`} className="btn-primary">
               Approve / Reject
@@ -90,12 +100,24 @@ export default function PoDetailView({ id }) {
         ))}
       </div>
 
-      {activeTab === 'details' && (
+      {activeTab === 'details' && editing && po.canEdit && (
+        <PoEditForm
+          po={po}
+          onSaved={() => {
+            setEditing(false);
+            load();
+          }}
+          onCancel={() => setEditing(false)}
+        />
+      )}
+
+      {activeTab === 'details' && !editing && (
         <>
           <section className="card grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ['Vendor', po.vendor],
               ['Department', po.department],
+              ['Exchange rate', po.docRate != null ? po.docRate : null],
               ['Related PR', po.relatedPRNumber],
               ['SAP PR', po.relatedSAPPRDocNum],
               ['SAP PO', po.sapPODocNum],
@@ -131,6 +153,8 @@ export default function PoDetailView({ id }) {
                   <th className="pb-2 pr-4">Item</th>
                   <th className="pb-2 pr-4">Qty</th>
                   <th className="pb-2 pr-4">Unit price</th>
+                  <th className="pb-2 pr-4">UoM code</th>
+                  <th className="pb-2 pr-4">Warehouse</th>
                   <th className="pb-2">Total</th>
                 </tr>
               </thead>
@@ -143,6 +167,8 @@ export default function PoDetailView({ id }) {
                     </td>
                     <td className="py-2 pr-4">{line.quantity}</td>
                     <td className="py-2 pr-4">{line.unitPrice ?? '—'}</td>
+                    <td className="py-2 pr-4">{line.uomCode || line.uom || '—'}</td>
+                    <td className="py-2 pr-4">{line.warehouseCode || '—'}</td>
                     <td className="py-2">{line.lineTotal ?? '—'}</td>
                   </tr>
                 ))}

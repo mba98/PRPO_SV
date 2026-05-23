@@ -18,6 +18,7 @@ const EMPTY_LINE = () => ({
   itemName: '',
   itemGroupName: '',
   uom: '',
+  uomCode: '',
   vendor: '',
   vendorLabel: '',
   warehouseCode: DEFAULT_WAREHOUSE_CODE,
@@ -103,6 +104,7 @@ export default function PrCreateForm() {
         itemCode: l.itemCode,
         itemName: l.itemName || undefined,
         uom: l.uom || undefined,
+        uomCode: l.uomCode?.trim() || l.uom?.trim() || undefined,
         vendor: l.vendor || undefined,
         warehouseCode: l.warehouseCode || undefined,
         quantity: Number(l.quantity),
@@ -266,6 +268,15 @@ export default function PrCreateForm() {
                     valueCode={line.vendor}
                     valueLabel={line.vendorLabel}
                     onSelect={(code, label) => updateLine(idx, { vendor: code, vendorLabel: label })}
+                  />
+                </label>
+                <label className="text-sm">
+                  <span className="text-slate-600">UoM code</span>
+                  <input
+                    className="input-field mt-1"
+                    value={line.uomCode}
+                    placeholder={line.uom || 'From SAP item'}
+                    onChange={(e) => updateLine(idx, { uomCode: e.target.value })}
                   />
                 </label>
                 <label className="text-sm">

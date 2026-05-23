@@ -75,6 +75,7 @@ function makePr() {
         orderedQty: 0,
         vendor: 'VENDOR1',
         estimatedUnitPrice: 50,
+        uomCode: 'PCS',
       },
     ],
     toObject() {
@@ -127,6 +128,7 @@ describe('portal PO from PR', () => {
     expect(created.status).toBe('Pending Project Manager Approval');
     expect(created.currentApprovalStep).toBe(1);
     expect(created.relatedSAPPRDocEntry).toBe(99);
+    expect(created.lines[0].uomCode).toBe('PCS');
     expect(created.relatedSAPPRDocNum).toBe('200');
     expect(created.remarks).toContain('PR-20260521-0001');
     expect(mocks.notify).toHaveBeenCalledWith('po.created', expect.any(Object));

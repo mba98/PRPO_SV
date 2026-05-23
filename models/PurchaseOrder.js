@@ -8,6 +8,7 @@ const poLineSchema = new mongoose.Schema(
     itemName: String,
     quantity: Number,
     uom: String,
+    uomCode: String,
     warehouseCode: String,
     projectCode: String,
     costCenter: String,
@@ -37,6 +38,8 @@ const purchaseOrderSchema = new mongoose.Schema(
     postingDate: Date,
     documentDate: Date,
     requiredDate: Date,
+    dueDate: Date,
+    docRate: Number,
     remarks: String,
     status: {
       type: String,

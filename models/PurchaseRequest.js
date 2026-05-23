@@ -8,6 +8,7 @@ const prLineSchema = new mongoose.Schema(
     vendor: String,
     quantity: Number,
     uom: String,
+    uomCode: String,
     warehouseCode: String,
     projectCode: String,
     costCenter: String,

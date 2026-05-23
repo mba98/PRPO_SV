@@ -818,3 +818,22 @@ SAP payload had valid-looking codes but **cost center `Project`** on the line (n
 ### Local note
 
 Run `npm run seed:users` on existing dev DBs to refresh role permission arrays from `seed/roles.js`.
+
+---
+
+## Enhancement — PR/PO UoMCode, PO DocRate, PO edit, PO workflow stepper (2026-05-23)
+
+### Scope
+
+- PR line `uomCode` → SAP `UoMCode` (optional, Postman PR payload unchanged otherwise)
+- PO line `uomCode` + header `docRate` → SAP `UoMCode` / `DocRate`
+- Full PO edit before SAP creation (`PoEditForm`, expanded PUT)
+- PO dynamic workflow stepper: Created → approval_matrix → SAP Created
+- `po.create` users can view/edit pending POs they created
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass — no ESLint warnings or errors |
+| `npm test` | Pass — 208 tests, 47 files |

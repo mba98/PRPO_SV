@@ -173,6 +173,7 @@ export default function PrDetailView({ id }) {
                   <th className="pb-2 pr-4">Item</th>
                   <th className="pb-2 pr-4">Warehouse</th>
                   <th className="pb-2 pr-4">Qty</th>
+                  <th className="pb-2 pr-4">UoM code</th>
                   <th className="pb-2 pr-4">Unit price</th>
                   <th className="pb-2 pr-4">Total</th>
                   <th className="pb-2">Vendor</th>
@@ -187,6 +188,7 @@ export default function PrDetailView({ id }) {
                     </td>
                     <td className="py-2 pr-4">{line.warehouseCode || '—'}</td>
                     <td className="py-2 pr-4">{line.quantity}</td>
+                    <td className="py-2 pr-4">{line.uomCode || line.uom || '—'}</td>
                     <td className="py-2 pr-4">{line.estimatedUnitPrice ?? '—'}</td>
                     <td className="py-2 pr-4">{line.estimatedTotal ?? '—'}</td>
                     <td className="py-2">{line.vendor || '—'}</td>
