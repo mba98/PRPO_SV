@@ -788,3 +788,33 @@ SAP payload had valid-looking codes but **cost center `Project`** on the line (n
 |---------|--------|
 | `npm run lint` | Pass |
 | `npm test` | Pass — 176 tests, 43 files |
+
+---
+
+## Fix — Purchase Orders visibility and Create PO from SAP PR (2026-05-23)
+
+### Root cause
+
+1. **Sidebar / client auth** used `user.permissions` only. When role permissions were not merged on the client (or MongoDB roles were seeded before PO permissions existed), the Purchase Orders nav was hidden even for Admin/Procurement.
+2. **PO list** pending-tab filters did not use effective permissions or matrix-driven `currentApprovalStep` matching.
+3. **No Create PO UI** on PR detail/list for `Created in SAP` PRs — only the separate approved-for-po page.
+
+### Changes
+
+- `lib/poPermissions.js`, effective permissions in `Sidebar`, `authStore`, `lib/navigation.js`
+- `lib/purchaseOrdersService.js` — `buildPoPendingApprovalFilter`, procurement list visibility
+- `lib/purchaseRequestsService.js` — `canCreatePo`, vendor/PO metadata on PR detail
+- `lib/sap/poFromPrSap.js` — PR→PO mapping (SAP PR refs, dates, remarks, warehouse)
+- `components/purchase-requests/CreatePoFromPrPanel.jsx`, `PrDetailView.jsx`, `PrListManager.jsx`, `PoListManager.jsx`
+- `seed/users.js` — `syncDefaultRolePermissions()` on `npm run seed:users`
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass — no ESLint warnings or errors |
+| `npm test` | Pass — 188 tests, 45 files |
+
+### Local note
+
+Run `npm run seed:users` on existing dev DBs to refresh role permission arrays from `seed/roles.js`.

@@ -21,7 +21,15 @@ async function postHandler(request, { params }, user) {
       return jsonError('Purchase request not found', 'NOT_FOUND', 404);
     }
     if (result.error === 'DUPLICATE_PO') {
-      return jsonError(result.message, 'DUPLICATE_PO', 409);
+      return Response.json(
+        {
+          success: false,
+          message: result.message,
+          error: 'DUPLICATE_PO',
+          data: { poId: result.poId, portalPONumber: result.portalPONumber },
+        },
+        { status: 409 },
+      );
     }
     if (
       result.error === 'INVALID_STATUS' ||

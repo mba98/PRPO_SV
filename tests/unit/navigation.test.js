@@ -16,6 +16,16 @@ describe('navigation permissions', () => {
     expect(getVisibleNavItems([]).some((n) => n.href === '/purchase-requests')).toBe(false);
   });
 
+  it('shows purchase orders when user object has role po permissions', () => {
+    const procurement = { permissions: [], role: { permissions: ['po.create'] } };
+    expect(getVisibleNavItems(procurement).some((n) => n.href === '/purchase-orders')).toBe(true);
+  });
+
+  it('hides purchase orders without PO permissions', () => {
+    const requester = { permissions: [], role: { permissions: ['pr.create'] } };
+    expect(getVisibleNavItems(requester).some((n) => n.href === '/purchase-orders')).toBe(false);
+  });
+
   it('shows settings links for admin', () => {
     const settings = getVisibleSettingsNav(adminPerms);
     expect(settings.some((s) => s.href === '/settings/sap-integration')).toBe(true);

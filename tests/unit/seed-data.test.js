@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ALL_PERMISSIONS, DEFAULT_ROLES } from '@/seed/roles';
 import { DEFAULT_APPROVAL_MATRIX } from '@/seed/approvalMatrix';
 import { DEFAULT_EMAIL_GROUPS } from '@/seed/emailGroups';
-import { DEFAULT_TEST_USERS } from '@/seed/users';
+import { DEFAULT_TEST_USERS, syncDefaultRolePermissions } from '@/seed/users';
 
 describe('seed data definitions', () => {
   it('defines six default roles including Admin with all permissions', () => {
@@ -35,6 +35,10 @@ describe('seed data definitions', () => {
     const poSteps = DEFAULT_APPROVAL_MATRIX.filter((s) => s.documentType === 'PO');
     expect(prSteps).toHaveLength(2);
     expect(poSteps).toHaveLength(2);
+  });
+
+  it('exports syncDefaultRolePermissions for dev role updates', () => {
+    expect(typeof syncDefaultRolePermissions).toBe('function');
   });
 
   it('defines email groups for all Phase 8 events', () => {

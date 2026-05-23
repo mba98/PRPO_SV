@@ -19,7 +19,13 @@ export default function PoListManager() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasPermission = useAuthStore((s) => s.hasPermission);
-  const tab = searchParams.get('tab') || 'pending';
+  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
+  const defaultTab = hasAnyPermission(['po.approve.pm', 'po.approve.finance', 'view.all'])
+    ? 'pending'
+    : hasAnyPermission(['po.create', 'view.all'])
+      ? 'approved'
+      : 'pending';
+  const tab = searchParams.get('tab') || defaultTab;
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -53,7 +59,13 @@ export default function PoListManager() {
     router.push(`/purchase-orders?${params}`);
   }
 
-  const visibleTabs = TABS.filter((t) => !t.perm || hasPermission(t.perm));
+  const visibleTabs = TABS.filter((t) => {
+    if (t.perm) return hasPermission(t.perm);
+    if (t.id === 'pending') {
+      return hasAnyPermission(['po.approve.pm', 'po.approve.finance', 'view.all', 'po.create']);
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -120,7 +132,15 @@ export default function PoListManager() {
               {items.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
-                    No purchase orders
+                    <p>No purchase orders</p>
+                    {hasPermission('po.create') && (
+                      <Link
+                        href="/purchase-requests/approved-for-po"
+                        className="mt-2 inline-block text-sm font-medium text-brand-600 hover:underline"
+                      >
+                        Create PO from SAP purchase request
+                      </Link>
+                    )}
                   </td>
                 </tr>
               )}

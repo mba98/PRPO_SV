@@ -126,7 +126,19 @@ describe('portal PO from PR', () => {
     const created = mocks.poCreate.mock.calls[0][0];
     expect(created.status).toBe('Pending Project Manager Approval');
     expect(created.currentApprovalStep).toBe(1);
+    expect(created.relatedSAPPRDocEntry).toBe(99);
+    expect(created.relatedSAPPRDocNum).toBe('200');
+    expect(created.remarks).toContain('PR-20260521-0001');
     expect(mocks.notify).toHaveBeenCalledWith('po.created', expect.any(Object));
     expect(mocks.logHistory).toHaveBeenCalled();
+  });
+
+  it('rejects PRs not in Created in SAP status', async () => {
+    const pr = makePr();
+    pr.status = 'Approved';
+    mocks.findById.mockResolvedValue(pr);
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, { vendor: 'VENDOR1' });
+    expect(result.error).toBe('INVALID_STATUS');
+    expect(mocks.poCreate).not.toHaveBeenCalled();
   });
 });

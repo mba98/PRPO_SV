@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
 import WorkflowStepper from '@/components/workflow/WorkflowStepper';
+import CreatePoFromPrPanel from '@/components/purchase-requests/CreatePoFromPrPanel';
 
 export default function PrDetailView({ id }) {
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -110,6 +111,8 @@ export default function PrDetailView({ id }) {
 
       {activeTab === 'details' && (
         <>
+          {pr.canCreatePo && <CreatePoFromPrPanel pr={pr} />}
+
           <section className="card grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ['Requester', pr.requesterName || pr.requesterEmail],

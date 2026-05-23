@@ -1,6 +1,11 @@
 'use client';
 
 import { create } from 'zustand';
+import {
+  getEffectivePermissions,
+  userHasAnyEffectivePermission,
+  userHasEffectivePermission,
+} from '@/lib/effectivePermissions';
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -33,14 +38,16 @@ export const useAuthStore = create((set, get) => ({
 
   hasPermission: (permission) => {
     const { user } = get();
-    return user?.permissions?.includes(permission) ?? false;
+    return userHasEffectivePermission(user, permission);
   },
 
   hasAnyPermission: (permissions) => {
     const { user } = get();
     if (!permissions?.length) return true;
-    return permissions.some((p) => user?.permissions?.includes(p));
+    return userHasAnyEffectivePermission(user, permissions);
   },
+
+  getEffectivePermissions: () => getEffectivePermissions(get().user),
 }));
 
 /**

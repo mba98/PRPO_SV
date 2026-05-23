@@ -8,6 +8,7 @@ import { formatMongoConnectionError } from '../lib/mongodbUri.js';
 import { hashPassword } from './admin.js';
 import { resolveDefaultSapRequesterCode } from '../lib/sap/sapRequesterConfig.js';
 import { upsertSapPrSettings } from './settings.js';
+import { DEFAULT_ROLES } from './roles.js';
 
 function resolveAdminPassword() {
   const fromEnv = process.env.SEED_ADMIN_PASSWORD;
@@ -103,6 +104,31 @@ function envSapCodeForUsername(username) {
 /**
  * Set sapRequesterCode on existing users from env (dev/local).
  */
+/**
+ * Sync role permission arrays from seed definitions (dev DBs seeded before PO perms existed).
+ */
+export async function syncDefaultRolePermissions() {
+  const results = { updated: [], unchanged: [] };
+  for (const spec of DEFAULT_ROLES) {
+    const existing = await Role.findOne({ name: spec.name }).lean();
+    if (!existing) {
+      results.unchanged.push(spec.name);
+      continue;
+    }
+    const same =
+      existing.permissions?.length === spec.permissions.length &&
+      spec.permissions.every((p) => existing.permissions.includes(p));
+    if (same) {
+      results.unchanged.push(spec.name);
+      continue;
+    }
+    await Role.updateOne({ name: spec.name }, { $set: { permissions: spec.permissions } });
+    results.updated.push(spec.name);
+    console.log(`Updated role permissions: ${spec.name}`);
+  }
+  return results;
+}
+
 export async function upsertSapRequesterCodes() {
   const force = process.env.FORCE_UPDATE_SAP_REQUESTER_CODES === 'true';
   const requesterCode = resolveDefaultSapRequesterCode();
@@ -202,6 +228,10 @@ async function main() {
   console.log('Connected to MongoDB');
 
   try {
+    const roleSync = await syncDefaultRolePermissions();
+    console.log(
+      `Role permissions (${roleSync.updated.length} updated, ${roleSync.unchanged.length} unchanged)`,
+    );
     const results = await seedDefaultUsers();
     console.log(
       `Default users seed completed (${results.created.length} created, ${results.skipped.length} skipped)`,

@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { getEffectivePermissions } from '@/lib/effectivePermissions';
 import { getVisibleNavItems, getVisibleSettingsNav } from '@/lib/navigation';
 
 export default function Sidebar({ user }) {
   const pathname = usePathname();
-  const permissions = user?.permissions || [];
+  const permissions = getEffectivePermissions(user);
   const mainNav = getVisibleNavItems(permissions);
   const settingsNav = getVisibleSettingsNav(permissions);
 

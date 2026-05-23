@@ -24,6 +24,7 @@ export default function PrListManager() {
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const canCreate = hasPermission('pr.create');
+  const canCreatePo = hasAnyPermission(['po.create', 'view.all']);
   const canSeePending =
     hasAnyPermission(['pr.approve.whs', 'pr.approve.pm', 'view.all']);
   const canSeeFailedSap = hasAnyPermission(['view.all', 'admin.settings']);
@@ -171,12 +172,13 @@ export default function PrListManager() {
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">SAP Doc</th>
                 <th className="px-4 py-3">Created</th>
+                {canCreatePo && <th className="px-4 py-3">PO</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={canCreatePo ? 7 : 6} className="px-4 py-8 text-center text-slate-500">
                     No purchase requests found
                   </td>
                 </tr>
@@ -200,6 +202,20 @@ export default function PrListManager() {
                   <td className="px-4 py-3 text-slate-500">
                     {pr.createdAt ? new Date(pr.createdAt).toLocaleDateString() : '—'}
                   </td>
+                  {canCreatePo && (
+                    <td className="px-4 py-3">
+                      {pr.status === 'Created in SAP' && pr.sapPRDocEntry ? (
+                        <Link
+                          href={`/purchase-requests/${pr.id}`}
+                          className="text-brand-600 hover:underline"
+                        >
+                          Create PO
+                        </Link>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
