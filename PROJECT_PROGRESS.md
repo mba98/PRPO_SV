@@ -961,3 +961,63 @@ Pre-signed S3 upload/download for PR, PO, and APRI documents with:
 6. Log in as an unrelated requester and call `GET /api/attachments/PR/<otherUserPRId>` → expect 403.
 7. Open the PR/PO/APRI **History** tab → confirm an `Attachment Uploaded` entry with the file name appears for each successful upload.
 8. Confirm download links rotate (presigned expiry) — refresh the page after ≥5 minutes and click an older Download link from the previous page render → it should 403 (URL expired) while the freshly fetched list still works.
+
+---
+
+## Phase 7 — Comments & approval history (2026-05-24)
+
+### Scope
+
+Per-document comments and chronological approval timeline for PR / PO / APRI, sharing the Phase 6 access helper. No SAP, approval workflow, or duplicate guard logic touched.
+
+### APIs
+
+- `GET /api/comments/[documentType]/[documentId]` — chronological (asc) comments with populated `postedBy` and attachment metadata; access enforced.
+- `POST /api/comments` — Zod-validated body (`documentType`, `documentId`, `comment` ≤ 2000 chars, optional `attachments[]`); persists Comment + writes `approval_history` `Comment Added`; rejects attachments that don't belong to the target document.
+- `GET /api/approval-history/[documentType]/[documentId]` — chronological timeline (asc) with populated `actionBy` and attachment metadata; access enforced.
+- Removed legacy `app/api/purchase-requests/[id]/comments/route.js` (UI now uses the generic endpoint).
+
+### Files changed
+
+- `models/ApprovalHistory.js` — Added `Comment Added` and `Updated` to the action enum (the latter was already used by PO edits but was missing from the enum).
+- `lib/validators/comment.js` (new) — `createCommentSchema` (with whitespace-trim + max 2000) and `documentScopeSchema`.
+- `lib/commentsService.js` — Rewritten: enforces document access via `documentAccess.assertCanAccessDocument`, validates that attachments belong to the same document (`INVALID_ATTACHMENT_SCOPE`), writes the `Comment Added` history entry, and returns sanitized rows with populated `postedBy` and attachment metadata; list is now sorted oldest → newest.
+- `lib/approvalHistoryService.js` (new) — `listApprovalHistory(user, documentType, documentId)` with access enforcement, ascending sort, populated `actionBy`, and attachment metadata.
+- `lib/apiHelpers.js` — Maps `INVALID_ATTACHMENT_SCOPE` to 400.
+- `app/api/comments/route.js` (new) — POST endpoint.
+- `app/api/comments/[documentType]/[documentId]/route.js` (new) — GET endpoint.
+- `app/api/approval-history/[documentType]/[documentId]/route.js` (new) — GET endpoint.
+- `components/comments/CommentsPanel.jsx` (new) — textarea + character counter + submit-disabled-while-empty/submitting, list of comments with attachments, `AnimatedEmptyState` / `AnimatedSkeletonLoader`, friendly inline error, respects `useReducedMotion`.
+- `components/approval-history/ApprovalTimeline.jsx` (new) — color-coded dots for `Created` / `Submitted` / `Approved` / `Rejected` / `SAP Created` / `SAP Failed` / `Attachment Uploaded` / `Comment Added` / `Email Sent` / `Updated`, action / step / actor / role / date / comment / status transition / attachment chips, respects `useReducedMotion`.
+- `components/purchase-requests/PrDetailView.jsx` — Comments and History tabs now use the shared panels; bespoke comments form removed.
+- `components/purchase-orders/PoDetailView.jsx` — Adds Comments tab; History tab uses `ApprovalTimeline`.
+- `components/ap-reserve-invoices/ApriDetailView.jsx` — Adds Comments tab; History tab uses `ApprovalTimeline`.
+
+### Tests added
+
+- `tests/unit/validators/comment.test.js` — accept valid body, trim, accept PR/PO/APRI, reject empty/whitespace, reject > 2000 chars, reject bad documentType / documentId, attachment id validation.
+- `tests/unit/commentsService.test.js` — persists + logs `Comment Added`, accepts in-scope attachments, rejects cross-document attachments (`INVALID_ATTACHMENT_SCOPE`), propagates FORBIDDEN, list enforces access and returns sanitized rows.
+- `tests/unit/approvalHistoryService.test.js` — list enforces access and sorts ascending by `actionDate`.
+
+### Indexes (unchanged, confirmed)
+
+- `comments`: `{ documentType: 1, documentId: 1, postedAt: -1 }` (already in model).
+- `approval_history`: `{ documentType: 1, documentId: 1, actionDate: -1 }` (already in model).
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass — no ESLint warnings or errors |
+| `npm test` | Pass — 281 tests, 54 files |
+
+### Manual test checklist
+
+1. Sign in as a `pr.create` user, open a PR detail page → **Comments** tab → type a comment → **Post comment**; the new comment appears at the bottom of the list with your name and timestamp.
+2. Open the same PR's **History** tab → confirm a `Comment Added` entry appears with the comment text.
+3. Sign in as a `po.create` user, open a PO detail page → **Comments** tab → add a comment; **History** tab shows the entry.
+4. Sign in as an `apinvoice.create` user, open an APRI detail page → **Comments** tab → add a comment; **History** tab shows it.
+5. Upload an attachment from the **Attachments** tab on each document — **History** tab still shows the `Attachment Uploaded` entry alongside the new `Comment Added` entries.
+6. Sign in as an unrelated requester (no `view.all`) and request `GET /api/comments/PR/<otherUserPRId>` and `GET /api/approval-history/PR/<otherUserPRId>` → expect 403.
+7. Confirm previously-recorded events (`Created`, `Submitted`, `Approved`, `Rejected`, `SAP Created`, `SAP Failed`, `Attachment Uploaded`, etc.) still render correctly with the new color-coded timeline.
+8. Confirm no SAP creation logic changed: create a PR / PO / APRI end-to-end and verify SAP DocEntry / DocNum are still populated.

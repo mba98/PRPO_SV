@@ -6,6 +6,8 @@ import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
+import CommentsPanel from '@/components/comments/CommentsPanel';
+import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 
 export default function ApriDetailView({ id }) {
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -43,7 +45,7 @@ export default function ApriDetailView({ id }) {
     apri.status === 'Failed to Create in SAP' &&
     (hasPermission('view.all') || hasPermission('admin.settings'));
 
-  const tabs = ['details', 'attachments', 'history', 'emails'];
+  const tabs = ['details', 'attachments', 'comments', 'history', 'emails'];
 
   const canUploadAttachments =
     hasPermission('apinvoice.create') || hasPermission('view.all');
@@ -171,27 +173,12 @@ export default function ApriDetailView({ id }) {
         />
       )}
 
+      {activeTab === 'comments' && (
+        <CommentsPanel documentType="APRI" documentId={id} />
+      )}
+
       {activeTab === 'history' && (
-        <section className="card">
-          {(apri.approvalHistory || []).length === 0 ? (
-            <p className="text-sm text-slate-500">No history recorded</p>
-          ) : (
-            <ol className="relative border-l border-slate-200 pl-6">
-              {apri.approvalHistory.map((h) => (
-                <li key={h.id} className="mb-6 ml-2">
-                  <span className="absolute -left-[9px] mt-1.5 h-4 w-4 rounded-full border-2 border-white bg-brand-500" />
-                  <p className="text-sm font-medium">
-                    {h.action} — {h.stepName}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {h.actionBy} · {new Date(h.actionDate).toLocaleString()}
-                  </p>
-                  {h.comment && <p className="mt-1 text-sm text-slate-600">{h.comment}</p>}
-                </li>
-              ))}
-            </ol>
-          )}
-        </section>
+        <ApprovalTimeline documentType="APRI" documentId={id} />
       )}
 
       {activeTab === 'emails' && (

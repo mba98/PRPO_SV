@@ -8,43 +8,27 @@ import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
 import WorkflowStepper from '@/components/workflow/WorkflowStepper';
 import CreatePoFromPrPanel from '@/components/purchase-requests/CreatePoFromPrPanel';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
+import CommentsPanel from '@/components/comments/CommentsPanel';
+import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 
 export default function PrDetailView({ id }) {
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const [pr, setPr] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [commentText, setCommentText] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ json: prJson }, { json: cJson }] = await Promise.all([
-      apiFetch(`/api/purchase-requests/${id}`),
-      apiFetch(`/api/purchase-requests/${id}/comments`),
-    ]);
+    const { json: prJson } = await apiFetch(`/api/purchase-requests/${id}`);
     if (prJson.success) setPr(prJson.data);
     else setError(prJson.message || 'Failed to load');
-    if (cJson.success) setComments(cJson.data);
     setLoading(false);
   }, [id]);
 
   useEffect(() => {
     load();
   }, [load]);
-
-  async function postComment(e) {
-    e.preventDefault();
-    const { json } = await apiFetch(`/api/purchase-requests/${id}/comments`, {
-      method: 'POST',
-      body: JSON.stringify({ comment: commentText }),
-    });
-    if (json.success) {
-      setCommentText('');
-      load();
-    }
-  }
 
   async function retrySap() {
     const { json } = await apiFetch(`/api/purchase-requests/${id}/retry-sap`, { method: 'POST' });
@@ -216,52 +200,11 @@ export default function PrDetailView({ id }) {
       )}
 
       {activeTab === 'comments' && (
-        <section className="card space-y-4">
-          <form onSubmit={postComment} className="flex gap-2">
-            <input
-              className="input-field flex-1"
-              placeholder="Add a comment"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              required
-            />
-            <button type="submit" className="btn-primary">
-              Post
-            </button>
-          </form>
-          <ul className="space-y-3">
-            {comments.map((c) => (
-              <li key={c.id} className="rounded-md border border-slate-100 px-3 py-2">
-                <p className="text-sm text-slate-900">{c.comment}</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {c.postedBy} · {new Date(c.postedAt).toLocaleString()}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <CommentsPanel documentType="PR" documentId={id} />
       )}
 
       {activeTab === 'history' && (
-        <section className="card">
-          <ol className="relative border-l border-slate-200 pl-6">
-            {(pr.approvalHistory || []).map((h) => (
-              <li key={h.id} className="mb-6 ml-2">
-                <span className="absolute -left-[9px] mt-1.5 h-4 w-4 rounded-full border-2 border-white bg-brand-500 ring-2 ring-brand-100" />
-                <p className="text-sm font-medium text-slate-900">
-                  {h.action} — {h.stepName}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {h.actionBy} · {new Date(h.actionDate).toLocaleString()}
-                </p>
-                {h.comment && <p className="mt-1 text-sm text-slate-600">{h.comment}</p>}
-                <p className="mt-1 text-xs text-slate-400">
-                  {h.previousStatus} → {h.newStatus}
-                </p>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <ApprovalTimeline documentType="PR" documentId={id} />
       )}
     </div>
   );

@@ -17,6 +17,8 @@ const approvalHistorySchema = new mongoose.Schema(
         'SAP Failed',
         'Email Sent',
         'Attachment Uploaded',
+        'Comment Added',
+        'Updated',
       ],
       required: true,
     },
