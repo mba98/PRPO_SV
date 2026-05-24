@@ -1,11 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { AnimatedStatusBadge, AnimatedSkeletonLoader } from '@/components/ui';
+import { AnimatedSkeletonLoader } from '@/components/ui';
+
+function HealthStatusPill({ status }) {
+  const isUp = status === 'up';
+  const cls = isUp
+    ? 'bg-green-100 text-green-800'
+    : 'bg-rose-100 text-rose-800';
+  const label = isUp ? 'Healthy' : 'Failed';
+  return (
+    <span
+      data-testid="health-status-pill"
+      data-status={status}
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${cls}`}
+    >
+      {label}
+    </span>
+  );
+}
 
 function DependencyRow({ name, dep }) {
   const label = name.toUpperCase();
-  const isUp = dep?.status === 'up';
 
   return (
     <div className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-4 py-3">
@@ -16,7 +32,7 @@ function DependencyRow({ name, dep }) {
           {dep?.error && <span className="ml-2 text-rose-600">{dep.error}</span>}
         </p>
       </div>
-      <AnimatedStatusBadge status={isUp ? 'Approved' : 'Failed to Create in SAP'} />
+      <HealthStatusPill status={dep?.status} />
     </div>
   );
 }

@@ -1021,3 +1021,45 @@ Per-document comments and chronological approval timeline for PR / PO / APRI, sh
 6. Sign in as an unrelated requester (no `view.all`) and request `GET /api/comments/PR/<otherUserPRId>` and `GET /api/approval-history/PR/<otherUserPRId>` → expect 403.
 7. Confirm previously-recorded events (`Created`, `Submitted`, `Approved`, `Rejected`, `SAP Created`, `SAP Failed`, `Attachment Uploaded`, etc.) still render correctly with the new color-coded timeline.
 8. Confirm no SAP creation logic changed: create a PR / PO / APRI end-to-end and verify SAP DocEntry / DocNum are still populated.
+
+---
+
+## SMTP env loading + health UX fix (2026-05-24)
+
+### Problem
+
+System Health showed SMTP failing with `getaddrinfo ENOTFOUND smtp.example.com`. The portal only read `SMTP_*` variables, but `.env.local` still had the placeholder `SMTP_HOST=smtp.example.com`, and shared infra configs from another project use the `EMAIL_SERVER_*` naming style. The failing badge was also rendered as **“Failed to Create in SAP”**, which is a business-document status incorrectly reused for infrastructure health.
+
+### Fixes
+
+- `lib/email.js`
+  - `resolveSmtpConfig(env)` reads `SMTP_*` first, falls back to `EMAIL_SERVER_*`, and exposes `{ host, port, user, pass, from, source, isConfigured, placeholderHost }`. `EMAIL_FROM` falls back to `user`.
+  - Detects placeholder hosts (`smtp.example.com`, `your-smtp-host`, `*.example.com`) and treats them as not-configured.
+  - New error codes: `SMTP_NOT_CONFIGURED`, `SMTP_PLACEHOLDER_HOST`.
+  - `describeSmtpError(err, host)` maps Node DNS / nodemailer errors to friendly messages: `Cannot resolve SMTP host`, `SMTP authentication failed`, `Connection refused by SMTP host`, `SMTP host did not respond`.
+  - `pingSmtp` and `sendEmail` use the new resolver and never reference the password value in messages or logs.
+- `components/settings/HealthCheckPanel.jsx`
+  - Replaced `AnimatedStatusBadge status="Failed to Create in SAP"` with a dedicated `HealthStatusPill` (`Healthy` green / `Failed` red).
+- `.env.local.example`
+  - Documents both `SMTP_*` (preferred) and `EMAIL_SERVER_*` (fallback) blocks with a Gmail example and a “SMTP_* takes precedence” note.
+
+### Tests added
+
+- `tests/unit/email.test.js` (18 tests): SMTP_* reads, EMAIL_SERVER_* fallback, precedence, `EMAIL_FROM` default, placeholder host detection, default port 587, `SMTP_NOT_CONFIGURED`, `SMTP_PLACEHOLDER_HOST`, `describeSmtpError` for ENOTFOUND / EAUTH / ECONNREFUSED / ETIMEDOUT, password-not-leaked assertion, `sendEmail` failure path logs friendly message.
+- `tests/unit/healthCheckPanel.source.test.js` (4 tests): asserts the panel does not contain `"Failed to Create in SAP"`, does not import `AnimatedStatusBadge`, uses `HealthStatusPill`, and shows `Failed` / `Healthy` labels.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass — no ESLint warnings or errors |
+| `npm test` | Pass — 303 tests, 56 files |
+
+### Operator note
+
+`.env.local` currently still contains `SMTP_HOST=smtp.example.com`. To use the working Gmail SMTP either:
+
+1. Change that line to `SMTP_HOST=smtp.gmail.com`, **or**
+2. Remove `SMTP_HOST` entirely and add `EMAIL_SERVER_HOST=smtp.gmail.com` (plus `EMAIL_SERVER_PORT`, `EMAIL_SERVER_USER`, `EMAIL_SERVER_PASSWORD`).
+
+Then restart the Next.js dev/prod server so the new env values are loaded.
