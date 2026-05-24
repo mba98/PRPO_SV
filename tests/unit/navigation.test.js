@@ -31,4 +31,25 @@ describe('navigation permissions', () => {
     expect(settings.some((s) => s.href === '/settings/sap-integration')).toBe(true);
     expect(settings.some((s) => s.href === '/settings/users')).toBe(false);
   });
+
+  it('shows POs Ready for APRI for apinvoice.create users', () => {
+    const nav = getVisibleNavItems(['apinvoice.create']);
+    expect(
+      nav.some((n) => n.href === '/purchase-orders/ready-for-ap-reserve-invoice'),
+    ).toBe(true);
+  });
+
+  it('shows POs Ready for APRI for view.all users', () => {
+    const nav = getVisibleNavItems(['view.all']);
+    expect(
+      nav.some((n) => n.href === '/purchase-orders/ready-for-ap-reserve-invoice'),
+    ).toBe(true);
+  });
+
+  it('hides POs Ready for APRI without apinvoice.create or view.all', () => {
+    const nav = getVisibleNavItems(['pr.create']);
+    expect(
+      nav.some((n) => n.href === '/purchase-orders/ready-for-ap-reserve-invoice'),
+    ).toBe(false);
+  });
 });

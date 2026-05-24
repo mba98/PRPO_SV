@@ -30,6 +30,9 @@ const apReserveInvoiceSchema = new mongoose.Schema(
     postingDate: Date,
     documentDate: Date,
     dueDate: Date,
+    taxDate: Date,
+    docCurrency: String,
+    docRate: Number,
     remarks: String,
     status: {
       type: String,

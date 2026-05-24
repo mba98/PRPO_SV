@@ -859,3 +859,41 @@ Creating SAP PO with `BaseType` / `BaseEntry` / `BaseLine` from SAP PR caused ex
 |---------|--------|
 | `npm run lint` | Pass |
 | `npm test` | Pass — 214 tests, 48 files |
+
+---
+
+## Fix — A/P Reserve Invoice Postman-aligned payload (2026-05-24)
+
+### Problem
+
+Portal APRI creation hit SAP error `(-180903) Please choose exchange rate 1350 when currency is Dollar.` because the mapper sent neither `DocCurrency` nor `DocRate` (nor `TaxDate`) and included extra line fields (`ItemCode`, `WarehouseCode`, `ProjectCode`, `CostingCode`) that SAP rejects when `BaseType: 22` PO references are used.
+
+### Confirmed working Postman payload (`/PurchaseInvoices`)
+
+```
+{ CardCode, DocDate, DocDueDate, TaxDate, DocCurrency, DocRate,
+  ReserveInvoice: "tYES", Comments,
+  DocumentLines: [{ BaseType: 22, BaseEntry, BaseLine, Quantity }] }
+```
+
+### Changes
+
+- **`lib/sap/mappers/apReserveInvoiceToSap.js`** — Postman-shaped payload: `CardCode`, `DocDate`, `DocDueDate`, `TaxDate`, `DocCurrency`, `DocRate`, `ReserveInvoice: 'tYES'`, `Comments`. Lines reduced to `BaseType: 22` / `BaseEntry` / `BaseLine` / `Quantity` only. Defaults resolved via `resolveDefaultPoDocCurrency` / `resolveDefaultPoDocRate` (USD / 1350 in dev).
+- **`models/APReserveInvoice.js`** — Added `taxDate`, `docCurrency`, `docRate` fields.
+- **`lib/apReserveInvoicesService.js`** — `createApriFromPo` copies `docCurrency` / `docRate` from PO (fallback to env defaults) and sets `taxDate = documentDate`. `sanitizeApri` exposes the new fields.
+- **`lib/navigation.js`** — Added top-level nav item **POs Ready for APRI** → `/purchase-orders/ready-for-ap-reserve-invoice`, visible to `apinvoice.create` or `view.all`.
+- **`tests/unit/apReserveInvoiceToSap.test.js`** — Full payload assertion (USD / 1350 / `tYES` / `TaxDate` / `BaseType 22`); explicit checks that `ItemCode` / `WarehouseCode` / `UoMCode` / `Currency` / `Rate` are not sent.
+- **`tests/unit/navigation.test.js`** — Visibility tests for the new APRI-ready nav item.
+
+### Behaviour
+
+- SAP endpoint unchanged: `POST /PurchaseInvoices` (via `createAPReserveInvoice`).
+- PO record continues to provide `relatedSAPPODocEntry`, `relatedSAPPODocNum`, and `line.relatedPOLineNum` (resolved from `po.sapResponse.DocumentLines.LineNum`).
+- Comments default to `AP Reserve Invoice based on PO <SAP PO DocNum>` when no remarks are set.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass — no ESLint warnings or errors |
+| `npm test` | Pass — 223 tests, 48 files |
