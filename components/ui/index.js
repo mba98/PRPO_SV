@@ -3,6 +3,7 @@ export { default as AnimatedModal } from './AnimatedModal';
 export { default as AnimatedDrawer } from './AnimatedDrawer';
 export { default as AnimatedStatusBadge } from './AnimatedStatusBadge';
 export { default as AnimatedSkeletonLoader } from './AnimatedSkeletonLoader';
+export { default as AnimatedEmptyState } from './AnimatedEmptyState';
 export {
   SkeletonTable,
   SkeletonCard,

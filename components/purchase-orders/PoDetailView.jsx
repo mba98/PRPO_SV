@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
 import WorkflowStepper from '@/components/workflow/WorkflowStepper';
 import PoEditForm from '@/components/purchase-orders/PoEditForm';
+import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 
 export default function PoDetailView({ id }) {
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -185,26 +186,17 @@ export default function PoDetailView({ id }) {
       )}
 
       {activeTab === 'attachments' && (
-        <section className="card">
-          {(po.attachments || []).length === 0 ? (
-            <p className="text-sm text-slate-500">No files attached</p>
-          ) : (
-            <ul className="space-y-2">
-              {po.attachments.map((a) => (
-                <li key={a.id}>
-                  <a
-                    href={a.downloadUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm text-brand-600 hover:underline"
-                  >
-                    {a.fileName}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <AttachmentPanel
+          documentType="PO"
+          documentId={id}
+          canUpload={
+            hasPermission('po.create') ||
+            hasPermission('po.approve.pm') ||
+            hasPermission('po.approve.finance') ||
+            hasPermission('view.all')
+          }
+          approvalStep={po.currentApprovalStep}
+        />
       )}
 
       {activeTab === 'history' && (

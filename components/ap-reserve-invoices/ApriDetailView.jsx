@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 
 export default function ApriDetailView({ id }) {
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -42,7 +43,10 @@ export default function ApriDetailView({ id }) {
     apri.status === 'Failed to Create in SAP' &&
     (hasPermission('view.all') || hasPermission('admin.settings'));
 
-  const tabs = ['details', 'history', 'emails'];
+  const tabs = ['details', 'attachments', 'history', 'emails'];
+
+  const canUploadAttachments =
+    hasPermission('apinvoice.create') || hasPermission('view.all');
 
   return (
     <div className="space-y-6">
@@ -157,6 +161,14 @@ export default function ApriDetailView({ id }) {
             </table>
           </section>
         </>
+      )}
+
+      {activeTab === 'attachments' && (
+        <AttachmentPanel
+          documentType="APRI"
+          documentId={id}
+          canUpload={canUploadAttachments}
+        />
       )}
 
       {activeTab === 'history' && (

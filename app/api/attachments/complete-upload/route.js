@@ -1,6 +1,6 @@
 import { withAuth } from '@/lib/auth';
-import { signUpload } from '@/lib/attachmentsService.js';
-import { signUploadSchema } from '@/lib/validators/attachment.js';
+import { completeUpload } from '@/lib/attachmentsService.js';
+import { completeUploadSchema } from '@/lib/validators/attachment.js';
 import {
   jsonSuccess,
   jsonValidation,
@@ -22,12 +22,12 @@ const REQUIRED_PERMS = [
 async function postHandler(request, _ctx, user) {
   try {
     const body = await parseJsonBody(request);
-    const parsed = signUploadSchema.safeParse(body);
+    const parsed = completeUploadSchema.safeParse(body);
     if (!parsed.success) {
       return jsonValidation(parsed.error);
     }
-    const data = await signUpload(user, parsed.data);
-    return jsonSuccess(data);
+    const row = await completeUpload(user, parsed.data);
+    return jsonSuccess(row, undefined, 201);
   } catch (err) {
     return handleServiceError(err);
   }

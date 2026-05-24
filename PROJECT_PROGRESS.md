@@ -897,3 +897,67 @@ Portal APRI creation hit SAP error `(-180903) Please choose exchange rate 1350 w
 |---------|--------|
 | `npm run lint` | Pass — no ESLint warnings or errors |
 | `npm test` | Pass — 223 tests, 48 files |
+
+---
+
+## Phase 6 — Attachments module (2026-05-24)
+
+### Scope
+
+Pre-signed S3 upload/download for PR, PO, and APRI documents with:
+- Strict MIME allow-list + 25 MB size cap (server and client enforcement)
+- Document-scoped S3 keys (`{documentType}/{documentId}/{ulid}-{safeFileName}`)
+- Per-document access checks (PR/PO requester or approver, APRI invoice permissions)
+- `approval_history` entry `Attachment Uploaded` on every successful completion
+- Short-lived (5 min) pre-signed GET URLs for downloads
+
+### APIs
+
+- `POST /api/attachments/sign-upload` — Zod-validated; returns pre-signed PUT URL + `s3Key`.
+- `POST /api/attachments/complete-upload` — Zod-validated; persists metadata, writes approval-history entry, returns the saved row.
+- `GET /api/attachments/[documentType]/[documentId]` — returns attachments with fresh pre-signed GET URLs.
+- Removed legacy `POST /api/attachments` (replaced by `complete-upload`).
+- No multipart fallback (deferred per phase note; preferred path is sign-upload + complete-upload).
+
+### Files changed
+
+- `lib/documentAccess.js` (new) — `assertCanAccessDocument` for PR / PO / APRI with stable `INVALID_TYPE` / `INVALID_ID` / `NOT_FOUND` / `FORBIDDEN` error codes.
+- `lib/attachmentsService.js` — Rewrote: MIME allow-list (`ALLOWED_MIME_TYPES`), Crockford-base32 `newUlid`, `safeFileName`, `signUpload(user, …)`, `completeUpload(user, …)` (writes `approval_history`), `listAttachments(type, id, user)` with access enforcement.
+- `lib/validators/attachment.js` (new) — Zod schemas for sign-upload and complete-upload.
+- `lib/attachmentClientConstants.js` (new) — client-safe MIME / size constants.
+- `lib/uploadClient.js` — points to `/api/attachments/complete-upload`.
+- `lib/apiHelpers.js` — maps new attachment error codes (`INVALID_FILE_SIZE`, `INVALID_TYPE`, `INVALID_S3_KEY`) to 400.
+- `app/api/attachments/sign-upload/route.js` — uses new validator + service.
+- `app/api/attachments/complete-upload/route.js` (new) — replaces legacy `POST /api/attachments`.
+- `app/api/attachments/[documentType]/[documentId]/route.js` — passes user to enforce access.
+- `app/api/attachments/route.js` — deleted.
+- `components/ui/AnimatedEmptyState.jsx` (new) — entrance + gentle icon float; respects `useReducedMotion`.
+- `components/ui/index.js` — re-exports `AnimatedEmptyState`.
+- `components/attachments/AttachmentPanel.jsx` (new) — reusable upload/list/download panel with skeleton loading, empty state, and reduced-motion support.
+- `components/purchase-requests/PrDetailView.jsx` — Attachments tab uses `AttachmentPanel`.
+- `components/purchase-orders/PoDetailView.jsx` — Attachments tab uses `AttachmentPanel`.
+- `components/ap-reserve-invoices/ApriDetailView.jsx` — adds Attachments tab using `AttachmentPanel`.
+
+### Tests added
+
+- `tests/unit/validators/attachment.test.js` — sign-upload + complete-upload schemas (documentType enum, ObjectId, size cap, required fields).
+- `tests/unit/attachmentsService.test.js` — `safeFileName`, `newUlid`, MIME allow-list, sign-upload happy path + MIME / size / FORBIDDEN / NOT_FOUND, complete-upload happy path + s3Key scope check + MIME guard + FORBIDDEN, list with access enforcement and download URL generation.
+- `tests/unit/documentAccess.test.js` — INVALID_TYPE / INVALID_ID / NOT_FOUND / PR requester / pr.approve.pm / po.approve.finance / apinvoice.create / FORBIDDEN cases.
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass — no ESLint warnings or errors |
+| `npm test` | Pass — 262 tests, 51 files |
+
+### Manual test checklist
+
+1. Log in as a user with `pr.create` and create a PR; open its detail page → **Attachments** tab.
+2. Click **Upload file**, pick a PDF/PNG/Excel/CSV; verify it appears with size + uploader and downloads via the **Download** button.
+3. Attempt to upload a `.zip` or `.exe` → expect a friendly “File type not allowed” error and no S3 PUT call.
+4. Attempt to upload a file > 25 MB → expect “exceeds the 25 MB limit”.
+5. Repeat 1–4 on a PO detail page (`po.create` user) and on an APRI detail page (`apinvoice.create` user).
+6. Log in as an unrelated requester and call `GET /api/attachments/PR/<otherUserPRId>` → expect 403.
+7. Open the PR/PO/APRI **History** tab → confirm an `Attachment Uploaded` entry with the file name appears for each successful upload.
+8. Confirm download links rotate (presigned expiry) — refresh the page after ≥5 minutes and click an older Download link from the previous page render → it should 403 (URL expired) while the freshly fetched list still works.

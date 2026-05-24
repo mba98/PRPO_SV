@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
 import WorkflowStepper from '@/components/workflow/WorkflowStepper';
 import CreatePoFromPrPanel from '@/components/purchase-requests/CreatePoFromPrPanel';
+import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 
 export default function PrDetailView({ id }) {
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -201,26 +202,17 @@ export default function PrDetailView({ id }) {
       )}
 
       {activeTab === 'attachments' && (
-        <section className="card">
-          {(pr.attachments || []).length === 0 ? (
-            <p className="text-sm text-slate-500">No files attached</p>
-          ) : (
-            <ul className="space-y-2">
-              {pr.attachments.map((a) => (
-                <li key={a.id}>
-                  <a
-                    href={a.downloadUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm text-brand-600 hover:underline"
-                  >
-                    {a.fileName}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <AttachmentPanel
+          documentType="PR"
+          documentId={id}
+          canUpload={
+            hasPermission('pr.create') ||
+            hasPermission('pr.approve.whs') ||
+            hasPermission('pr.approve.pm') ||
+            hasPermission('view.all')
+          }
+          approvalStep={pr.currentApprovalStep}
+        />
       )}
 
       {activeTab === 'comments' && (
