@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
@@ -12,12 +13,18 @@ import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 
 export default function PoDetailView({ id }) {
+  const searchParams = useSearchParams();
+  const attachmentWarning = searchParams.get('attachmentWarning');
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const [po, setPo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
   const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    if (attachmentWarning) setActiveTab('attachments');
+  }, [attachmentWarning]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,16 +47,22 @@ export default function PoDetailView({ id }) {
   if (loading) return <AnimatedSkeletonLoader rows={8} />;
   if (!po) return <p className="text-red-600">{error || 'Not found'}</p>;
 
-  const canApprove =
+  const canApprove = po.canApproveCurrentStep === true;
+  const currentWorkflowStep = po.workflowSteps?.find((s) => s.state === 'current');
+  const waitingForApproval =
+    !canApprove &&
     ['Pending Project Manager Approval', 'Pending Finance Approval'].includes(po.status) &&
-    (hasPermission('po.approve.pm') ||
-      hasPermission('po.approve.finance') ||
-      hasPermission('view.all'));
+    currentWorkflowStep?.stepName;
 
   const tabs = ['details', 'attachments', 'comments', 'history'];
 
   return (
     <div className="space-y-6">
+      {attachmentWarning && (
+        <p className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">
+          {attachmentWarning}
+        </p>
+      )}
       {po.workflowSteps?.length > 0 && <WorkflowStepper steps={po.workflowSteps} />}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -76,6 +89,11 @@ export default function PoDetailView({ id }) {
             <Link href={`/purchase-orders/${id}/approve`} className="btn-primary">
               Approve / Reject
             </Link>
+          )}
+          {waitingForApproval && (
+            <span className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Waiting for {currentWorkflowStep.stepName} Approval
+            </span>
           )}
           {po.status === 'Failed to Create in SAP' &&
             (hasPermission('view.all') || hasPermission('admin.settings')) && (

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -41,6 +42,7 @@ import {
   safeFileName,
   newUlid,
   isAllowedMime,
+  normalizeDocumentId,
   ALLOWED_MIME_TYPES,
 } from '@/lib/attachmentsService.js';
 
@@ -79,6 +81,13 @@ describe('attachmentsService helpers', () => {
       const a = newUlid(1700000000000);
       const b = newUlid(1700000000001);
       expect(b.slice(0, 10) >= a.slice(0, 10)).toBe(true);
+    });
+  });
+
+  describe('normalizeDocumentId', () => {
+    it('converts valid string ids to ObjectId for consistent queries', () => {
+      const normalized = normalizeDocumentId(PR_ID);
+      expect(normalized.toString()).toBe(PR_ID);
     });
   });
 
@@ -207,7 +216,7 @@ describe('completeUpload', () => {
     expect(mocks.create).toHaveBeenCalledWith(
       expect.objectContaining({
         documentType: 'PR',
-        documentId: PR_ID,
+        documentId: new mongoose.Types.ObjectId(PR_ID),
         s3Key,
         fileName: 'doc.pdf',
         fileSize: 1024,

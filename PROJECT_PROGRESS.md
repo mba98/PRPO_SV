@@ -1063,3 +1063,43 @@ System Health showed SMTP failing with `getaddrinfo ENOTFOUND smtp.example.com`.
 2. Remove `SMTP_HOST` entirely and add `EMAIL_SERVER_HOST=smtp.gmail.com` (plus `EMAIL_SERVER_PORT`, `EMAIL_SERVER_USER`, `EMAIL_SERVER_PASSWORD`).
 
 Then restart the Next.js dev/prod server so the new env values are loaded.
+
+---
+
+## Post Phase 6/7 bug fixes — attachments, approvals, emails (2026-05-25)
+
+### Problems
+
+1. PR attachments uploaded but did not appear in the Attachments tab (ObjectId query mismatch risk; list load errors surfaced as generic failures).
+2. PR create with attachment showed browser "Failed to fetch" even when PR was saved (network/JSON errors threw from `apiFetch`; attachment failure blocked navigation).
+3. PR/PO approval with attachment failed before approval completed (upload ran before approve; S3/network errors aborted the action).
+4. PO approve page had no attachment upload UI.
+5. PO detail showed Approve/Reject to PM after Finance step (coarse client permission check vs step-aware API flag).
+6. Workflow emails were plain one-line text with no portal links or HTML layout.
+
+### Fixes
+
+- **`lib/apiClient.js`**: never throws on network/JSON failures; maps `Failed to fetch` to a friendly message.
+- **`lib/attachmentsService.js`**: `normalizeDocumentId()` ensures consistent ObjectId storage/query.
+- **`lib/attachmentUploadHelpers.js`**: batch upload with per-file failure collection + warning formatter.
+- **`lib/uploadClient.js`**: clearer S3 PUT error messages.
+- **`components/attachments/AttachmentPanel.jsx`**: safe list reload after upload, explicit `documentId` string, `listVersion` refresh bump.
+- **`PrCreateForm` / `PrApproveForm` / `PoApproveForm`**: approve/create first, upload attachments after; partial attachment failure shows amber warning and navigates to detail (retry on Attachments tab).
+- **`PoDetailView` / `PoApproveForm`**: use API `canApproveCurrentStep`; show "Waiting for {step} Approval" for non-approvers.
+- **`lib/purchaseOrdersService.js`**: exposes `canApproveCurrentStep`, `currentStepName`, `currentStepRequiredPermission` on PO detail payload.
+- **`lib/emailTemplates.js` + `notifyWorkflowEmail`**: HTML + text templates with greeting, document details, CTA button (`APP_BASE_URL` / `NEXT_PUBLIC_APP_URL`), SPC footer.
+- All workflow `notifyEvent` call sites migrated to templates (PR/PO/APRI; SAP created/failed unchanged in logic).
+
+### Tests added/updated
+
+- `tests/unit/apiClient.test.js`, `attachmentUploadHelpers.test.js`, `emailTemplates.test.js`
+- `workflowSteps.test.js` — PM cannot approve on Finance step
+- `poDetailView.source.test.js`, `attachmentsService` ObjectId expectation
+- Updated SAP/PO flow mocks for `notifyWorkflowEmail`
+
+### Commands run
+
+| Command | Result |
+|---------|--------|
+| `npm run lint` | Pass |
+| `npm test` | Pass — 319 tests, 60 files |

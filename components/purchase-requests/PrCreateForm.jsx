@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
-import { uploadAttachmentFile } from '@/lib/uploadClient';
+import {
+  uploadDocumentAttachments,
+  formatAttachmentUploadWarning,
+} from '@/lib/attachmentUploadHelpers';
+import { ALLOWED_MIME_TYPES_CLIENT, MAX_FILE_SIZE_BYTES } from '@/lib/attachmentClientConstants';
 import { useAuthStore } from '@/stores/authStore';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import VendorSelect from '@/components/lookups/VendorSelect';
@@ -49,6 +53,7 @@ export default function PrCreateForm() {
   const [files, setFiles] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
   const [itemModal, setItemModal] = useState(false);
   const [itemModalLine, setItemModalLine] = useState(0);
   const [noResultsLine, setNoResultsLine] = useState(null);
@@ -91,6 +96,7 @@ export default function PrCreateForm() {
     e.preventDefault();
     setSaving(true);
     setError('');
+    setWarning('');
 
     const documentDate = header.documentDate || header.requiredDate;
     const dueDate = header.dueDate || header.requiredDate;
@@ -114,41 +120,52 @@ export default function PrCreateForm() {
       })),
     };
 
-    const { json: createJson } = await apiFetch('/api/purchase-requests', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    if (!createJson.success) {
-      setError(createJson.message || 'Failed to create PR');
-      if (createJson.errors?.length) {
-        setError(createJson.errors.map((x) => x.message).join(', '));
-      }
-      setSaving(false);
-      return;
-    }
-
-    const prId = createJson.data.id;
-    const { json: submitJson } = await apiFetch(`/api/purchase-requests/${prId}/submit`, {
-      method: 'POST',
-      body: JSON.stringify({}),
-    });
-    if (!submitJson.success) {
-      setError(submitJson.message || 'Failed to submit PR');
-      setSaving(false);
-      return;
-    }
-
     try {
-      for (const file of files) {
-        await uploadAttachmentFile({ documentType: 'PR', documentId: prId, file });
+      const { json: createJson } = await apiFetch('/api/purchase-requests', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      if (!createJson.success) {
+        setError(createJson.message || 'Failed to create PR');
+        if (createJson.errors?.length) {
+          setError(createJson.errors.map((x) => x.message).join(', '));
+        }
+        setSaving(false);
+        return;
       }
-    } catch (uploadErr) {
-      setError(uploadErr.message || 'Attachment upload failed');
-      setSaving(false);
-      return;
-    }
 
-    router.push(`/purchase-requests/${prId}`);
+      const prId = createJson.data.id;
+      const { json: submitJson } = await apiFetch(`/api/purchase-requests/${prId}/submit`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      if (!submitJson.success) {
+        setWarning(
+          `PR ${createJson.data.portalPRNumber || prId} was created but could not be submitted: ${submitJson.message || 'Submit failed'}. Open the PR to retry.`,
+        );
+        router.push(`/purchase-requests/${prId}`);
+        setSaving(false);
+        return;
+      }
+
+      if (files.length > 0) {
+        const { failures } = await uploadDocumentAttachments({
+          documentType: 'PR',
+          documentId: prId,
+          files,
+        });
+        if (failures.length) {
+          const warn = formatAttachmentUploadWarning(failures, 'PR');
+          router.push(`/purchase-requests/${prId}?attachmentWarning=${encodeURIComponent(warn)}`);
+          setSaving(false);
+          return;
+        }
+      }
+
+      router.push(`/purchase-requests/${prId}`);
+    } catch (err) {
+      setError(err.message || 'Failed to save purchase request');
+    }
     setSaving(false);
   }
 
@@ -157,6 +174,11 @@ export default function PrCreateForm() {
       {error && (
         <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
           {error}
+        </p>
+      )}
+      {warning && (
+        <p className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">
+          {warning}
         </p>
       )}
 
@@ -326,9 +348,11 @@ export default function PrCreateForm() {
         <input
           type="file"
           multiple
+          accept={ALLOWED_MIME_TYPES_CLIENT.join(',')}
           className="text-sm"
           onChange={(e) => setFiles(Array.from(e.target.files || []))}
         />
+        <p className="text-xs text-slate-500">PDF, images, Office files — max 25 MB each</p>
         {files.length > 0 && (
           <ul className="text-sm text-slate-600">
             {files.map((f) => (

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
@@ -12,11 +13,17 @@ import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 
 export default function PrDetailView({ id }) {
+  const searchParams = useSearchParams();
+  const attachmentWarning = searchParams.get('attachmentWarning');
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const [pr, setPr] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
+
+  useEffect(() => {
+    if (attachmentWarning) setActiveTab('attachments');
+  }, [attachmentWarning]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -47,6 +54,11 @@ export default function PrDetailView({ id }) {
 
   return (
     <div className="space-y-6">
+      {attachmentWarning && (
+        <p className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">
+          {attachmentWarning}
+        </p>
+      )}
       {pr.workflowSteps?.length > 0 && <WorkflowStepper steps={pr.workflowSteps} />}
 
       <div className="flex flex-wrap items-start justify-between gap-4">

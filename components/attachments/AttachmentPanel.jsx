@@ -38,25 +38,39 @@ export default function AttachmentPanel({
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [listVersion, setListVersion] = useState(0);
+
+  const resolvedDocId = documentId ? String(documentId) : '';
 
   const load = useCallback(async () => {
-    if (!documentType || !documentId) return;
+    if (!documentType || !resolvedDocId) {
+      setLoading(false);
+      setItems([]);
+      return;
+    }
     setLoading(true);
     setError('');
-    const { json } = await apiFetch(
-      `/api/attachments/${encodeURIComponent(documentType)}/${encodeURIComponent(documentId)}`,
-    );
-    if (json.success) {
-      setItems(json.data);
-    } else {
-      setError(json.message || 'Failed to load attachments');
+    try {
+      const { json } = await apiFetch(
+        `/api/attachments/${encodeURIComponent(documentType)}/${encodeURIComponent(resolvedDocId)}`,
+      );
+      if (json.success) {
+        setItems(Array.isArray(json.data) ? json.data : []);
+      } else {
+        setError(json.message || 'Failed to load attachments');
+        setItems([]);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load attachments');
+      setItems([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [documentType, documentId]);
+  }, [documentType, resolvedDocId]);
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, listVersion]);
 
   async function handleFiles(fileList) {
     const files = Array.from(fileList || []);
@@ -73,11 +87,12 @@ export default function AttachmentPanel({
         }
         await uploadAttachmentFile({
           documentType,
-          documentId,
+          documentId: resolvedDocId,
           file,
           approvalStep,
         });
       }
+      setListVersion((v) => v + 1);
       await load();
     } catch (err) {
       setError(err.message || 'Upload failed');

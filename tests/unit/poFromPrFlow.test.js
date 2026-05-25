@@ -39,6 +39,7 @@ vi.mock('@/lib/auditHistory.js', () => ({
 
 vi.mock('@/lib/emailNotify.js', () => ({
   notifyEvent: mocks.notify,
+  notifyWorkflowEmail: mocks.notify,
 }));
 
 vi.mock('@/lib/approvalEngine.js', () => ({
@@ -131,7 +132,11 @@ describe('portal PO from PR', () => {
     expect(created.lines[0].uomCode).toBe('PCS');
     expect(created.relatedSAPPRDocNum).toBe('200');
     expect(created.remarks).toContain('PR-20260521-0001');
-    expect(mocks.notify).toHaveBeenCalledWith('po.created', expect.any(Object));
+    expect(mocks.notify).toHaveBeenCalledWith(
+      'po.created',
+      expect.objectContaining({ portalPONumber: 'PO-20260521-0001' }),
+      expect.objectContaining({ documentType: 'PO' }),
+    );
     expect(mocks.logHistory).toHaveBeenCalled();
   });
 
