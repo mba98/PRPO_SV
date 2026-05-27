@@ -29,6 +29,12 @@ function DependencyRow({ name, dep }) {
         <p className="font-medium text-slate-900">{label}</p>
         <p className="text-xs text-slate-500">
           {dep?.latencyMs != null ? `${dep.latencyMs}ms` : '—'}
+          {name === 'sap' && dep?.host && (
+            <span className="ml-2 text-slate-600">
+              {dep.host}
+              {dep.companyDb ? ` · ${dep.companyDb}` : ''}
+            </span>
+          )}
           {dep?.error && <span className="ml-2 text-rose-600">{dep.error}</span>}
         </p>
       </div>

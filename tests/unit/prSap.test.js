@@ -34,10 +34,9 @@ vi.mock('@/models/SystemSettings', () => ({
   },
 }));
 
-vi.mock('@/models/SapIntegrationLog', () => ({
-  default: {
-    create: (...args) => logCreate(...args),
-  },
+vi.mock('@/lib/sap/sapIntegrationLog.js', () => ({
+  writeSapIntegrationLog: (...args) => logCreate(...args),
+  logSapDuplicateGuard: (...args) => logCreate(...args),
 }));
 
 vi.mock('@/lib/sapServiceLayer.js', () => ({

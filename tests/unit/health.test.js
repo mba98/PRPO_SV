@@ -6,7 +6,13 @@ vi.mock('@/lib/mongodb', () => ({
 }));
 
 vi.mock('@/lib/sapServiceLayer', () => ({
-  pingServiceLayer: vi.fn().mockResolvedValue(true),
+  probeServiceLayer: vi.fn().mockResolvedValue({
+    companyDb: 'TEST_DB',
+    host: 'sap.internal:50000',
+    serviceLayerReachable: true,
+    latencyMs: 12,
+  }),
+  getSapConfig: vi.fn(() => ({ host: 'sap.internal:50000', companyDb: 'TEST_DB', configured: true })),
 }));
 
 vi.mock('@/lib/sapHana', () => ({
@@ -31,6 +37,8 @@ describe('checkAllDependencies', () => {
     expect(result.success).toBe(true);
     expect(result.dependencies.mongo.status).toBe('up');
     expect(result.dependencies.sap.status).toBe('up');
+    expect(result.dependencies.sap.companyDb).toBe('TEST_DB');
+    expect(result.dependencies.sap.host).toBe('sap.internal:50000');
     expect(result.dependencies.hana.status).toBe('up');
     expect(result.dependencies.s3.status).toBe('up');
     expect(result.dependencies.smtp.status).toBe('up');
@@ -45,5 +53,17 @@ describe('checkAllDependencies', () => {
     expect(result.success).toBe(false);
     expect(result.dependencies.mongo.status).toBe('down');
     expect(result.dependencies.mongo.error).toContain('Connection refused');
+  });
+
+  it('returns safe SAP error without secrets when probe fails', async () => {
+    const { probeServiceLayer } = await import('@/lib/sapServiceLayer');
+    probeServiceLayer.mockRejectedValueOnce(
+      Object.assign(new Error('SAP login failed'), { code: 'SAP_LOGIN_FAILED' }),
+    );
+
+    const result = await checkAllDependencies();
+    expect(result.dependencies.sap.status).toBe('down');
+    expect(result.dependencies.sap.error).toContain('login failed');
+    expect(JSON.stringify(result.dependencies.sap)).not.toMatch(/password|B1SESSION/i);
   });
 });

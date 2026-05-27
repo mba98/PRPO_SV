@@ -37,6 +37,15 @@ describe('sapLookupApi', () => {
     consoleSpy.mockRestore();
   });
 
+  it('maps TLS errors to SAP_TLS_ERROR', async () => {
+    const err = new Error('SAP TLS certificate validation failed');
+    err.code = 'SAP_TLS_ERROR';
+    const res = sapLookupFailureResponse('sap/vendors', err, 'Failed to load vendors');
+    const body = await res.json();
+    expect(body.error).toBe('SAP_TLS_ERROR');
+    expect(body.message).toContain('SAP_SL_CA_CERT');
+  });
+
   it('returns SAP_LOOKUP_FAILED for an authenticated lookup error', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const res = sapLookupFailureResponse(
