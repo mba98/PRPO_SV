@@ -4,6 +4,7 @@ export { default as AnimatedDrawer } from './AnimatedDrawer';
 export { default as AnimatedStatusBadge } from './AnimatedStatusBadge';
 export { default as AnimatedSkeletonLoader } from './AnimatedSkeletonLoader';
 export { default as AnimatedEmptyState } from './AnimatedEmptyState';
+export { default as AnimatedDashboardCard } from './AnimatedDashboardCard';
 export {
   SkeletonTable,
   SkeletonCard,

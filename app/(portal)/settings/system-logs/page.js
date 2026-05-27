@@ -1,14 +1,18 @@
+import { Suspense } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
-import EmailLogsManager from '@/components/settings/EmailLogsManager';
+import SystemLogsManager from '@/components/settings/SystemLogsManager';
+import { AnimatedSkeletonLoader } from '@/components/ui';
 
 export default function SystemLogsPage() {
   return (
     <div>
       <PageHeader
-        title="Email Logs"
-        description="Delivery history for workflow notification emails."
+        title="System Logs"
+        description="Email delivery and SAP integration history. Sensitive credentials are never shown."
       />
-      <EmailLogsManager />
+      <Suspense fallback={<AnimatedSkeletonLoader rows={8} />}>
+        <SystemLogsManager />
+      </Suspense>
     </div>
   );
 }

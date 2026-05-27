@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import ApriListManager from '@/components/ap-reserve-invoices/ApriListManager';
+import { AnimatedSkeletonLoader } from '@/components/ui';
 
 export default function ApReserveInvoicesPage() {
   return (
@@ -8,7 +10,9 @@ export default function ApReserveInvoicesPage() {
         title="A/P Reserve Invoices"
         description="Reserve invoices created from SAP purchase orders."
       />
-      <ApriListManager />
+      <Suspense fallback={<AnimatedSkeletonLoader rows={6} />}>
+        <ApriListManager />
+      </Suspense>
     </div>
   );
 }

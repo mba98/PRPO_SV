@@ -1,22 +1,18 @@
+import { Suspense } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
-import HealthCheckGate from '@/components/settings/HealthCheckGate';
+import DashboardView from '@/components/dashboard/DashboardView';
+import { AnimatedSkeletonLoader } from '@/components/ui';
 
 export default function DashboardPage() {
   return (
     <div>
       <PageHeader
         title="Dashboard"
-        description="Procurement workflow overview. Module metrics arrive in Phase 10."
+        description="Procurement workflow overview — purchase requests, orders, invoices, and integration health."
       />
-      <div className="grid gap-6">
-        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-slate-600">
-            Welcome to the Procurement Portal. Purchase request, order, and invoice workflows
-            will be enabled in upcoming phases.
-          </p>
-        </div>
-        <HealthCheckGate />
-      </div>
+      <Suspense fallback={<AnimatedSkeletonLoader rows={8} />}>
+        <DashboardView />
+      </Suspense>
     </div>
   );
 }
