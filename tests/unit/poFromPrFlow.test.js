@@ -39,7 +39,7 @@ vi.mock('@/lib/auditHistory.js', () => ({
 
 vi.mock('@/lib/emailNotify.js', () => ({
   notifyEvent: mocks.notify,
-  notifyWorkflowEmail: mocks.notify,
+  notifyWorkflowEmailSafe: mocks.notify,
 }));
 
 vi.mock('@/lib/approvalEngine.js', () => ({

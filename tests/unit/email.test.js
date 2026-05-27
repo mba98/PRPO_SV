@@ -305,4 +305,70 @@ describe('sendEmail', () => {
       }),
     );
   });
+
+  it('logs Failed when no recipients and eventKey is set', async () => {
+    const { sendEmail } = await import('@/lib/email');
+    const result = await sendEmail({
+      to: [],
+      subject: 's',
+      body: 'b',
+      eventKey: 'pr.created',
+    });
+    expect(result.success).toBe(false);
+    expect(emailLogCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        emailStatus: 'Failed',
+        eventKey: 'pr.created',
+        errorMessage: 'No recipients resolved for event pr.created',
+      }),
+    );
+  });
+
+  it('sends html and text when SMTP is configured', async () => {
+    process.env.SMTP_HOST = 'smtp.gmail.com';
+    process.env.SMTP_USER = 'a@b.com';
+    process.env.SMTP_PASS = 'pw';
+    process.env.EMAIL_FROM = 'from@b.com';
+    sendMailMock.mockResolvedValueOnce({ messageId: '1' });
+
+    const { sendEmail } = await import('@/lib/email');
+    const result = await sendEmail({
+      to: 'to@example.com',
+      subject: 'Subject',
+      body: 'Plain text',
+      html: '<p>HTML</p>',
+    });
+
+    expect(result.success).toBe(true);
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Plain text',
+        html: '<p>HTML</p>',
+      }),
+    );
+  });
+
+  it('writes Failed email_logs when SMTP send fails', async () => {
+    process.env.SMTP_HOST = 'smtp.gmail.com';
+    process.env.SMTP_USER = 'a@b.com';
+    process.env.SMTP_PASS = 'pw';
+    process.env.EMAIL_FROM = 'from@b.com';
+    const err = Object.assign(new Error('Invalid login'), { code: 'EAUTH' });
+    sendMailMock.mockRejectedValueOnce(err);
+
+    const { sendEmail } = await import('@/lib/email');
+    const result = await sendEmail({
+      to: 'to@example.com',
+      subject: 'Subject',
+      body: 'Plain',
+    });
+
+    expect(result.success).toBe(false);
+    expect(emailLogCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        emailStatus: 'Failed',
+        errorMessage: 'SMTP authentication failed',
+      }),
+    );
+  });
 });

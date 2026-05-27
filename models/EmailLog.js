@@ -3,6 +3,7 @@ import { schemaOptions } from './schemaOptions.js';
 
 const emailLogSchema = new mongoose.Schema(
   {
+    eventKey: String,
     to: [{ type: String }],
     cc: [{ type: String }],
     subject: String,
@@ -17,5 +18,7 @@ const emailLogSchema = new mongoose.Schema(
 );
 
 emailLogSchema.index({ relatedDocumentType: 1, relatedDocumentId: 1, sentAt: -1 });
+emailLogSchema.index({ eventKey: 1, sentAt: -1 });
+emailLogSchema.index({ emailStatus: 1, sentAt: -1 });
 
 export default mongoose.models.EmailLog || mongoose.model('EmailLog', emailLogSchema);

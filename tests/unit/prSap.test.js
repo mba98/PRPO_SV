@@ -50,7 +50,7 @@ vi.mock('@/lib/auditHistory.js', () => ({
 
 vi.mock('@/lib/emailNotify.js', () => ({
   notifyEvent: vi.fn().mockResolvedValue(true),
-  notifyWorkflowEmail: vi.fn().mockResolvedValue({ sent: true }),
+  notifyWorkflowEmailSafe: vi.fn(),
 }));
 
 const PR_ID = '507f1f77bcf86cd799439012';
