@@ -62,8 +62,8 @@ export default function EmailGroupsManager() {
 
   const loadMeta = useCallback(async () => {
     const [rolesRes, usersRes] = await Promise.all([
-      apiFetch('/api/roles?limit=100'),
-      apiFetch('/api/users?limit=200'),
+      apiFetch('/api/roles/picklist'),
+      apiFetch('/api/users/picklist'),
     ]);
     if (rolesRes.json.success) setRoles(rolesRes.json.data);
     if (usersRes.json.success) setUsers(usersRes.json.data);

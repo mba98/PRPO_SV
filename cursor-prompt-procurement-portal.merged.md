@@ -35,6 +35,50 @@ Ask **one** focused question and wait. Do not generate placeholder code or `TODO
 
 ---
 
+## Project Status
+
+**All implementation phases from Phase 0 through Phase 11 are complete.**
+
+### Completed modules
+- Foundations
+- Auth
+- Users / Roles / Approval Matrix
+- Purchase Requests
+- Purchase Orders
+- A/P Reserve Invoices
+- Attachments
+- Comments & Approval History
+- Email Notifications
+- SAP Integration Hardening
+- Dashboard & Reports
+- Admin Settings
+
+### Important production notes
+- SAP PO is created as a **standalone PO**, not PR BaseEntry, due to SAP B1 Service Layer exchange-rate conflicts.
+- The portal preserves PR → PO relationship internally and through SAP comments/UDF when configured.
+- SAP PR is **closed** after standalone PO creation.
+- APRI is created from SAP PO using **BaseType 22**.
+- Email sending is **non-blocking** and logged.
+- SAP **duplicate guards** are enforced before every SAP document creation.
+
+### Phase completion
+| Phase | Status |
+|-------|--------|
+| Phase 0 — Foundations | **Completed** |
+| Phase 1 — Project Scaffold & Auth | **Completed** |
+| Phase 2 — Users, Roles & Approval Matrix | **Completed** |
+| Phase 3 — Purchase Request Module | **Completed** |
+| Phase 4 — Purchase Order Module | **Completed** |
+| Phase 5 — A/P Reserve Invoice Module | **Completed** |
+| Phase 6 — Attachments Module | **Completed** |
+| Phase 7 — Comments & Approval History | **Completed** |
+| Phase 8 — Email Notifications | **Completed** |
+| Phase 9 — SAP Integration Module | **Completed** |
+| Phase 10 — Dashboard & Reports | **Completed** |
+| Phase 11 — Admin Settings | **Completed** |
+
+---
+
 ## PROJECT OVERVIEW
 
 Build a full-stack **Procurement Workflow Portal** using:
@@ -437,7 +481,7 @@ Cards (query MongoDB aggregations):
 
 ---
 
-### PHASE 11 — ADMIN SETTINGS
+### PHASE 11 — ADMIN SETTINGS ✅ Completed
 
 **Pages:**
 - `/settings/users` — CRUD users, assign roles, toggle active

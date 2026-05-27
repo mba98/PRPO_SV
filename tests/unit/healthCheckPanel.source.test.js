@@ -26,4 +26,9 @@ describe('HealthCheckPanel source', () => {
     expect(source).toMatch(/Failed/);
     expect(source).toMatch(/Healthy/);
   });
+
+  it('includes SAP connection test button', () => {
+    expect(source).toContain('sap-connection-test-btn');
+    expect(source).toContain('/api/sap/connection-test');
+  });
 });

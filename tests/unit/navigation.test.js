@@ -52,4 +52,17 @@ describe('navigation permissions', () => {
       nav.some((n) => n.href === '/purchase-orders/ready-for-ap-reserve-invoice'),
     ).toBe(false);
   });
+
+  it('hides all settings links for requester-only user', () => {
+    expect(getVisibleSettingsNav(['pr.create'])).toHaveLength(0);
+  });
+
+  it('shows users settings only with admin.users', () => {
+    expect(getVisibleSettingsNav(['admin.users']).some((s) => s.href === '/settings/users')).toBe(
+      true,
+    );
+    expect(getVisibleSettingsNav(['admin.settings']).some((s) => s.href === '/settings/users')).toBe(
+      false,
+    );
+  });
 });

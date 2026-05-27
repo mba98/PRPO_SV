@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
-import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions';
+import { PERMISSION_GROUPS, PERMISSION_LABELS } from '@/lib/permissions';
 import { AnimatedModal, AnimatedSkeletonLoader } from '@/components/ui';
 import SettingsTable from './SettingsTable';
 
@@ -18,8 +18,9 @@ export default function RolesManager() {
 
   const loadRoles = useCallback(async () => {
     setLoading(true);
-    const { json } = await apiFetch('/api/roles?limit=100&sort=name&order=asc');
+    const { json, status } = await apiFetch('/api/roles?limit=100&sort=name&order=asc');
     if (json.success) setRoles(json.data);
+    else if (status === 403) setError('You do not have permission to manage roles.');
     else setError(json.message || 'Failed to load roles');
     setLoading(false);
   }, []);
@@ -133,7 +134,9 @@ export default function RolesManager() {
       </div>
 
       {error && (
-        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>
+        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+          {error}
+        </p>
       )}
 
       {loading ? (
@@ -162,27 +165,33 @@ export default function RolesManager() {
               className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
             />
           </div>
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium text-slate-700">Permissions</legend>
-            <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-slate-200 p-3">
-              {ALL_PERMISSIONS.map((perm) => (
-                <label key={perm} className="flex items-start gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={permissions.includes(perm)}
-                    onChange={() => togglePermission(perm)}
-                    className="mt-0.5"
-                  />
-                  <span>
-                    <span className="font-mono text-xs text-slate-800">{perm}</span>
-                    {PERMISSION_LABELS[perm] && (
-                      <span className="block text-xs text-slate-500">{PERMISSION_LABELS[perm]}</span>
-                    )}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          <div className="max-h-80 space-y-4 overflow-y-auto rounded-md border border-slate-200 p-3">
+            {PERMISSION_GROUPS.map((group) => (
+              <fieldset key={group.id}>
+                <legend className="mb-2 text-sm font-semibold text-slate-800">{group.label}</legend>
+                <div className="space-y-2">
+                  {group.permissions.map((perm) => (
+                    <label key={perm} className="flex items-start gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={permissions.includes(perm)}
+                        onChange={() => togglePermission(perm)}
+                        className="mt-0.5"
+                      />
+                      <span>
+                        <span className="font-mono text-xs text-slate-800">{perm}</span>
+                        {PERMISSION_LABELS[perm] && (
+                          <span className="block text-xs text-slate-500">
+                            {PERMISSION_LABELS[perm]}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            ))}
+          </div>
           <div className="flex justify-end gap-2">
             <button
               type="button"

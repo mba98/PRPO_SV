@@ -7,7 +7,7 @@ import {
   handleServiceError,
 } from '@/lib/apiHelpers';
 
-async function getHandler(request) {
+async function getHandler(request, _ctx, user) {
   try {
     const { searchParams } = new URL(request.url);
     const raw = Object.fromEntries(searchParams.entries());
@@ -16,7 +16,7 @@ async function getHandler(request) {
       return jsonValidation(parsed.error);
     }
     const { page = 1, limit = 25, ...filters } = parsed.data;
-    const result = await listEmailLogs({ page, limit, ...filters });
+    const result = await listEmailLogs(user, { page, limit, ...filters });
     return jsonSuccess(result.items, result.pagination);
   } catch (err) {
     return handleServiceError(err);

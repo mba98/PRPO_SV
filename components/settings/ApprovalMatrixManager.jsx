@@ -1,8 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
-import { ALL_PERMISSIONS } from '@/lib/permissions';
+import {
+  PR_APPROVAL_PERMISSIONS,
+  PO_APPROVAL_PERMISSIONS,
+  PERMISSION_LABELS,
+} from '@/lib/permissions';
 import { AnimatedModal, AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
 import SettingsTable from './SettingsTable';
 
@@ -26,17 +30,32 @@ export default function ApprovalMatrixManager() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
 
+  const permissionOptions = useMemo(() => {
+    if (form.documentType === 'PO') return PO_APPROVAL_PERMISSIONS;
+    return PR_APPROVAL_PERMISSIONS;
+  }, [form.documentType]);
+
   const loadRoles = useCallback(async () => {
-    const { json } = await apiFetch('/api/roles?limit=100');
+    const { json } = await apiFetch('/api/roles/picklist');
     if (json.success) setRoles(json.data);
   }, []);
 
   const loadSteps = useCallback(async () => {
     setLoading(true);
+    setError('');
     const qs = filterType ? `?documentType=${filterType}&limit=100` : '?limit=100';
-    const { json } = await apiFetch(`/api/approval-matrix${qs}`);
-    if (json.success) setSteps(json.data);
-    else setError(json.message || 'Failed to load approval matrix');
+    const { json, status } = await apiFetch(`/api/approval-matrix${qs}`);
+    if (json.success) {
+      const sorted = [...json.data].sort((a, b) => {
+        if (a.documentType !== b.documentType) return a.documentType.localeCompare(b.documentType);
+        return a.stepOrder - b.stepOrder;
+      });
+      setSteps(sorted);
+    } else if (status === 403) {
+      setError('You do not have permission to manage the approval matrix.');
+    } else {
+      setError(json.message || 'Failed to load approval matrix');
+    }
     setLoading(false);
   }, [filterType]);
 
@@ -49,8 +68,13 @@ export default function ApprovalMatrixManager() {
   }, [loadSteps]);
 
   function openCreate() {
+    const docType = filterType || 'PR';
     setEditing(null);
-    setForm({ ...EMPTY, documentType: filterType || 'PR' });
+    setForm({
+      ...EMPTY,
+      documentType: docType,
+      requiredPermission: docType === 'PO' ? 'po.approve.pm' : 'pr.approve.whs',
+    });
     setModalOpen(true);
   }
 
@@ -106,9 +130,24 @@ export default function ApprovalMatrixManager() {
 
   const columns = [
     { key: 'documentType', label: 'Type' },
-    { key: 'stepOrder', label: 'Order' },
-    { key: 'stepName', label: 'Step' },
-    { key: 'requiredPermission', label: 'Permission' },
+    {
+      key: 'stepOrder',
+      label: 'Order',
+      render: (s) => <span className="font-mono text-sm">{s.stepOrder}</span>,
+    },
+    { key: 'stepName', label: 'Step name' },
+    {
+      key: 'requiredPermission',
+      label: 'Required permission',
+      render: (s) => (
+        <span className="text-xs">
+          <span className="font-mono">{s.requiredPermission}</span>
+          {PERMISSION_LABELS[s.requiredPermission] && (
+            <span className="block text-slate-500">{PERMISSION_LABELS[s.requiredPermission]}</span>
+          )}
+        </span>
+      ),
+    },
     {
       key: 'approverRole',
       label: 'Approver role',
@@ -138,6 +177,11 @@ export default function ApprovalMatrixManager() {
 
   return (
     <div className="space-y-4">
+      <p className="text-sm text-slate-600">
+        Configure approval steps per document type. Workflow reads these rows from the approval matrix
+        — do not hardcode steps elsewhere. Use step order 1, 2, 3… to define sequence.
+      </p>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <label className="text-sm text-slate-600">Document type</label>
@@ -146,9 +190,9 @@ export default function ApprovalMatrixManager() {
             onChange={(e) => setFilterType(e.target.value)}
             className="h-9 rounded-md border border-slate-300 px-2 text-sm"
           >
-            <option value="">All</option>
-            <option value="PR">PR</option>
-            <option value="PO">PO</option>
+            <option value="">All (PR + PO)</option>
+            <option value="PR">Purchase Requests (PR)</option>
+            <option value="PO">Purchase Orders (PO)</option>
           </select>
         </div>
         <button
@@ -161,7 +205,9 @@ export default function ApprovalMatrixManager() {
       </div>
 
       {error && (
-        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>
+        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+          {error}
+        </p>
       )}
 
       {loading ? (
@@ -186,11 +232,18 @@ export default function ApprovalMatrixManager() {
               <label className="mb-1 block text-sm font-medium text-slate-700">Document type</label>
               <select
                 value={form.documentType}
-                onChange={(e) => setForm({ ...form, documentType: e.target.value })}
+                onChange={(e) => {
+                  const docType = e.target.value;
+                  setForm({
+                    ...form,
+                    documentType: docType,
+                    requiredPermission: docType === 'PO' ? 'po.approve.pm' : 'pr.approve.whs',
+                  });
+                }}
                 className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
               >
-                <option value="PR">PR</option>
-                <option value="PO">PO</option>
+                <option value="PR">PR — Purchase Request</option>
+                <option value="PO">PO — Purchase Order</option>
               </select>
             </div>
             <div>
@@ -203,6 +256,7 @@ export default function ApprovalMatrixManager() {
                 onChange={(e) => setForm({ ...form, stepOrder: e.target.value })}
                 className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
               />
+              <p className="mt-1 text-xs text-slate-500">1 = first approval, 2 = second, etc.</p>
             </div>
             <div className="sm:col-span-2">
               <label className="mb-1 block text-sm font-medium text-slate-700">Step name</label>
@@ -210,6 +264,7 @@ export default function ApprovalMatrixManager() {
                 required
                 value={form.stepName}
                 onChange={(e) => setForm({ ...form, stepName: e.target.value })}
+                placeholder="e.g. Warehouse approval"
                 className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
               />
             </div>
@@ -222,9 +277,9 @@ export default function ApprovalMatrixManager() {
                 onChange={(e) => setForm({ ...form, requiredPermission: e.target.value })}
                 className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
               >
-                {ALL_PERMISSIONS.map((p) => (
+                {permissionOptions.map((p) => (
                   <option key={p} value={p}>
-                    {p}
+                    {p} — {PERMISSION_LABELS[p] || p}
                   </option>
                 ))}
               </select>

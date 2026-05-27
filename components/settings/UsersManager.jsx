@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
 import { AnimatedModal, AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import ListPagination from '@/components/lists/ListPagination';
 import SettingsTable from './SettingsTable';
 
 const EMPTY_FORM = {
@@ -12,12 +13,17 @@ const EMPTY_FORM = {
   password: '',
   role: '',
   department: '',
+  sapRequesterCode: '',
   isActive: true,
 };
 
 export default function UsersManager() {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, limit: 25, total: 0, totalPages: 1 });
+  const [q, setQ] = useState('');
+  const [status, setStatus] = useState('');
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -26,26 +32,41 @@ export default function UsersManager() {
   const [saving, setSaving] = useState(false);
 
   const loadRoles = useCallback(async () => {
-    const { json } = await apiFetch('/api/roles?limit=100');
+    const { json } = await apiFetch('/api/roles/picklist');
     if (json.success) setRoles(json.data);
   }, []);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
     setError('');
-    const { json } = await apiFetch('/api/users?limit=100&sort=createdAt&order=desc');
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: '25',
+      sort: 'createdAt',
+      order: 'desc',
+    });
+    if (q.trim()) params.set('q', q.trim());
+    if (status) params.set('status', status);
+
+    const { json, status: httpStatus } = await apiFetch(`/api/users?${params}`);
     if (json.success) {
       setUsers(json.data);
+      setPagination(json.pagination || { page: 1, limit: 25, total: 0, totalPages: 1 });
+    } else if (httpStatus === 403) {
+      setError('You do not have permission to manage users.');
     } else {
       setError(json.message || 'Failed to load users');
     }
     setLoading(false);
-  }, []);
+  }, [page, q, status]);
 
   useEffect(() => {
     loadRoles();
+  }, [loadRoles]);
+
+  useEffect(() => {
     loadUsers();
-  }, [loadRoles, loadUsers]);
+  }, [loadUsers]);
 
   function openCreate() {
     setEditing(null);
@@ -60,8 +81,9 @@ export default function UsersManager() {
       email: user.email,
       username: user.username,
       password: '',
-      role: user.role?.id || '',
+      role: user.role?.id || user.roleId || '',
       department: user.department || '',
+      sapRequesterCode: user.sapRequesterCode || '',
       isActive: user.isActive,
     });
     setModalOpen(true);
@@ -78,6 +100,7 @@ export default function UsersManager() {
       username: form.username,
       role: form.role,
       department: form.department || undefined,
+      sapRequesterCode: form.sapRequesterCode || undefined,
       isActive: form.isActive,
     };
     if (form.password) payload.password = form.password;
@@ -133,6 +156,11 @@ export default function UsersManager() {
       render: (u) => u.roleName || u.role?.name || '—',
     },
     {
+      key: 'sapRequesterCode',
+      label: 'SAP requester',
+      render: (u) => u.sapRequesterCode || '—',
+    },
+    {
       key: 'status',
       label: 'Status',
       render: (u) => (
@@ -167,7 +195,48 @@ export default function UsersManager() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Search</label>
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Name, email, username…"
+              className="h-9 w-56 rounded-md border border-slate-300 px-3 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Status</label>
+            <select
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+              className="h-9 rounded-md border border-slate-300 px-2 text-sm"
+            >
+              <option value="">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setQ('');
+              setStatus('');
+              setPage(1);
+            }}
+            className="h-9 rounded-md border border-slate-200 px-3 text-sm text-slate-700 hover:bg-slate-50"
+          >
+            Reset
+          </button>
+        </div>
         <button
           type="button"
           onClick={openCreate}
@@ -186,11 +255,14 @@ export default function UsersManager() {
       {loading ? (
         <AnimatedSkeletonLoader variant="table" rows={6} />
       ) : (
-        <SettingsTable
-          columns={columns}
-          rows={users.map((u) => ({ key: u.id, data: u }))}
-          emptyMessage="No users found."
-        />
+        <>
+          <SettingsTable
+            columns={columns}
+            rows={users.map((u) => ({ key: u.id, data: u }))}
+            emptyMessage="No users found."
+          />
+          <ListPagination pagination={pagination} onPageChange={setPage} />
+        </>
       )}
 
       <AnimatedModal
@@ -238,6 +310,15 @@ export default function UsersManager() {
               />
             </div>
             <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">SAP requester code</label>
+              <input
+                value={form.sapRequesterCode}
+                onChange={(e) => setForm({ ...form, sapRequesterCode: e.target.value })}
+                placeholder="e.g. 15"
+                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+              />
+            </div>
+            <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
               <select
                 required
@@ -260,6 +341,7 @@ export default function UsersManager() {
               <input
                 type="password"
                 required={!editing}
+                autoComplete="new-password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
