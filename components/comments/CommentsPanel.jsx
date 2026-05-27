@@ -7,8 +7,7 @@ import {
   AnimatedEmptyState,
   AnimatedSkeletonLoader,
 } from '@/components/ui';
-
-const COMMENT_MAX_LENGTH = 2000;
+import { COMMENT_MAX_LENGTH } from '@/lib/validators/comment';
 
 export default function CommentsPanel({
   documentType,
@@ -26,15 +25,22 @@ export default function CommentsPanel({
     if (!documentType || !documentId) return;
     setLoading(true);
     setError('');
-    const { json } = await apiFetch(
-      `/api/comments/${encodeURIComponent(documentType)}/${encodeURIComponent(documentId)}`,
-    );
-    if (json.success) {
-      setItems(json.data);
-    } else {
-      setError(json.message || 'Failed to load comments');
+    try {
+      const { json } = await apiFetch(
+        `/api/comments/${encodeURIComponent(documentType)}/${encodeURIComponent(documentId)}`,
+      );
+      if (json.success) {
+        setItems(Array.isArray(json.data) ? json.data : []);
+      } else {
+        setError(json.message || 'Failed to load comments');
+        setItems([]);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load comments');
+      setItems([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [documentType, documentId]);
 
   useEffect(() => {
@@ -58,6 +64,9 @@ export default function CommentsPanel({
     setSubmitting(false);
     if (json.success) {
       setText('');
+      if (json.data) {
+        setItems((prev) => [...prev, json.data]);
+      }
       await load();
     } else {
       setError(json.message || 'Failed to post comment');

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -92,7 +93,7 @@ describe('commentsService.addComment', () => {
     expect(mocks.commentCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         documentType: 'PR',
-        documentId: PR_ID,
+        documentId: new mongoose.Types.ObjectId(PR_ID),
         comment: 'Looks good',
         postedBy: 'user1',
       }),
@@ -100,7 +101,7 @@ describe('commentsService.addComment', () => {
     expect(mocks.logHistory).toHaveBeenCalledWith(
       expect.objectContaining({
         documentType: 'PR',
-        documentId: PR_ID,
+        documentId: new mongoose.Types.ObjectId(PR_ID),
         action: 'Comment Added',
         comment: 'Looks good',
         actionBy: USER,
@@ -124,7 +125,7 @@ describe('commentsService.addComment', () => {
     expect(mocks.attachmentFind).toHaveBeenCalledWith({
       _id: { $in: [ATT_ID] },
       documentType: 'PR',
-      documentId: PR_ID,
+      documentId: new mongoose.Types.ObjectId(PR_ID),
     });
     expect(mocks.commentCreate).toHaveBeenCalledWith(
       expect.objectContaining({ attachments: [ATT_ID] }),
