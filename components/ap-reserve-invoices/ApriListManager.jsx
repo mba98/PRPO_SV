@@ -137,7 +137,7 @@ export default function ApriListManager() {
           ['to', common.toDate],
         ].map(([key, label]) => (
           <label key={key} className="text-sm">
-            <span className="text-slate-600">{label}</span>
+            <span className="text-muted-foreground">{label}</span>
             <input
               className="input-field mt-1"
               type={key === 'from' || key === 'to' ? 'date' : 'text'}

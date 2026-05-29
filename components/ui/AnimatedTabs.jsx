@@ -25,7 +25,7 @@ export default function AnimatedTabs({ tabs, activeId, onChange, className = '' 
             aria-selected={active}
             onClick={() => onChange(tab.id)}
             className={`relative min-h-10 flex-1 rounded-lg px-3 py-2 text-sm font-medium sm:flex-none ${
-              active ? 'text-brand-700' : 'tab-chip-inactive text-slate-600'
+              active ? 'text-primary' : 'tab-chip-inactive text-muted-foreground'
             }`}
           >
             {active && Object.keys(motionProps).length > 0 && (

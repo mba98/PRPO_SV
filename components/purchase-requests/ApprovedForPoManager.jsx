@@ -87,9 +87,9 @@ export default function ApprovedForPoManager() {
         <AnimatedSkeletonLoader rows={5} />
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <div className="lg:col-span-2 overflow-x-auto rounded-lg border border-border bg-card">
             <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+              <thead className="bg-muted text-left text-xs font-semibold uppercase text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 w-10" />
                   <th className="px-4 py-3">PR Number</th>
@@ -102,7 +102,7 @@ export default function ApprovedForPoManager() {
               <tbody className="divide-y divide-slate-100">
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                       No PRs ready for PO creation
                     </td>
                   </tr>
@@ -110,7 +110,7 @@ export default function ApprovedForPoManager() {
                 {items.map((pr) => (
                   <tr
                     key={pr.id}
-                    className={`cursor-pointer hover:bg-slate-50 ${selectedId === pr.id ? 'bg-brand-50' : ''}`}
+                    className={`cursor-pointer hover:bg-muted ${selectedId === pr.id ? 'bg-primary/10 ring-1 ring-primary' : ''}`}
                     onClick={() => setSelectedId(pr.id)}
                   >
                     <td className="px-4 py-3">
@@ -124,7 +124,7 @@ export default function ApprovedForPoManager() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/purchase-requests/${pr.id}`}
-                        className="font-medium text-brand-600 hover:underline"
+                        className="font-medium text-primary hover:underline"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {pr.portalPRNumber}
@@ -135,7 +135,7 @@ export default function ApprovedForPoManager() {
                     <td className="px-4 py-3">
                       <AnimatedStatusBadge status={pr.status} />
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {pr.sapPODocNum || '—'}
                       {pr.pendingVendors?.length > 0 && (
                         <span className="ml-1 text-xs text-amber-700">
@@ -151,25 +151,25 @@ export default function ApprovedForPoManager() {
           </div>
 
           <div className="card space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900">Create Purchase Order</h2>
-            <p className="text-xs text-slate-500">
+            <h2 className="text-lg font-semibold text-foreground">Create Purchase Order</h2>
+            <p className="text-xs text-muted-foreground">
               Creates a portal PO for approval. SAP PO is created after Finance approval.
             </p>
             {!selected ? (
-              <p className="text-sm text-slate-500">Select a purchase request from the list.</p>
+              <p className="text-sm text-muted-foreground">Select a purchase request from the list.</p>
             ) : (
               <>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   PR <strong>{selected.portalPRNumber}</strong> · SAP PR{' '}
                   <strong>{selected.sapPRDocNum}</strong>
                 </p>
                 {selected.suggestedVendors?.length > 0 && (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     Suggested vendors: {selected.suggestedVendors.join(', ')}
                   </p>
                 )}
                 {selected.existingPOs?.length > 0 && (
-                  <ul className="text-xs text-slate-500">
+                  <ul className="text-xs text-muted-foreground">
                     {selected.existingPOs.map((o) => (
                       <li key={o.id}>
                         {o.portalPONumber} — {o.vendor} ({o.status})
@@ -178,7 +178,7 @@ export default function ApprovedForPoManager() {
                   </ul>
                 )}
                 <label className="block text-sm">
-                  <span className="text-slate-600">Vendor (SAP CardCode)</span>
+                  <span className="text-muted-foreground">Vendor (SAP CardCode)</span>
                   <input
                     className="input-field mt-1"
                     value={vendor}

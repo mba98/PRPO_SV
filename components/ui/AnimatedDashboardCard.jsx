@@ -19,10 +19,10 @@ export default function AnimatedDashboardCard({
   });
 
   const toneClasses = {
-    default: 'border-slate-200 bg-white',
+    default: 'border-border bg-card',
     success: 'border-emerald-200 bg-emerald-50/50',
     warning: 'border-amber-200 bg-amber-50/50',
-    danger: 'border-rose-200 bg-rose-50/50',
+    danger: 'border-rose-200 border border-destructive/30 bg-destructive/10/50',
     info: 'border-indigo-200 bg-indigo-50/50',
   };
 
@@ -31,12 +31,12 @@ export default function AnimatedDashboardCard({
       className={`rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md ${toneClasses[tone] || toneClasses.default}`}
       {...motionProps}
     >
-      <p className="text-sm font-medium text-slate-600">{title}</p>
-      <p className="mt-2 text-3xl font-semibold tabular-nums text-slate-900">
+      <p className="text-sm font-medium text-muted-foreground">{title}</p>
+      <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground">
         {loading ? '—' : value ?? 0}
       </p>
       {href && (
-        <p className="mt-3 text-xs font-medium text-brand-600">{dashI18n.viewList} ←</p>
+        <p className="mt-3 text-xs font-medium text-primary">{dashI18n.viewList} ←</p>
       )}
     </motion.div>
   );

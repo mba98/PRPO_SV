@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
@@ -16,14 +16,6 @@ import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { FilterBar, Button } from '@/components/ui';
-
-const TABS = [
-  { id: 'pending', label: poI18n.pendingTab },
-  { id: 'approved', label: poI18n.approvedTab },
-  { id: 'rejected', label: poI18n.rejectedTab },
-  { id: 'sap', label: poI18n.inSapTab },
-  { id: 'all', label: poI18n.allTab, perm: 'view.all' },
-];
 
 const EMPTY_FILTERS = {
   q: '',
@@ -41,6 +33,16 @@ const EMPTY_FILTERS = {
 
 export default function PoListManager() {
   const { common, filters: filterLabels, po: poI18n } = useI18n();
+  const tabs = useMemo(
+    () => [
+      { id: 'pending', label: poI18n.pendingTab },
+      { id: 'approved', label: poI18n.approvedTab },
+      { id: 'rejected', label: poI18n.rejectedTab },
+      { id: 'sap', label: poI18n.inSapTab },
+      { id: 'all', label: poI18n.allTab, perm: 'view.all' },
+    ],
+    [poI18n],
+  );
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -115,7 +117,7 @@ export default function PoListManager() {
     window.open(`/api/export/purchase-orders?${params}`, '_blank');
   }
 
-  const visibleTabs = TABS.filter((t) => {
+  const visibleTabs = tabs.filter((t) => {
     if (t.perm) return hasPermission(t.perm);
     if (t.id === 'pending') {
       return hasAnyPermission(['po.approve.pm', 'po.approve.finance', 'view.all', 'po.create']);
@@ -156,7 +158,7 @@ export default function PoListManager() {
         }}
       >
         <label className="text-sm sm:col-span-2">
-          <span className="text-slate-600">{common.search}</span>
+          <span className="text-muted-foreground">{common.search}</span>
           <input
             className="input-field mt-1"
             placeholder={filterLabels.searchPo}
@@ -174,7 +176,7 @@ export default function PoListManager() {
           ['to', common.toDate],
         ].map(([key, label]) => (
           <label key={key} className="text-sm">
-            <span className="text-slate-600">{label}</span>
+            <span className="text-muted-foreground">{label}</span>
             <input
               className="input-field mt-1"
               type={key === 'from' || key === 'to' ? 'date' : 'text'}
@@ -189,7 +191,7 @@ export default function PoListManager() {
           </button>
           <button
             type="button"
-            className="min-h-10 text-sm text-slate-600"
+            className="min-h-10 text-sm text-muted-foreground"
             onClick={() => {
               setFilters({ ...EMPTY_FILTERS });
               navigateWithQuery(router, '/purchase-orders', new URLSearchParams({ tab }));
@@ -221,7 +223,7 @@ export default function PoListManager() {
               <tbody>
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                       {filterLabels.noResultsPo}
                     </td>
                   </tr>
@@ -229,7 +231,7 @@ export default function PoListManager() {
                 {items.map((row) => (
                   <tr key={row.id}>
                     <td>
-                      <Link href={`/purchase-orders/${row.id}`} className="font-medium text-brand-600 hover:underline">
+                      <Link href={`/purchase-orders/${row.id}`} className="font-medium text-primary hover:underline">
                         {row.portalPONumber}
                       </Link>
                     </td>
@@ -242,7 +244,7 @@ export default function PoListManager() {
                     <td>
                       <button
                         type="button"
-                        className="min-h-10 text-sm font-medium text-brand-600 hover:underline"
+                        className="min-h-10 text-sm font-medium text-primary hover:underline"
                         onClick={() => setHistoryRow(row)}
                       >
                         {common.history}

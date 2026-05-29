@@ -75,14 +75,14 @@ export default function PrDetailView({ id }) {
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-slate-500">
-            <Link href="/purchase-requests" className="text-brand-600 hover:underline">
+          <p className="text-sm text-muted-foreground">
+            <Link href="/purchase-requests" className="text-primary hover:underline">
               {prI18n.title}
             </Link>
             {' / '}
             {pr.portalPRNumber}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-slate-900">{pr.portalPRNumber}</h1>
+          <h1 className="mt-1 text-2xl font-semibold text-foreground">{pr.portalPRNumber}</h1>
           <div className="mt-2">
             <AnimatedStatusBadge status={pr.status} />
           </div>
@@ -129,21 +129,21 @@ export default function PrDetailView({ id }) {
               ['SAP PR DocEntry', pr.sapPRDocEntry || '—'],
             ].map(([label, val]) => (
               <div key={label}>
-                <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
-                <p className="mt-1 text-sm text-slate-900">{val || '—'}</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
+                <p className="mt-1 text-sm text-foreground">{val || '—'}</p>
               </div>
             ))}
             {pr.remarks && (
               <div className="sm:col-span-2 lg:col-span-3">
-                <p className="text-xs font-medium uppercase text-slate-500">Remarks</p>
-                <p className="mt-1 text-sm text-slate-900">{pr.remarks}</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">Remarks</p>
+                <p className="mt-1 text-sm text-foreground">{pr.remarks}</p>
               </div>
             )}
             {pr.status === 'Failed to Create in SAP' && (
-              <div className="sm:col-span-2 lg:col-span-3 rounded-md border border-rose-200 bg-rose-50 px-4 py-3">
-                <p className="text-xs font-medium uppercase text-rose-700">SAP creation failed</p>
+              <div className="sm:col-span-2 lg:col-span-3 rounded-md border border-rose-200 border border-destructive/30 bg-destructive/10 px-4 py-3">
+                <p className="text-xs font-medium uppercase text-destructive">SAP creation failed</p>
                 {pr.sapErrorMessage && (
-                  <p className="mt-1 text-sm text-rose-800">{pr.sapErrorMessage}</p>
+                  <p className="mt-1 text-sm text-destructive">{pr.sapErrorMessage}</p>
                 )}
                 {pr.sapReferenceSummary && (
                   <p className="mt-2 text-xs text-rose-900/90 font-mono break-all">
@@ -151,12 +151,12 @@ export default function PrDetailView({ id }) {
                   </p>
                 )}
                 {pr.requesterMissingSapCode && (
-                  <p className="mt-2 text-sm text-rose-800">
+                  <p className="mt-2 text-sm text-destructive">
                     Original requester is missing SAP requester code.
                   </p>
                 )}
                 {showRetryDeniedNote && (
-                  <p className="mt-2 text-sm text-slate-600">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     SAP retry is available to Admin users only.
                   </p>
                 )}
@@ -167,7 +167,7 @@ export default function PrDetailView({ id }) {
           <section className="card overflow-x-auto">
             <h2 className="mb-4 text-lg font-semibold">Line items</h2>
             <table className="min-w-full text-sm">
-              <thead className="text-left text-xs uppercase text-slate-500">
+              <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="pb-2 pr-4">Item</th>
                   <th className="pb-2 pr-4">Warehouse</th>
@@ -183,7 +183,7 @@ export default function PrDetailView({ id }) {
                   <tr key={line._id || i}>
                     <td className="py-2 pr-4">
                       <span className="font-medium">{line.itemCode}</span>
-                      <span className="ml-2 text-slate-600">{line.itemName}</span>
+                      <span className="ml-2 text-muted-foreground">{line.itemName}</span>
                     </td>
                     <td className="py-2 pr-4">{line.warehouseCode || '—'}</td>
                     <td className="py-2 pr-4">{line.quantity}</td>

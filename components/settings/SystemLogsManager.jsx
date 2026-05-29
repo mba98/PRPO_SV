@@ -16,14 +16,14 @@ export default function SystemLogsManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+      <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-muted p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => router.push(`/settings/system-logs?log=${t.id}`)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              log === t.id ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-600'
+              log === t.id ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground'
             }`}
           >
             {t.label}

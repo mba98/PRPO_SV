@@ -54,13 +54,13 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
   if (!pr.canCreatePo) return null;
 
   const wrapperClass = compact
-    ? 'rounded-md border border-slate-200 bg-slate-50 px-4 py-3'
+    ? 'rounded-md border border-border bg-muted px-4 py-3'
     : 'card space-y-3';
 
   return (
     <section className={wrapperClass}>
-      <h2 className="text-sm font-semibold text-slate-900">Create Purchase Order</h2>
-      <p className="text-xs text-slate-500">
+      <h2 className="text-sm font-semibold text-foreground">Create Purchase Order</h2>
+      <p className="text-xs text-muted-foreground">
         Creates a portal PO from SAP PR {pr.sapPRDocNum || pr.sapPRDocEntry}. SAP PO is created after
         finance approval.
       </p>
@@ -70,11 +70,11 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
         </p>
       )}
       {existingForVendor ? (
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-foreground">
           PO already exists for this vendor:{' '}
           <Link
             href={`/purchase-orders/${existingForVendor.id}`}
-            className="font-medium text-brand-600 hover:underline"
+            className="font-medium text-primary hover:underline"
           >
             {existingForVendor.portalPONumber}
           </Link>{' '}
@@ -83,7 +83,7 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
       ) : (
         <>
           <label className="block text-sm">
-            <span className="text-slate-600">Vendor (SAP CardCode)</span>
+            <span className="text-muted-foreground">Vendor (SAP CardCode)</span>
             <input
               className="input-field mt-1"
               value={vendor}
@@ -113,10 +113,10 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
         </>
       )}
       {(pr.existingPOs || []).length > 0 && !existingForVendor && (
-        <ul className="text-xs text-slate-500">
+        <ul className="text-xs text-muted-foreground">
           {(pr.existingPOs || []).map((o) => (
             <li key={o.id}>
-              <Link href={`/purchase-orders/${o.id}`} className="text-brand-600 hover:underline">
+              <Link href={`/purchase-orders/${o.id}`} className="text-primary hover:underline">
                 {o.portalPONumber}
               </Link>{' '}
               — {o.vendor} ({o.status})

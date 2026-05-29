@@ -7,7 +7,7 @@ function HealthStatusPill({ status }) {
   const isUp = status === 'up';
   const cls = isUp
     ? 'bg-green-100 text-green-800'
-    : 'bg-rose-100 text-rose-800';
+    : 'bg-rose-100 text-destructive';
   const label = isUp ? 'Healthy' : 'Failed';
   return (
     <span
@@ -24,18 +24,18 @@ function DependencyRow({ name, dep }) {
   const label = name.toUpperCase();
 
   return (
-    <div className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-4 py-3">
+    <div className="flex items-center justify-between rounded-md border border-border bg-card px-4 py-3">
       <div>
-        <p className="font-medium text-slate-900">{label}</p>
-        <p className="text-xs text-slate-500">
+        <p className="font-medium text-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">
           {dep?.latencyMs != null ? `${dep.latencyMs}ms` : '—'}
           {name === 'sap' && dep?.host && (
-            <span className="ml-2 text-slate-600">
+            <span className="ml-2 text-muted-foreground">
               {dep.host}
               {dep.companyDb ? ` · ${dep.companyDb}` : ''}
             </span>
           )}
-          {dep?.error && <span className="ml-2 text-rose-600">{dep.error}</span>}
+          {dep?.error && <span className="ml-2 text-destructive">{dep.error}</span>}
         </p>
       </div>
       <HealthStatusPill status={dep?.status} />
@@ -99,11 +99,11 @@ export default function HealthCheckPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-6">
+      <div className="rounded-lg border border-border bg-muted p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">System health</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="text-lg font-semibold text-foreground">System health</h2>
+            <p className="text-sm text-muted-foreground">
               Run dependency checks (MongoDB, SAP Service Layer, HANA, S3, SMTP). Credentials are
               never shown.
             </p>
@@ -112,14 +112,14 @@ export default function HealthCheckPanel() {
             type="button"
             onClick={runHealthCheck}
             disabled={loading}
-            className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            className="btn-primary disabled:opacity-50"
           >
             {loading ? 'Checking…' : 'Run health check'}
           </button>
         </div>
 
         {error && (
-          <p className="mb-4 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>
+          <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
         )}
 
         {loading && <AnimatedSkeletonLoader variant="timeline" steps={5} />}
@@ -130,7 +130,7 @@ export default function HealthCheckPanel() {
               <DependencyRow key={name} name={name} dep={dep} />
             ))}
             {result?.checkedAt && (
-              <p className="pt-2 text-xs text-slate-500">
+              <p className="pt-2 text-xs text-muted-foreground">
                 Checked at {new Date(result.checkedAt).toLocaleString()}
               </p>
             )}
@@ -138,11 +138,11 @@ export default function HealthCheckPanel() {
         )}
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">SAP Service Layer test</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="text-lg font-semibold text-foreground">SAP Service Layer test</h2>
+            <p className="text-sm text-muted-foreground">
               Quick login probe. Shows host and company database only — no username, password, or
               session cookies.
             </p>
@@ -152,35 +152,35 @@ export default function HealthCheckPanel() {
             data-testid="sap-connection-test-btn"
             onClick={runSapConnectionTest}
             disabled={sapTesting}
-            className="rounded-md border border-brand-600 px-4 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50"
+            className="rounded-md border border-brand-600 px-4 py-2 text-sm font-medium text-primary hover:bg-brand-50 disabled:opacity-50"
           >
             {sapTesting ? 'Testing…' : 'Test SAP connection'}
           </button>
         </div>
 
         {sapError && (
-          <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{sapError}</p>
+          <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{sapError}</p>
         )}
 
         {sapResult && (
           <dl className="grid gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-slate-500">Host</dt>
-              <dd className="font-medium text-slate-900">{sapResult.host || '—'}</dd>
+              <dt className="text-muted-foreground">Host</dt>
+              <dd className="font-medium text-foreground">{sapResult.host || '—'}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Company DB</dt>
-              <dd className="font-medium text-slate-900">{sapResult.companyDb || '—'}</dd>
+              <dt className="text-muted-foreground">Company DB</dt>
+              <dd className="font-medium text-foreground">{sapResult.companyDb || '—'}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Reachable</dt>
-              <dd className="font-medium text-slate-900">
+              <dt className="text-muted-foreground">Reachable</dt>
+              <dd className="font-medium text-foreground">
                 {sapResult.serviceLayerReachable ? 'Yes' : 'No'}
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Latency</dt>
-              <dd className="font-medium text-slate-900">
+              <dt className="text-muted-foreground">Latency</dt>
+              <dd className="font-medium text-foreground">
                 {sapResult.latencyMs != null ? `${sapResult.latencyMs}ms` : '—'}
               </dd>
             </div>

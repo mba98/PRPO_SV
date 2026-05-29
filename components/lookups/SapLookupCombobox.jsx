@@ -90,10 +90,10 @@ export default function SapLookupCombobox({
       />
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       {open && (loading || results.length > 0 || (query && !loading)) && (
-        <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-md border border-slate-200 bg-white shadow-lg">
-          {loading && <li className="px-3 py-2 text-xs text-slate-500">Loading…</li>}
+        <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-md border border-border bg-card shadow-lg">
+          {loading && <li className="px-3 py-2 text-xs text-muted-foreground">Loading…</li>}
           {!loading && results.length === 0 && (
-            <li className="px-3 py-2 text-xs text-slate-500">{emptyMessage}</li>
+            <li className="px-3 py-2 text-xs text-muted-foreground">{emptyMessage}</li>
           )}
           {!loading &&
             results.map((opt) => {
@@ -102,7 +102,7 @@ export default function SapLookupCombobox({
                 <li key={code}>
                   <button
                     type="button"
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
                     onMouseDown={() => pick(opt)}
                   >
                     {getLabel(opt)}

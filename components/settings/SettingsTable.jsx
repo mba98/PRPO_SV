@@ -1,34 +1,31 @@
 'use client';
 
+import { AnimatedTableContainer } from '@/components/ui';
+
 export default function SettingsTable({ columns, rows, emptyMessage = 'No records found.' }) {
   if (!rows?.length) {
     return (
-      <p className="rounded-lg border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
+      <p className="rounded-3xl border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
         {emptyMessage}
       </p>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-      <table className="min-w-full divide-y divide-slate-200">
-        <thead className="bg-slate-50">
+    <AnimatedTableContainer>
+      <table className="data-table">
+        <thead>
           <tr>
             {columns.map((col) => (
-              <th
-                key={col.key}
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600"
-              >
-                {col.label}
-              </th>
+              <th key={col.key}>{col.label}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200">
+        <tbody>
           {rows.map((row) => (
-            <tr key={row.key} className="odd:bg-slate-50/50 hover:bg-indigo-50/50">
+            <tr key={row.key}>
               {columns.map((col) => (
-                <td key={col.key} className="px-4 py-3 text-sm text-slate-700">
+                <td key={col.key}>
                   {col.render ? col.render(row.data) : row.data[col.key]}
                 </td>
               ))}
@@ -36,6 +33,6 @@ export default function SettingsTable({ columns, rows, emptyMessage = 'No record
           ))}
         </tbody>
       </table>
-    </div>
+    </AnimatedTableContainer>
   );
 }

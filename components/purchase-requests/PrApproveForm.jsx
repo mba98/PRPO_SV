@@ -123,13 +123,13 @@ export default function PrApproveForm({ id }) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <p className="text-sm text-slate-500">
-        <Link href={`/purchase-requests/${id}`} className="text-brand-600 hover:underline">
+      <p className="text-sm text-muted-foreground">
+        <Link href={`/purchase-requests/${id}`} className="text-primary hover:underline">
           {pr.portalPRNumber}
         </Link>
       </p>
       <h1 className="text-2xl font-semibold">Approve or reject</h1>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted-foreground">
         Status: <strong>{pr.status}</strong> · Step {pr.currentApprovalStep}
       </p>
 
@@ -138,7 +138,7 @@ export default function PrApproveForm({ id }) {
 
       {!canAct ? (
         <div className="card">
-          <p className="text-sm text-slate-700">{waitingLabel}</p>
+          <p className="text-sm text-foreground">{waitingLabel}</p>
           <Link href={`/purchase-requests/${id}`} className="btn-secondary mt-4 inline-block">
             Back to PR
           </Link>
@@ -146,7 +146,7 @@ export default function PrApproveForm({ id }) {
       ) : (
         <div className="card space-y-4">
           <label className="block text-sm">
-            <span className="text-slate-600">Comment</span>
+            <span className="text-muted-foreground">Comment</span>
             <textarea
               className="input-field mt-1 min-h-[100px]"
               value={comment}
@@ -154,7 +154,7 @@ export default function PrApproveForm({ id }) {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-slate-600">Attachments (optional)</span>
+            <span className="text-muted-foreground">Attachments (optional)</span>
             <input
               type="file"
               multiple
@@ -162,7 +162,7 @@ export default function PrApproveForm({ id }) {
               className="mt-1 text-sm"
               onChange={(e) => setFiles(Array.from(e.target.files || []))}
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               Files are uploaded after your approval action completes.
             </p>
           </label>

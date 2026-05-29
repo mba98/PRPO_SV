@@ -1,13 +1,18 @@
 'use client';
 
 const STATE_STYLES = {
-  completed: 'border-emerald-500 bg-emerald-50 text-emerald-800',
-  current: 'border-brand-500 bg-brand-50 text-brand-800 ring-2 ring-brand-200',
-  pending: 'border-slate-200 bg-slate-50 text-slate-500',
-  rejected: 'border-rose-500 bg-rose-50 text-rose-800',
-  sap_creating: 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-200',
-  sap_created: 'border-emerald-600 bg-emerald-50 text-emerald-900',
-  sap_failed: 'border-rose-600 bg-rose-50 text-rose-900 ring-2 ring-rose-200',
+  completed:
+    'border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200',
+  current:
+    'border-primary bg-primary/10 text-primary ring-2 ring-brand-100 dark:ring-brand-900',
+  pending: 'border-border bg-muted text-muted-foreground',
+  rejected: 'border-destructive bg-destructive/10 text-destructive',
+  sap_creating:
+    'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-200 dark:ring-amber-900',
+  sap_created:
+    'border-emerald-600 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200',
+  sap_failed:
+    'border-destructive bg-destructive/10 text-destructive ring-2 ring-destructive/30',
 };
 
 const STATE_LABELS = {
@@ -31,14 +36,14 @@ export default function WorkflowStepper({ steps = [] }) {
             <div
               className={`flex min-w-[9rem] flex-col rounded-lg border px-3 py-2 ${STATE_STYLES[step.state] || STATE_STYLES.pending}`}
             >
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {index + 1}
               </span>
               <span className="text-sm font-medium">{step.stepName}</span>
               <span className="mt-1 text-xs">{STATE_LABELS[step.state] || step.state}</span>
             </div>
             {index < steps.length - 1 && (
-              <span className="text-slate-300" aria-hidden>
+              <span className="text-muted-foreground/50" aria-hidden>
                 →
               </span>
             )}

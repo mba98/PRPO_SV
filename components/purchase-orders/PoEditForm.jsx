@@ -97,7 +97,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="card space-y-6">
-      <h2 className="text-lg font-semibold text-slate-900">Edit purchase order</h2>
+      <h2 className="text-lg font-semibold text-foreground">Edit purchase order</h2>
       {error && (
         <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
           {error}
@@ -106,7 +106,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <label className="text-sm">
-          <span className="text-slate-600">Vendor (CardCode) *</span>
+          <span className="text-muted-foreground">Vendor (CardCode) *</span>
           <input
             className="input-field mt-1"
             required
@@ -115,7 +115,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
           />
         </label>
         <label className="text-sm">
-          <span className="text-slate-600">Exchange rate (DocRate)</span>
+          <span className="text-muted-foreground">Exchange rate (DocRate)</span>
           <input
             type="number"
             min="0"
@@ -127,7 +127,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
           />
         </label>
         <label className="text-sm">
-          <span className="text-slate-600">Posting date</span>
+          <span className="text-muted-foreground">Posting date</span>
           <input
             type="date"
             className="input-field mt-1"
@@ -136,7 +136,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
           />
         </label>
         <label className="text-sm">
-          <span className="text-slate-600">Document date</span>
+          <span className="text-muted-foreground">Document date</span>
           <input
             type="date"
             className="input-field mt-1"
@@ -145,7 +145,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
           />
         </label>
         <label className="text-sm">
-          <span className="text-slate-600">Required date</span>
+          <span className="text-muted-foreground">Required date</span>
           <input
             type="date"
             className="input-field mt-1"
@@ -154,7 +154,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
           />
         </label>
         <label className="text-sm">
-          <span className="text-slate-600">Due date</span>
+          <span className="text-muted-foreground">Due date</span>
           <input
             type="date"
             className="input-field mt-1"
@@ -163,7 +163,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
           />
         </label>
         <label className="text-sm sm:col-span-2 lg:col-span-3">
-          <span className="text-slate-600">Remarks</span>
+          <span className="text-muted-foreground">Remarks</span>
           <textarea
             className="input-field mt-1"
             rows={2}
@@ -175,7 +175,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="text-left text-xs uppercase text-slate-500">
+          <thead className="text-left text-xs uppercase text-muted-foreground">
             <tr>
               <th className="pb-2 pr-3">Item</th>
               <th className="pb-2 pr-3">Qty</th>

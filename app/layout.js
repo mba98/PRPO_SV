@@ -10,7 +10,16 @@ const cairo = Cairo({
 
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
-const localeBootstrap = `(function(){try{var l=localStorage.getItem('procurement-locale')||'ar';var d=l==='en'?'ltr':'rtl';document.documentElement.lang=l;document.documentElement.dir=d;}catch(e){}})();`;
+const themeBootstrap = `(function(){try{
+var l=localStorage.getItem('procurement-locale')||'ar';
+var d=l==='en'?'ltr':'rtl';
+document.documentElement.lang=l;
+document.documentElement.dir=d;
+var m=localStorage.getItem('procurement-color-mode');
+var dark=m!=='light';
+document.documentElement.classList.toggle('dark',dark);
+document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+}catch(e){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme','dark');}})();`;
 
 export const metadata = {
   title: 'Procurement Portal',
@@ -21,7 +30,7 @@ export default function RootLayout({ children }) {
   return (
     <html suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: localeBootstrap }} />
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
       <body className={`${cairo.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <AppProviders>{children}</AppProviders>

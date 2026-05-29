@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
@@ -19,16 +19,6 @@ import { useI18n } from '@/lib/hooks/useI18n';
 import { formatDate } from '@/lib/formatDate';
 import { FilterBar, Button } from '@/components/ui';
 
-const TABS = [
-  { id: 'my', label: prI18n.myPrs },
-  { id: 'pending', label: prI18n.pendingApproval },
-  { id: 'approved', label: prI18n.postApproval },
-  { id: 'failed-sap', label: prI18n.failedSapTab },
-  { id: 'rejected', label: prI18n.rejectedTab },
-  { id: 'sap', label: prI18n.inSapTab },
-  { id: 'all', label: prI18n.allTab, perm: 'view.all' },
-];
-
 const EMPTY_FILTERS = {
   q: '',
   portalPRNumber: '',
@@ -43,6 +33,18 @@ const EMPTY_FILTERS = {
 
 export default function PrListManager() {
   const { common, filters: filterLabels, pr: prI18n, statusLabel, locale } = useI18n();
+  const tabs = useMemo(
+    () => [
+      { id: 'my', label: prI18n.myPrs },
+      { id: 'pending', label: prI18n.pendingApproval },
+      { id: 'approved', label: prI18n.postApproval },
+      { id: 'failed-sap', label: prI18n.failedSapTab },
+      { id: 'rejected', label: prI18n.rejectedTab },
+      { id: 'sap', label: prI18n.inSapTab },
+      { id: 'all', label: prI18n.allTab, perm: 'view.all' },
+    ],
+    [prI18n],
+  );
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -135,7 +137,7 @@ export default function PrListManager() {
     window.open(`/api/export/purchase-requests?${params}`, '_blank');
   }
 
-  const visibleTabs = TABS.filter((t) => {
+  const visibleTabs = tabs.filter((t) => {
     if (t.id === 'pending') {
       return hasAnyPermission(['pr.approve.whs', 'pr.approve.pm', 'view.all']);
     }
@@ -177,7 +179,7 @@ export default function PrListManager() {
       <form onSubmit={applyFilters} className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm sm:col-span-2">
-            <span className="text-slate-600">{common.search}</span>
+            <span className="text-muted-foreground">{common.search}</span>
             <input
               className="input-field mt-1"
               placeholder={filterLabels.searchPr}
@@ -195,7 +197,7 @@ export default function PrListManager() {
             ['to', common.toDate],
           ].map(([key, label]) => (
             <label key={key} className="text-sm">
-              <span className="text-slate-600">{label}</span>
+              <span className="text-muted-foreground">{label}</span>
               <input
                 className="input-field mt-1"
                 type={key === 'from' || key === 'to' ? 'date' : 'text'}
@@ -205,7 +207,7 @@ export default function PrListManager() {
             </label>
           ))}
           <label className="text-sm">
-            <span className="text-slate-600">{common.status}</span>
+            <span className="text-muted-foreground">{common.status}</span>
             <select
               className="input-field mt-1"
               value={filters.status}
@@ -224,7 +226,7 @@ export default function PrListManager() {
           <button type="submit" className="btn-secondary min-h-10">
             {common.applyFilters}
           </button>
-          <button type="button" onClick={resetFilters} className="min-h-10 rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">
+          <button type="button" onClick={resetFilters} className="min-h-10 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted">
             {common.reset}
           </button>
         </div>
@@ -239,7 +241,7 @@ export default function PrListManager() {
         <>
           <div className="space-y-3 md:hidden">
             {items.length === 0 && (
-              <p className="rounded-lg border border-slate-200 bg-white px-4 py-8 text-center text-slate-500">
+              <p className="rounded-lg border border-border bg-card px-4 py-8 text-center text-muted-foreground">
                 {filterLabels.noResultsPr}
               </p>
             )}
@@ -247,21 +249,21 @@ export default function PrListManager() {
               <article key={row.id} className="card space-y-2">
                 <Link
                   href={`/purchase-requests/${row.id}`}
-                  className="text-base font-semibold text-brand-600 hover:underline"
+                  className="text-base font-semibold text-primary hover:underline"
                 >
                   {row.portalPRNumber}
                 </Link>
                 <div className="flex flex-wrap items-center gap-2">
                   <AnimatedStatusBadge status={row.status} />
-                  <span className="text-sm text-slate-500">{row.department}</span>
+                  <span className="text-sm text-muted-foreground">{row.department}</span>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   SAP: {row.sapPRDocNum || '—'} ·{' '}
                   {formatDate(row.createdAt, locale)}
                 </p>
                 <button
                   type="button"
-                  className="min-h-10 text-sm font-medium text-brand-600"
+                  className="min-h-10 text-sm font-medium text-primary"
                   onClick={() => setHistoryRow(row)}
                 >
                   {common.history}
@@ -273,7 +275,7 @@ export default function PrListManager() {
             <table className="data-table min-w-full text-sm">
               <thead>
                 <tr>
-                  <th className="sticky start-0 z-10 bg-slate-50">
+                  <th className="sticky start-0 z-10 bg-muted">
                     <button type="button" onClick={() => toggleSort('portalPRNumber')}>
                       {prI18n.portalNumber}
                     </button>
@@ -292,17 +294,17 @@ export default function PrListManager() {
               <tbody>
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                       {filterLabels.noResultsPr}
                     </td>
                   </tr>
                 )}
                 {items.map((row) => (
                   <tr key={row.id}>
-                    <td className="sticky start-0 z-10 bg-white">
+                    <td className="sticky start-0 z-10 bg-card">
                       <Link
                         href={`/purchase-requests/${row.id}`}
-                        className="font-medium text-brand-600 hover:underline"
+                        className="font-medium text-primary hover:underline"
                       >
                         {row.portalPRNumber}
                       </Link>
@@ -312,13 +314,13 @@ export default function PrListManager() {
                       <AnimatedStatusBadge status={row.status} />
                     </td>
                     <td className="font-mono text-xs">{row.sapPRDocNum || '—'}</td>
-                    <td className="text-slate-500">
+                    <td className="text-muted-foreground">
                       {formatDate(row.createdAt, locale)}
                     </td>
                     <td>
                       <button
                         type="button"
-                        className="min-h-10 text-sm font-medium text-brand-600 hover:underline"
+                        className="min-h-10 text-sm font-medium text-primary hover:underline"
                         onClick={() => setHistoryRow(row)}
                       >
                         {common.history}

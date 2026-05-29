@@ -120,23 +120,23 @@ export default function PoApproveForm({ id }) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <p className="text-sm text-slate-500">
-        <Link href={`/purchase-orders/${id}`} className="text-brand-600 hover:underline">
+      <p className="text-sm text-muted-foreground">
+        <Link href={`/purchase-orders/${id}`} className="text-primary hover:underline">
           {po.portalPONumber}
         </Link>
       </p>
       <h1 className="text-2xl font-semibold">Approve or reject PO</h1>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted-foreground">
         Status: <strong>{po.status}</strong> · Step {po.currentApprovalStep}
         {po.currentStepName && (
-          <span className="ml-2 text-slate-500">({po.currentStepName})</span>
+          <span className="ml-2 text-muted-foreground">({po.currentStepName})</span>
         )}
       </p>
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {!canAct ? (
         <div className="card">
-          <p className="text-sm text-slate-700">{waitingLabel}</p>
+          <p className="text-sm text-foreground">{waitingLabel}</p>
           <Link href={`/purchase-orders/${id}`} className="btn-secondary mt-4 inline-block">
             Back to PO
           </Link>
@@ -144,7 +144,7 @@ export default function PoApproveForm({ id }) {
       ) : (
         <div className="card space-y-4">
           <label className="block text-sm">
-            <span className="text-slate-600">Comment</span>
+            <span className="text-muted-foreground">Comment</span>
             <textarea
               className="input-field mt-1 min-h-[100px]"
               value={comment}
@@ -152,7 +152,7 @@ export default function PoApproveForm({ id }) {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-slate-600">Attachments (optional)</span>
+            <span className="text-muted-foreground">Attachments (optional)</span>
             <input
               type="file"
               multiple
@@ -160,7 +160,7 @@ export default function PoApproveForm({ id }) {
               className="mt-1 text-sm"
               onChange={(e) => setFiles(Array.from(e.target.files || []))}
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               Files are uploaded after your approval action completes.
             </p>
           </label>

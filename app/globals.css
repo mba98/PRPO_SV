@@ -11,14 +11,26 @@
     --brand-700: #4338ca;
     --brand-900: #312e81;
 
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --primary: var(--brand-600);
+    --primary-foreground: #ffffff;
+    --destructive: #e11d48;
+    --destructive-foreground: #ffffff;
+    --border: #e2e8f0;
+  }
+
+  .dark {
     --background: #0b1220;
     --foreground: #f1f5f9;
     --card: #111827;
     --card-foreground: #f1f5f9;
     --muted: #1f2937;
     --muted-foreground: #94a3b8;
-    --primary: var(--brand-600);
-    --primary-foreground: #ffffff;
     --destructive: #e11d48;
     --destructive-foreground: #ffffff;
     --border: #1e293b;
@@ -53,7 +65,7 @@
 
 @layer components {
   .input-field {
-    @apply min-h-10 w-full rounded-xl border border-border bg-card py-2.5 px-4 text-sm shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-brand-100;
+    @apply min-h-10 w-full rounded-xl border border-border bg-card py-2.5 px-4 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
 
   .btn-primary {
@@ -84,6 +96,14 @@
     @apply mx-auto w-full max-w-[1600px];
   }
 
+  .filter-panel {
+    @apply card grid gap-3 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .alert-error {
+    @apply rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive;
+  }
+
   .table-scroll {
     @apply -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0;
   }
@@ -98,15 +118,23 @@
 
   .data-table th,
   .data-table td {
-    @apply px-4 py-3 text-start;
+    @apply px-4 py-3 text-start text-foreground;
   }
 
   .data-table tbody tr {
-    @apply border-t border-border transition-colors hover:bg-muted;
+    @apply border-t border-border bg-card transition-colors hover:bg-muted;
   }
 
   .form-label {
     @apply mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground;
+  }
+
+  .link-action {
+    @apply min-h-10 text-sm font-semibold text-primary hover:underline;
+  }
+
+  .link-danger {
+    @apply min-h-10 text-sm font-semibold text-destructive hover:underline;
   }
 
   .tab-chip {

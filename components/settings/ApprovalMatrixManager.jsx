@@ -143,7 +143,7 @@ export default function ApprovalMatrixManager() {
         <span className="text-xs">
           <span className="font-mono">{s.requiredPermission}</span>
           {PERMISSION_LABELS[s.requiredPermission] && (
-            <span className="block text-slate-500">{PERMISSION_LABELS[s.requiredPermission]}</span>
+            <span className="block text-muted-foreground">{PERMISSION_LABELS[s.requiredPermission]}</span>
           )}
         </span>
       ),
@@ -167,7 +167,7 @@ export default function ApprovalMatrixManager() {
         <button
           type="button"
           onClick={() => openEdit(s)}
-          className="text-sm font-medium text-brand-600 hover:text-brand-700"
+          className="text-sm font-medium text-primary hover:underline"
         >
           Edit
         </button>
@@ -177,18 +177,18 @@ export default function ApprovalMatrixManager() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted-foreground">
         Configure approval steps per document type. Workflow reads these rows from the approval matrix
         — do not hardcode steps elsewhere. Use step order 1, 2, 3… to define sequence.
       </p>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <label className="text-sm text-slate-600">Document type</label>
+          <label className="text-sm text-muted-foreground">Document type</label>
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="h-9 rounded-md border border-slate-300 px-2 text-sm"
+            className="h-9 rounded-md border border-border px-2 text-sm"
           >
             <option value="">All (PR + PO)</option>
             <option value="PR">Purchase Requests (PR)</option>
@@ -198,14 +198,14 @@ export default function ApprovalMatrixManager() {
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          className="btn-primary"
         >
           Add step
         </button>
       </div>
 
       {error && (
-        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -229,7 +229,7 @@ export default function ApprovalMatrixManager() {
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Document type</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Document type</label>
               <select
                 value={form.documentType}
                 onChange={(e) => {
@@ -240,42 +240,42 @@ export default function ApprovalMatrixManager() {
                     requiredPermission: docType === 'PO' ? 'po.approve.pm' : 'pr.approve.whs',
                   });
                 }}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               >
                 <option value="PR">PR — Purchase Request</option>
                 <option value="PO">PO — Purchase Order</option>
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Step order</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Step order</label>
               <input
                 type="number"
                 min={1}
                 required
                 value={form.stepOrder}
                 onChange={(e) => setForm({ ...form, stepOrder: e.target.value })}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               />
-              <p className="mt-1 text-xs text-slate-500">1 = first approval, 2 = second, etc.</p>
+              <p className="mt-1 text-xs text-muted-foreground">1 = first approval, 2 = second, etc.</p>
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Step name</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Step name</label>
               <input
                 required
                 value={form.stepName}
                 onChange={(e) => setForm({ ...form, stepName: e.target.value })}
                 placeholder="e.g. Warehouse approval"
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-foreground">
                 Required permission
               </label>
               <select
                 value={form.requiredPermission}
                 onChange={(e) => setForm({ ...form, requiredPermission: e.target.value })}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               >
                 {permissionOptions.map((p) => (
                   <option key={p} value={p}>
@@ -285,12 +285,12 @@ export default function ApprovalMatrixManager() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Approver role</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Approver role</label>
               <select
                 required
                 value={form.approverRole}
                 onChange={(e) => setForm({ ...form, approverRole: e.target.value })}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               >
                 <option value="">Select role</option>
                 {roles.map((r) => (
@@ -313,14 +313,14 @@ export default function ApprovalMatrixManager() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-md border border-slate-200 px-4 py-2 text-sm"
+              className="rounded-md border border-border px-4 py-2 text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+              className="btn-primary disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save'}
             </button>

@@ -57,42 +57,42 @@ export default function ReadyForApriPage() {
       {loading ? (
         <AnimatedSkeletonLoader rows={5} />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+        <AnimatedTableContainer>
+          <table className="data-table">
+            <thead>
               <tr>
-                <th className="px-4 py-3">PO Number</th>
-                <th className="px-4 py-3">SAP PO</th>
-                <th className="px-4 py-3">Vendor</th>
-                <th className="px-4 py-3">Status</th>
-                {canCreate && <th className="px-4 py-3">Action</th>}
+                <th>PO Number</th>
+                <th>SAP PO</th>
+                <th>Vendor</th>
+                <th>Status</th>
+                {canCreate && <th>Action</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={canCreate ? 5 : 4} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={canCreate ? 5 : 4} className="py-8 text-center text-muted-foreground">
                     No POs ready for A/P reserve invoice
                   </td>
                 </tr>
               )}
               {items.map((po) => (
-                <tr key={po.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
+                <tr key={po.id}>
+                  <td>
                     <Link
                       href={`/purchase-orders/${po.id}`}
-                      className="font-medium text-brand-600 hover:underline"
+                      className="font-medium text-primary hover:underline"
                     >
                       {po.portalPONumber}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">{po.sapPODocNum}</td>
-                  <td className="px-4 py-3">{po.vendor}</td>
-                  <td className="px-4 py-3">
+                  <td>{po.sapPODocNum}</td>
+                  <td>{po.vendor}</td>
+                  <td>
                     <AnimatedStatusBadge status={po.status} />
                   </td>
                   {canCreate && (
-                    <td className="px-4 py-3">
+                    <td>
                       <button
                         type="button"
                         className="btn-primary text-xs"
@@ -107,7 +107,7 @@ export default function ReadyForApriPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </AnimatedTableContainer>
       )}
     </div>
   );

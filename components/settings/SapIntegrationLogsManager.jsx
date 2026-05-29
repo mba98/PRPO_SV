@@ -74,14 +74,14 @@ export default function SapIntegrationLogsManager() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
-        <label className="text-xs font-semibold uppercase text-slate-500">Search</label>
+      <div className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
+        <label className="text-xs font-semibold uppercase text-muted-foreground">Search</label>
         <input
           className="input-field sm:col-span-2"
           value={filters.q}
           onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value, page: 1 }))}
         />
-        <label className="text-xs font-semibold uppercase text-slate-500">Document type</label>
+        <label className="text-xs font-semibold uppercase text-muted-foreground">Document type</label>
         <select
           className="input-field"
           value={filters.documentType}
@@ -93,7 +93,7 @@ export default function SapIntegrationLogsManager() {
             </option>
           ))}
         </select>
-        <label className="text-xs font-semibold uppercase text-slate-500">Status</label>
+        <label className="text-xs font-semibold uppercase text-muted-foreground">Status</label>
         <select
           className="input-field"
           value={filters.status}
@@ -105,14 +105,14 @@ export default function SapIntegrationLogsManager() {
             </option>
           ))}
         </select>
-        <label className="text-xs font-semibold uppercase text-slate-500">From</label>
+        <label className="text-xs font-semibold uppercase text-muted-foreground">From</label>
         <input
           type="date"
           className="input-field"
           value={filters.from}
           onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value, page: 1 }))}
         />
-        <label className="text-xs font-semibold uppercase text-slate-500">To</label>
+        <label className="text-xs font-semibold uppercase text-muted-foreground">To</label>
         <input
           type="date"
           className="input-field"

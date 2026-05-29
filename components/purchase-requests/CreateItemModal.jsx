@@ -63,7 +63,7 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
           ['U_UOM', 'UoM'],
         ].map(([key, label]) => (
           <label key={key} className="block text-sm">
-            <span className="text-slate-600">{label}</span>
+            <span className="text-muted-foreground">{label}</span>
             <input
               className="input-field mt-1"
               value={form[key]}

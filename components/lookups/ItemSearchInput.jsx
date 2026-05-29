@@ -72,18 +72,18 @@ export default function ItemSearchInput({ value, onSelect, disabled, onSearchErr
       />
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       {open && (results.length > 0 || loading) && (
-        <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-md border border-slate-200 bg-white shadow-lg">
-          {loading && <li className="px-3 py-2 text-xs text-slate-500">Searching…</li>}
+        <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-md border border-border bg-card shadow-lg">
+          {loading && <li className="px-3 py-2 text-xs text-muted-foreground">Searching…</li>}
           {results.map((item) => (
             <li key={item.itemCode}>
               <button
                 type="button"
-                className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
                 onMouseDown={() => pick(item)}
               >
-                <span className="font-medium text-slate-900">{item.itemCode}</span>
-                <span className="ml-2 text-slate-600">{item.itemName}</span>
-                <span className="ml-2 text-xs text-slate-400">
+                <span className="font-medium text-foreground">{item.itemCode}</span>
+                <span className="ml-2 text-muted-foreground">{item.itemName}</span>
+                <span className="ml-2 text-xs text-muted-foreground">
                   {item.uom}
                   {(item.itemGroupName || item.itemGroup) &&
                     ` · ${item.itemGroupName || item.itemGroup}`}

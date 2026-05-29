@@ -183,10 +183,10 @@ export default function PrCreateForm() {
       )}
 
       <section className="card space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">Header</h2>
+        <h2 className="text-lg font-semibold text-foreground">Header</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm">
-            <span className="text-slate-600">Required date *</span>
+            <span className="text-muted-foreground">Required date *</span>
             <input
               className="input-field mt-1"
               type="date"
@@ -196,7 +196,7 @@ export default function PrCreateForm() {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-slate-600">Document date</span>
+            <span className="text-muted-foreground">Document date</span>
             <input
               className="input-field mt-1"
               type="date"
@@ -205,7 +205,7 @@ export default function PrCreateForm() {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-slate-600">Due date</span>
+            <span className="text-muted-foreground">Due date</span>
             <input
               className="input-field mt-1"
               type="date"
@@ -214,7 +214,7 @@ export default function PrCreateForm() {
             />
           </label>
           <label className="block text-sm sm:col-span-2">
-            <span className="text-slate-600">Remarks</span>
+            <span className="text-muted-foreground">Remarks</span>
             <textarea
               className="input-field mt-1"
               rows={2}
@@ -227,23 +227,23 @@ export default function PrCreateForm() {
 
       <section className="card space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Line items</h2>
+          <h2 className="text-lg font-semibold text-foreground">Line items</h2>
           <button type="button" className="btn-secondary text-sm" onClick={addLine}>
             Add line
           </button>
         </div>
         <div className="space-y-6 overflow-x-auto">
           {lines.map((line, idx) => (
-            <div key={idx} className="rounded-lg border border-slate-200 p-4">
+            <div key={idx} className="rounded-lg border border-border p-4">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-700">Line {idx + 1}</span>
+                <span className="text-sm font-medium text-foreground">Line {idx + 1}</span>
                 <button type="button" className="text-sm text-red-600" onClick={() => removeLine(idx)}>
                   Remove
                 </button>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <label className="text-sm sm:col-span-2">
-                  <span className="text-slate-600">Item *</span>
+                  <span className="text-muted-foreground">Item *</span>
                   <ItemSearchInput
                     value={line}
                     onSelect={(item) => {
@@ -255,7 +255,7 @@ export default function PrCreateForm() {
                   {canCreateItem && noResultsLine === idx && (
                     <button
                       type="button"
-                      className="mt-1 text-sm text-brand-600 hover:underline"
+                      className="mt-1 text-sm text-primary hover:underline"
                       onClick={() => {
                         setItemModalLine(idx);
                         setItemModal(true);
@@ -266,16 +266,16 @@ export default function PrCreateForm() {
                   )}
                 </label>
                 <label className="text-sm">
-                  <span className="text-slate-600">Item name</span>
+                  <span className="text-muted-foreground">Item name</span>
                   <input
-                    className="input-field mt-1 bg-slate-50"
+                    className="input-field mt-1 bg-muted"
                     readOnly
                     value={line.itemName}
                     placeholder="From SAP item"
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="text-slate-600">Warehouse *</span>
+                  <span className="text-muted-foreground">Warehouse *</span>
                   <WarehouseSelect
                     valueCode={line.warehouseCode}
                     valueLabel={line.warehouseLabel}
@@ -285,7 +285,7 @@ export default function PrCreateForm() {
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="text-slate-600">Vendor</span>
+                  <span className="text-muted-foreground">Vendor</span>
                   <VendorSelect
                     valueCode={line.vendor}
                     valueLabel={line.vendorLabel}
@@ -293,7 +293,7 @@ export default function PrCreateForm() {
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="text-slate-600">UoM code</span>
+                  <span className="text-muted-foreground">UoM code</span>
                   <input
                     className="input-field mt-1"
                     value={line.uomCode}
@@ -302,7 +302,7 @@ export default function PrCreateForm() {
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="text-slate-600">Quantity *</span>
+                  <span className="text-muted-foreground">Quantity *</span>
                   <input
                     type="number"
                     min="0.01"
@@ -314,7 +314,7 @@ export default function PrCreateForm() {
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="text-slate-600">Unit price *</span>
+                  <span className="text-muted-foreground">Unit price *</span>
                   <input
                     type="number"
                     min="0"
@@ -326,11 +326,11 @@ export default function PrCreateForm() {
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="text-slate-600">Total</span>
-                  <input className="input-field mt-1 bg-slate-50" readOnly value={line.estimatedTotal} />
+                  <span className="text-muted-foreground">Total</span>
+                  <input className="input-field mt-1 bg-muted" readOnly value={line.estimatedTotal} />
                 </label>
                 <label className="text-sm sm:col-span-2 lg:col-span-3">
-                  <span className="text-slate-600">Remarks</span>
+                  <span className="text-muted-foreground">Remarks</span>
                   <input
                     className="input-field mt-1"
                     value={line.remarks}
@@ -344,7 +344,7 @@ export default function PrCreateForm() {
       </section>
 
       <section className="card space-y-3">
-        <h2 className="text-lg font-semibold text-slate-900">Attachments</h2>
+        <h2 className="text-lg font-semibold text-foreground">Attachments</h2>
         <input
           type="file"
           multiple
@@ -352,9 +352,9 @@ export default function PrCreateForm() {
           className="text-sm"
           onChange={(e) => setFiles(Array.from(e.target.files || []))}
         />
-        <p className="text-xs text-slate-500">PDF, images, Office files — max 25 MB each</p>
+        <p className="text-xs text-muted-foreground">PDF, images, Office files — max 25 MB each</p>
         {files.length > 0 && (
-          <ul className="text-sm text-slate-600">
+          <ul className="text-sm text-muted-foreground">
             {files.map((f) => (
               <li key={f.name}>{f.name}</li>
             ))}

@@ -104,23 +104,23 @@ export default function EmailLogsManager() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>
-          <label className="text-xs font-semibold uppercase text-slate-500">Search</label>
+          <label className="text-xs font-semibold uppercase text-muted-foreground">Search</label>
           <input
             type="search"
             value={filters.q}
             onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value, page: 1 }))}
             placeholder="Subject, event, error…"
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
         <div>
-          <label className="text-xs font-semibold uppercase text-slate-500">Status</label>
+          <label className="text-xs font-semibold uppercase text-muted-foreground">Status</label>
           <select
             value={filters.emailStatus}
             onChange={(e) => setFilters((f) => ({ ...f, emailStatus: e.target.value, page: 1 }))}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             {STATUSES.map((s) => (
               <option key={s || 'all'} value={s}>
@@ -130,11 +130,11 @@ export default function EmailLogsManager() {
           </select>
         </div>
         <div>
-          <label className="text-xs font-semibold uppercase text-slate-500">Event</label>
+          <label className="text-xs font-semibold uppercase text-muted-foreground">Event</label>
           <select
             value={filters.eventKey}
             onChange={(e) => setFilters((f) => ({ ...f, eventKey: e.target.value, page: 1 }))}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             <option value="">All events</option>
             {WORKFLOW_EMAIL_EVENT_KEYS.map((key) => (
@@ -145,13 +145,13 @@ export default function EmailLogsManager() {
           </select>
         </div>
         <div>
-          <label className="text-xs font-semibold uppercase text-slate-500">Document type</label>
+          <label className="text-xs font-semibold uppercase text-muted-foreground">Document type</label>
           <select
             value={filters.relatedDocumentType}
             onChange={(e) =>
               setFilters((f) => ({ ...f, relatedDocumentType: e.target.value, page: 1 }))
             }
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           >
             {DOC_TYPES.map((t) => (
               <option key={t || 'all'} value={t}>
@@ -161,28 +161,28 @@ export default function EmailLogsManager() {
           </select>
         </div>
         <div>
-          <label className="text-xs font-semibold uppercase text-slate-500">From date</label>
+          <label className="text-xs font-semibold uppercase text-muted-foreground">From date</label>
           <input
             type="date"
             value={filters.from}
             onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value, page: 1 }))}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
         <div>
-          <label className="text-xs font-semibold uppercase text-slate-500">To date</label>
+          <label className="text-xs font-semibold uppercase text-muted-foreground">To date</label>
           <input
             type="date"
             value={filters.to}
             onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value, page: 1 }))}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
         <div className="flex items-end gap-2">
           <button
             type="button"
             onClick={() => loadLogs()}
-            className="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary"
           >
             Apply filters
           </button>
@@ -200,7 +200,7 @@ export default function EmailLogsManager() {
                 to: '',
               })
             }
-            className="rounded-md border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            className="rounded-md border border-border px-4 py-2 text-sm text-foreground hover:bg-muted"
           >
             Reset
           </button>
@@ -218,7 +218,7 @@ export default function EmailLogsManager() {
       )}
 
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm text-slate-600">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <button
             type="button"
             disabled={filters.page <= 1}

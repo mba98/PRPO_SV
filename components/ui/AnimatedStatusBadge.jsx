@@ -6,13 +6,18 @@ import { useMotionSafe } from './useMotionSafe';
 
 const STATUS_STYLES = {
   Draft: 'bg-muted text-muted-foreground',
-  Approved: 'bg-emerald-500/20 text-emerald-300',
-  Rejected: 'bg-destructive/20 text-rose-300',
-  'Creating in SAP': 'bg-blue-500/20 text-blue-300',
-  'Created in SAP': 'bg-emerald-500/20 text-emerald-300',
-  'Failed to Create in SAP': 'bg-destructive/20 text-rose-300',
-  'Ready for AP Reserve Invoice': 'bg-violet-500/20 text-violet-300',
-  Completed: 'bg-emerald-500/20 text-emerald-300',
+  Approved:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
+  Rejected: 'bg-red-100 text-red-800 dark:bg-destructive/25 dark:text-rose-300',
+  'Creating in SAP': 'bg-blue-100 text-blue-800 dark:bg-blue-500/25 dark:text-blue-300',
+  'Created in SAP':
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
+  'Failed to Create in SAP':
+    'bg-red-100 text-red-800 dark:bg-destructive/25 dark:text-rose-300',
+  'Ready for AP Reserve Invoice':
+    'bg-violet-100 text-violet-800 dark:bg-violet-500/25 dark:text-violet-300',
+  Completed:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
 };
 
 function getStatusClass(status) {
@@ -20,7 +25,7 @@ function getStatusClass(status) {
     return STATUS_STYLES[status];
   }
   if (status?.includes('Pending')) {
-    return 'bg-amber-500/20 text-amber-300';
+    return 'bg-amber-100 text-amber-800 dark:bg-amber-500/25 dark:text-amber-300';
   }
   return 'bg-muted text-muted-foreground';
 }

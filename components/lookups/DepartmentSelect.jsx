@@ -20,7 +20,7 @@ export default function DepartmentSelect({ value, onChange, disabled, locked }) 
 
   if (locked && value) {
     return (
-      <input className="input-field mt-1 bg-slate-50" type="text" value={value} readOnly disabled />
+      <input className="input-field mt-1 bg-muted" type="text" value={value} readOnly disabled />
     );
   }
 

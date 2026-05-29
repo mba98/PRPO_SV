@@ -88,8 +88,8 @@ export default function CommentsPanel({
     <section className="card space-y-4">
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Comments</h2>
-          <p className="text-xs text-slate-500">
+          <h2 className="text-lg font-semibold text-foreground">Comments</h2>
+          <p className="text-xs text-muted-foreground">
             {items.length} comment{items.length === 1 ? '' : 's'}
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function CommentsPanel({
           <div className="flex items-center justify-between">
             <span
               className={`text-xs ${
-                isOverLimit ? 'text-rose-600' : 'text-slate-500'
+                isOverLimit ? 'text-destructive' : 'text-muted-foreground'
               }`}
             >
               {text.length}/{COMMENT_MAX_LENGTH}
@@ -132,7 +132,7 @@ export default function CommentsPanel({
       {error && (
         <p
           role="alert"
-          className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
+          className="rounded-md border border-rose-200 border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
         >
           {error}
         </p>
@@ -154,12 +154,12 @@ export default function CommentsPanel({
           {items.map((c) => (
             <li
               key={c.id}
-              className="rounded-md border border-slate-200 bg-white px-4 py-3"
+              className="rounded-md border border-border bg-card px-4 py-3"
             >
-              <p className="whitespace-pre-wrap text-sm text-slate-900">
+              <p className="whitespace-pre-wrap text-sm text-foreground">
                 {c.comment}
               </p>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-muted-foreground">
                 {c.postedBy || 'Unknown'} ·{' '}
                 {c.postedAt ? new Date(c.postedAt).toLocaleString() : '—'}
               </p>
@@ -168,7 +168,7 @@ export default function CommentsPanel({
                   {c.attachments.map((a) => (
                     <li
                       key={a.id}
-                      className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+                      className="rounded bg-muted px-2 py-0.5 text-xs text-foreground"
                     >
                       {a.fileName}
                     </li>

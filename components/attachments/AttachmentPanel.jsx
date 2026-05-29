@@ -152,7 +152,7 @@ export default function AttachmentPanel({
       {error && (
         <p
           role="alert"
-          className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
+          className="rounded-md border border-rose-200 border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
         >
           {error}
         </p>
@@ -168,7 +168,7 @@ export default function AttachmentPanel({
       ) : (
         <motion.ul
           {...listAnimation}
-          className="divide-y divide-slate-100 overflow-hidden rounded-md border border-slate-200 bg-white"
+          className="divide-y divide-slate-100 overflow-hidden rounded-md border border-border bg-card"
         >
           {items.map((file) => (
             <li
@@ -176,10 +176,10 @@ export default function AttachmentPanel({
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-900">
+                <p className="truncate text-sm font-medium text-foreground">
                   {file.fileName}
                 </p>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   {fileExtension(file.fileName).toUpperCase() || file.fileType} ·{' '}
                   {formatBytes(file.fileSize)}
                   {file.uploadedBy ? ` · ${file.uploadedBy}` : ''}

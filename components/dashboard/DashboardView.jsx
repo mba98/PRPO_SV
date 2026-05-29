@@ -185,7 +185,7 @@ export default function DashboardView() {
                   render: (r) => (
                     <Link
                       href={`/purchase-requests/${r.id}`}
-                      className="font-medium text-brand-600 hover:underline"
+                      className="font-medium text-primary hover:underline"
                     >
                       {r.portalPRNumber}
                     </Link>
@@ -217,7 +217,7 @@ export default function DashboardView() {
                   render: (r) => (
                     <Link
                       href={`/purchase-orders/${r.id}`}
-                      className="font-medium text-brand-600 hover:underline"
+                      className="font-medium text-primary hover:underline"
                     >
                       {r.portalPONumber}
                     </Link>
@@ -248,7 +248,7 @@ export default function DashboardView() {
                   render: (r) => (
                     <Link
                       href={`/ap-reserve-invoices/${r.id}`}
-                      className="font-medium text-brand-600 hover:underline"
+                      className="font-medium text-primary hover:underline"
                     >
                       {r.portalAPNumber}
                     </Link>

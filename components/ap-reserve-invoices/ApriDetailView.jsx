@@ -54,14 +54,14 @@ export default function ApriDetailView({ id }) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-slate-500">
-            <Link href="/ap-reserve-invoices" className="text-brand-600 hover:underline">
+          <p className="text-sm text-muted-foreground">
+            <Link href="/ap-reserve-invoices" className="text-primary hover:underline">
               A/P Reserve Invoices
             </Link>
             {' / '}
             {apri.portalAPNumber}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-slate-900">{apri.portalAPNumber}</h1>
+          <h1 className="mt-1 text-2xl font-semibold text-foreground">{apri.portalAPNumber}</h1>
           <div className="mt-2">
             <AnimatedStatusBadge status={apri.status} />
           </div>
@@ -75,7 +75,7 @@ export default function ApriDetailView({ id }) {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="flex gap-2 border-b border-slate-200">
+      <div className="flex gap-2 border-b border-border">
         {tabs.map((t) => (
           <button
             key={t}
@@ -83,8 +83,8 @@ export default function ApriDetailView({ id }) {
             onClick={() => setActiveTab(t)}
             className={`px-4 py-2 text-sm font-medium capitalize ${
               activeTab === t
-                ? 'border-b-2 border-brand-600 text-brand-700'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'border-b-2 border-brand-600 text-primary'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {t}
@@ -104,16 +104,16 @@ export default function ApriDetailView({ id }) {
               ['SAP AP DocEntry', apri.sapAPDocEntry],
             ].map(([label, val]) => (
               <div key={label}>
-                <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
                 <p className="mt-1 text-sm">{val ?? '—'}</p>
               </div>
             ))}
             {apri.relatedPO?.id && (
               <div>
-                <p className="text-xs font-medium uppercase text-slate-500">PO link</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">PO link</p>
                 <Link
                   href={`/purchase-orders/${apri.relatedPO.id}`}
-                  className="mt-1 text-sm text-brand-600 hover:underline"
+                  className="mt-1 text-sm text-primary hover:underline"
                 >
                   View purchase order
                 </Link>
@@ -121,8 +121,8 @@ export default function ApriDetailView({ id }) {
             )}
             {apri.sapErrorMessage && (
               <div className="sm:col-span-2">
-                <p className="text-xs font-medium uppercase text-rose-600">SAP error</p>
-                <p className="mt-1 text-sm text-rose-700">{apri.sapErrorMessage}</p>
+                <p className="text-xs font-medium uppercase text-destructive">SAP error</p>
+                <p className="mt-1 text-sm text-destructive">{apri.sapErrorMessage}</p>
               </div>
             )}
           </section>
@@ -130,7 +130,7 @@ export default function ApriDetailView({ id }) {
           {apri.sapResponse && (
             <section className="card">
               <h2 className="mb-2 text-lg font-semibold">SAP response</h2>
-              <pre className="max-h-64 overflow-auto rounded bg-slate-50 p-3 text-xs text-slate-700">
+              <pre className="max-h-64 overflow-auto rounded bg-muted p-3 text-xs text-foreground">
                 {JSON.stringify(apri.sapResponse, null, 2)}
               </pre>
             </section>
@@ -139,7 +139,7 @@ export default function ApriDetailView({ id }) {
           <section className="card overflow-x-auto">
             <h2 className="mb-4 text-lg font-semibold">Line items</h2>
             <table className="min-w-full text-sm">
-              <thead className="text-left text-xs uppercase text-slate-500">
+              <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="pb-2 pr-4">Item</th>
                   <th className="pb-2 pr-4">PO line</th>
@@ -152,7 +152,7 @@ export default function ApriDetailView({ id }) {
                   <tr key={line._id || i}>
                     <td className="py-2 pr-4">
                       <span className="font-medium">{line.itemCode}</span>
-                      <span className="ml-2 text-slate-600">{line.itemName}</span>
+                      <span className="ml-2 text-muted-foreground">{line.itemName}</span>
                     </td>
                     <td className="py-2 pr-4">{line.relatedPOLineNum ?? '—'}</td>
                     <td className="py-2 pr-4">{line.quantity}</td>
@@ -184,10 +184,10 @@ export default function ApriDetailView({ id }) {
       {activeTab === 'emails' && (
         <section className="card overflow-x-auto">
           {(apri.emailLogs || []).length === 0 ? (
-            <p className="text-sm text-slate-500">No email logs</p>
+            <p className="text-sm text-muted-foreground">No email logs</p>
           ) : (
             <table className="min-w-full text-sm">
-              <thead className="text-left text-xs uppercase text-slate-500">
+              <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="pb-2 pr-4">To</th>
                   <th className="pb-2 pr-4">Subject</th>

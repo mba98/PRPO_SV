@@ -25,21 +25,21 @@ export default function AnimatedDrawer({ isOpen, onClose, title, children, width
           <motion.button
             type="button"
             aria-label="Close drawer"
-            className="absolute inset-0 bg-slate-900"
+            className="absolute inset-0 bg-card"
             onClick={onClose}
             {...backdropProps}
           />
           <motion.aside
-            className="relative z-10 flex h-full flex-col bg-white shadow-xl"
+            className="relative z-10 flex h-full flex-col bg-card shadow-xl"
             style={{ width, maxWidth: '100vw' }}
             {...panelProps}
           >
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-              <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <h2 className="text-lg font-semibold text-foreground">{title}</h2>
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100"
+                className="rounded-md px-2 py-1 text-muted-foreground hover:bg-muted"
               >
                 ✕
               </button>

@@ -94,7 +94,7 @@ export default function RolesManager() {
       key: 'permissions',
       label: 'Permissions',
       render: (r) => (
-        <span className="text-xs text-slate-600">{r.permissions?.length || 0} assigned</span>
+        <span className="text-xs text-muted-foreground">{r.permissions?.length || 0} assigned</span>
       ),
     },
     {
@@ -105,14 +105,14 @@ export default function RolesManager() {
           <button
             type="button"
             onClick={() => openEdit(r)}
-            className="text-sm font-medium text-brand-600 hover:text-brand-700"
+            className="text-sm font-medium text-primary hover:underline"
           >
             Edit
           </button>
           <button
             type="button"
             onClick={() => handleDelete(r)}
-            className="text-sm font-medium text-rose-600 hover:text-rose-700"
+            className="text-sm font-medium text-destructive hover:underline"
           >
             Delete
           </button>
@@ -127,14 +127,14 @@ export default function RolesManager() {
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          className="btn-primary"
         >
           Add role
         </button>
       </div>
 
       {error && (
-        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -157,18 +157,18 @@ export default function RolesManager() {
       >
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Role name</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Role name</label>
             <input
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+              className="input-field"
             />
           </div>
-          <div className="max-h-80 space-y-4 overflow-y-auto rounded-md border border-slate-200 p-3">
+          <div className="max-h-80 space-y-4 overflow-y-auto rounded-md border border-border p-3">
             {PERMISSION_GROUPS.map((group) => (
               <fieldset key={group.id}>
-                <legend className="mb-2 text-sm font-semibold text-slate-800">{group.label}</legend>
+                <legend className="mb-2 text-sm font-semibold text-foreground">{group.label}</legend>
                 <div className="space-y-2">
                   {group.permissions.map((perm) => (
                     <label key={perm} className="flex items-start gap-2 text-sm">
@@ -179,9 +179,9 @@ export default function RolesManager() {
                         className="mt-0.5"
                       />
                       <span>
-                        <span className="font-mono text-xs text-slate-800">{perm}</span>
+                        <span className="font-mono text-xs text-foreground">{perm}</span>
                         {PERMISSION_LABELS[perm] && (
-                          <span className="block text-xs text-slate-500">
+                          <span className="block text-xs text-muted-foreground">
                             {PERMISSION_LABELS[perm]}
                           </span>
                         )}
@@ -196,14 +196,14 @@ export default function RolesManager() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-md border border-slate-200 px-4 py-2 text-sm"
+              className="rounded-md border border-border px-4 py-2 text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || permissions.length === 0}
-              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+              className="btn-primary disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save'}
             </button>

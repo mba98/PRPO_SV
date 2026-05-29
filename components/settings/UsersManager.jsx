@@ -175,7 +175,7 @@ export default function UsersManager() {
           <button
             type="button"
             onClick={() => openEdit(u)}
-            className="text-sm font-medium text-brand-600 hover:text-brand-700"
+            className="text-sm font-medium text-primary hover:underline"
           >
             Edit
           </button>
@@ -183,7 +183,7 @@ export default function UsersManager() {
             <button
               type="button"
               onClick={() => handleDeactivate(u)}
-              className="text-sm font-medium text-rose-600 hover:text-rose-700"
+              className="text-sm font-medium text-destructive hover:underline"
             >
               Deactivate
             </button>
@@ -198,7 +198,7 @@ export default function UsersManager() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Search</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Search</label>
             <input
               type="search"
               value={q}
@@ -207,18 +207,18 @@ export default function UsersManager() {
                 setPage(1);
               }}
               placeholder="Name, email, username…"
-              className="h-9 w-56 rounded-md border border-slate-300 px-3 text-sm"
+              className="input-field h-9 w-56 !min-h-9 py-1.5"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Status</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Status</label>
             <select
               value={status}
               onChange={(e) => {
                 setStatus(e.target.value);
                 setPage(1);
               }}
-              className="h-9 rounded-md border border-slate-300 px-2 text-sm"
+              className="input-field h-9 !min-h-9 w-auto py-1.5"
             >
               <option value="">All</option>
               <option value="active">Active</option>
@@ -232,7 +232,7 @@ export default function UsersManager() {
               setStatus('');
               setPage(1);
             }}
-            className="h-9 rounded-md border border-slate-200 px-3 text-sm text-slate-700 hover:bg-slate-50"
+            className="h-9 rounded-md border border-border px-3 text-sm text-foreground hover:bg-muted"
           >
             Reset
           </button>
@@ -240,14 +240,14 @@ export default function UsersManager() {
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          className="btn-primary"
         >
           Add user
         </button>
       </div>
 
       {error && (
-        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -274,57 +274,57 @@ export default function UsersManager() {
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Name</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Name</label>
               <input
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Username</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Username</label>
               <input
                 required
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Email</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Email</label>
               <input
                 type="email"
                 required
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Department</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Department</label>
               <input
                 value={form.department}
                 onChange={(e) => setForm({ ...form, department: e.target.value })}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">SAP requester code</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">SAP requester code</label>
               <input
                 value={form.sapRequesterCode}
                 onChange={(e) => setForm({ ...form, sapRequesterCode: e.target.value })}
                 placeholder="e.g. 15"
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Role</label>
               <select
                 required
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value })}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               >
                 <option value="">Select role</option>
                 {roles.map((r) => (
@@ -335,7 +335,7 @@ export default function UsersManager() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-foreground">
                 Password {editing && '(leave blank to keep)'}
               </label>
               <input
@@ -344,11 +344,11 @@ export default function UsersManager() {
                 autoComplete="new-password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm"
+                className="input-field"
               />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex items-center gap-2 text-sm text-foreground">
             <input
               type="checkbox"
               checked={form.isActive}
@@ -360,14 +360,14 @@ export default function UsersManager() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-md border border-slate-200 px-4 py-2 text-sm"
+              className="rounded-md border border-border px-4 py-2 text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+              className="btn-primary disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save'}
             </button>

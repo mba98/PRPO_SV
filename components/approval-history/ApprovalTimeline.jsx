@@ -9,20 +9,20 @@ import {
 } from '@/components/ui';
 
 const ACTION_TONE = {
-  Created: 'bg-slate-500',
-  Submitted: 'bg-slate-500',
+  Created: 'bg-muted0',
+  Submitted: 'bg-muted0',
   Updated: 'bg-amber-500',
   Approved: 'bg-emerald-500',
-  Rejected: 'bg-rose-500',
+  Rejected: 'border border-destructive/30 bg-destructive/100',
   'SAP Created': 'bg-indigo-500',
-  'SAP Failed': 'bg-rose-500',
+  'SAP Failed': 'border border-destructive/30 bg-destructive/100',
   'Email Sent': 'bg-sky-500',
   'Attachment Uploaded': 'bg-violet-500',
   'Comment Added': 'bg-brand-500',
 };
 
 function dotClass(action) {
-  return ACTION_TONE[action] || 'bg-slate-400';
+  return ACTION_TONE[action] || 'bg-muted-foreground';
 }
 
 export default function ApprovalTimeline({ documentType, documentId }) {
@@ -58,7 +58,7 @@ export default function ApprovalTimeline({ documentType, documentId }) {
     return (
       <p
         role="alert"
-        className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
+        className="rounded-md border border-rose-200 border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
       >
         {error}
       </p>
@@ -80,7 +80,7 @@ export default function ApprovalTimeline({ documentType, documentId }) {
 
   return (
     <motion.section {...containerAnim} className="card">
-      <ol className="relative border-l border-slate-200 pl-6">
+      <ol className="relative border-l border-border pl-6">
         {items.map((h, idx) => {
           const itemAnim = shouldReduceMotion
             ? {}
@@ -96,23 +96,23 @@ export default function ApprovalTimeline({ documentType, documentId }) {
                   h.action,
                 )}`}
               />
-              <p className="text-sm font-medium text-slate-900">
+              <p className="text-sm font-medium text-foreground">
                 {h.action}
                 {h.stepName ? ` — ${h.stepName}` : ''}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 {h.actionBy || 'System'}
                 {h.actionByRole ? ` · ${h.actionByRole}` : ''}
                 {h.actionDate ? ` · ${new Date(h.actionDate).toLocaleString()}` : ''}
               </p>
               {h.comment && (
-                <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
+                <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
                   {h.comment}
                 </p>
               )}
               {(h.previousStatus || h.newStatus) &&
                 h.previousStatus !== h.newStatus && (
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {h.previousStatus || '—'} → {h.newStatus || '—'}
                   </p>
                 )}
@@ -121,7 +121,7 @@ export default function ApprovalTimeline({ documentType, documentId }) {
                   {h.attachments.map((a) => (
                     <li
                       key={a.id}
-                      className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+                      className="rounded bg-muted px-2 py-0.5 text-xs text-foreground"
                     >
                       {a.fileName}
                     </li>

@@ -74,14 +74,14 @@ export default function PoDetailView({ id }) {
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-slate-500">
-            <Link href="/purchase-orders" className="text-brand-600 hover:underline">
+          <p className="text-sm text-muted-foreground">
+            <Link href="/purchase-orders" className="text-primary hover:underline">
               {poI18n.title}
             </Link>
             {' / '}
             {po.portalPONumber}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-slate-900">{po.portalPONumber}</h1>
+          <h1 className="mt-1 text-2xl font-semibold text-foreground">{po.portalPONumber}</h1>
           <div className="mt-2">
             <AnimatedStatusBadge status={po.status} />
           </div>
@@ -136,16 +136,16 @@ export default function PoDetailView({ id }) {
               ['SAP PO', po.sapPODocNum],
             ].map(([label, val]) => (
               <div key={label}>
-                <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
                 <p className="mt-1 text-sm">{val || '—'}</p>
               </div>
             ))}
             {po.relatedPRId && (
               <div>
-                <p className="text-xs font-medium uppercase text-slate-500">PR link</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">PR link</p>
                 <Link
                   href={`/purchase-requests/${po.relatedPRId}`}
-                  className="mt-1 text-sm text-brand-600 hover:underline"
+                  className="mt-1 text-sm text-primary hover:underline"
                 >
                   View purchase request
                 </Link>
@@ -153,8 +153,8 @@ export default function PoDetailView({ id }) {
             )}
             {po.sapErrorMessage && (
               <div className="sm:col-span-2">
-                <p className="text-xs font-medium uppercase text-rose-600">SAP error</p>
-                <p className="mt-1 text-sm text-rose-700">{po.sapErrorMessage}</p>
+                <p className="text-xs font-medium uppercase text-destructive">SAP error</p>
+                <p className="mt-1 text-sm text-destructive">{po.sapErrorMessage}</p>
               </div>
             )}
             {po.sapWarnings && (
@@ -167,7 +167,7 @@ export default function PoDetailView({ id }) {
           <section className="card overflow-x-auto">
             <h2 className="mb-4 text-lg font-semibold">Line items</h2>
             <table className="min-w-full text-sm">
-              <thead className="text-left text-xs uppercase text-slate-500">
+              <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="pb-2 pr-4">Item</th>
                   <th className="pb-2 pr-4">Qty</th>
@@ -182,7 +182,7 @@ export default function PoDetailView({ id }) {
                   <tr key={line._id || i}>
                     <td className="py-2 pr-4">
                       <span className="font-medium">{line.itemCode}</span>
-                      <span className="ml-2 text-slate-600">{line.itemName}</span>
+                      <span className="ml-2 text-muted-foreground">{line.itemName}</span>
                     </td>
                     <td className="py-2 pr-4">{line.quantity}</td>
                     <td className="py-2 pr-4">{line.unitPrice ?? '—'}</td>

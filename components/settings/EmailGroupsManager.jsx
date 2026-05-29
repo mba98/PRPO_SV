@@ -202,8 +202,8 @@ export default function EmailGroupsManager() {
       label: 'Event',
       render: (row) => (
         <div>
-          <p className="font-mono text-xs text-slate-800">{row.eventKey}</p>
-          <p className="text-xs text-slate-500">{row.label}</p>
+          <p className="font-mono text-xs text-foreground">{row.eventKey}</p>
+          <p className="text-xs text-muted-foreground">{row.label}</p>
         </div>
       ),
     },
@@ -219,7 +219,7 @@ export default function EmailGroupsManager() {
         row.group ? (
           <AnimatedStatusBadge status={row.group.isActive ? 'Healthy' : 'Failed'} />
         ) : (
-          <span className="text-xs text-slate-400">Not configured</span>
+          <span className="text-xs text-muted-foreground">Not configured</span>
         ),
     },
     {
@@ -253,14 +253,14 @@ export default function EmailGroupsManager() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted-foreground">
           Override notification recipients per workflow event. Inactive or empty groups use role-based fallbacks.
         </p>
         <button
           type="button"
           onClick={handleTestSmtp}
           disabled={testing}
-          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
         >
           {testing ? 'Sending test…' : 'Send SMTP test'}
         </button>
@@ -280,19 +280,19 @@ export default function EmailGroupsManager() {
       >
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-500">Event key</label>
+            <label className="block text-xs font-semibold uppercase text-muted-foreground">Event key</label>
             <input
               type="text"
               readOnly
               value={form.eventKey}
-              className="mt-1 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border bg-muted px-3 py-2 text-sm"
             />
-            <p className="mt-1 text-xs text-slate-500">{eventLabels[form.eventKey]}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{eventLabels[form.eventKey]}</p>
           </div>
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="text-xs font-semibold uppercase text-slate-500">Recipients (TO)</label>
+              <label className="text-xs font-semibold uppercase text-muted-foreground">Recipients (TO)</label>
               <button type="button" onClick={addRecipientRow} className="text-xs text-indigo-600">
                 + Add
               </button>
@@ -303,7 +303,7 @@ export default function EmailGroupsManager() {
                   <select
                     value={r.kind}
                     onChange={(e) => updateRecipient(i, { kind: e.target.value, value: '' })}
-                    className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                    className="rounded-md border border-border px-2 py-2 text-sm"
                   >
                     <option value="email">Email</option>
                     <option value="user">User</option>
@@ -315,14 +315,14 @@ export default function EmailGroupsManager() {
                       value={r.value}
                       onChange={(e) => updateRecipient(i, { value: e.target.value })}
                       placeholder="name@company.com"
-                      className="min-w-[200px] flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      className="min-w-[200px] flex-1 rounded-md border border-border px-3 py-2 text-sm"
                     />
                   )}
                   {r.kind === 'user' && (
                     <select
                       value={r.value}
                       onChange={(e) => updateRecipient(i, { value: e.target.value })}
-                      className="min-w-[200px] flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      className="min-w-[200px] flex-1 rounded-md border border-border px-3 py-2 text-sm"
                     >
                       <option value="">Select user</option>
                       {users.map((u) => (
@@ -336,7 +336,7 @@ export default function EmailGroupsManager() {
                     <select
                       value={r.value}
                       onChange={(e) => updateRecipient(i, { value: e.target.value })}
-                      className="min-w-[200px] flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      className="min-w-[200px] flex-1 rounded-md border border-border px-3 py-2 text-sm"
                     >
                       <option value="">Select role</option>
                       {roles.map((role) => (
@@ -349,7 +349,7 @@ export default function EmailGroupsManager() {
                   <button
                     type="button"
                     onClick={() => removeRecipient(i)}
-                    className="text-sm text-slate-500 hover:text-red-600"
+                    className="text-sm text-muted-foreground hover:text-red-600"
                   >
                     Remove
                   </button>
@@ -359,7 +359,7 @@ export default function EmailGroupsManager() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase text-slate-500">CC roles</label>
+            <label className="block text-xs font-semibold uppercase text-muted-foreground">CC roles</label>
             <select
               multiple
               value={form.ccRoles}
@@ -369,7 +369,7 @@ export default function EmailGroupsManager() {
                   ccRoles: Array.from(e.target.selectedOptions, (o) => o.value),
                 }))
               }
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
               size={4}
             >
               {roles.map((role) => (
@@ -380,7 +380,7 @@ export default function EmailGroupsManager() {
             </select>
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex items-center gap-2 text-sm text-foreground">
             <input
               type="checkbox"
               checked={form.isActive}
@@ -393,7 +393,7 @@ export default function EmailGroupsManager() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
+              className="rounded-md px-4 py-2 text-sm text-muted-foreground hover:bg-muted"
             >
               Cancel
             </button>
