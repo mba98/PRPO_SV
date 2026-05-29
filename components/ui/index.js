@@ -13,3 +13,7 @@ export {
   SkeletonDropdown,
 } from './AnimatedSkeletonLoader';
 export { useMotionSafe } from './useMotionSafe';
+export { default as ThemeSelector } from './ThemeSelector';
+export { default as AnimatedTabs } from './AnimatedTabs';
+export { default as AnimatedTableContainer } from './AnimatedTableContainer';
+export { default as AnimatedFilterPanel } from './AnimatedFilterPanel';

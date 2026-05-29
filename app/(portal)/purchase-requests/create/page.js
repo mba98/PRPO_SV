@@ -1,31 +1,16 @@
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { verifyToken, getCurrentUser, userHasPermission } from '@/lib/auth';
+import { Suspense } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import PrCreateForm from '@/components/purchase-requests/PrCreateForm';
+import { AnimatedSkeletonLoader } from '@/components/ui';
+import { pr } from '@/lib/i18n';
 
-export default async function CreatePurchaseRequestPage() {
-  const token = cookies().get('portal_session')?.value;
-  if (!token) redirect('/login');
-  const session = await verifyToken(token);
-  const user = await getCurrentUser(session);
-  if (!user || !userHasPermission(user, ['pr.create'])) {
-    redirect('/purchase-requests');
-  }
-
+export default function CreatePurchaseRequestPage() {
   return (
     <div>
-      <PageHeader
-        title="New Purchase Request"
-        description="Enter header details, line items, and attachments, then submit for approval."
-        actions={
-          <Link href="/purchase-requests" className="btn-secondary">
-            Back to list
-          </Link>
-        }
-      />
-      <PrCreateForm />
+      <PageHeader title={pr.createTitle} description={pr.createDesc} />
+      <Suspense fallback={<AnimatedSkeletonLoader rows={10} />}>
+        <PrCreateForm />
+      </Suspense>
     </div>
   );
 }

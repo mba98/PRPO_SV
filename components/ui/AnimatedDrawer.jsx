@@ -12,16 +12,16 @@ export default function AnimatedDrawer({ isOpen, onClose, title, children, width
   });
 
   const panelProps = useMotionSafe({
-    initial: { x: '100%', opacity: 0 },
+    initial: { x: '-100%', opacity: 0 },
     animate: { x: 0, opacity: 1 },
-    exit: { x: '100%', opacity: 0 },
+    exit: { x: '-100%', opacity: 0 },
     transition: { duration: 0.28, ease: 'easeOut' },
   });
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-50 flex justify-start">
           <motion.button
             type="button"
             aria-label="Close drawer"

@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import { AnimatedSkeletonLoader, AnimatedStatusBadge, AnimatedTabs } from '@/components/ui';
+import { approve, common, detail, pr as prI18n } from '@/lib/i18n';
 import WorkflowStepper from '@/components/workflow/WorkflowStepper';
 import CreatePoFromPrPanel from '@/components/purchase-requests/CreatePoFromPrPanel';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
@@ -29,7 +30,7 @@ export default function PrDetailView({ id }) {
     setLoading(true);
     const { json: prJson } = await apiFetch(`/api/purchase-requests/${id}`);
     if (prJson.success) setPr(prJson.data);
-    else setError(prJson.message || 'Failed to load');
+    else setError(prJson.message || common.errorLoad);
     setLoading(false);
   }, [id]);
 
@@ -40,11 +41,11 @@ export default function PrDetailView({ id }) {
   async function retrySap() {
     const { json } = await apiFetch(`/api/purchase-requests/${id}/retry-sap`, { method: 'POST' });
     if (json.success) load();
-    else setError(json.message || 'Retry failed');
+    else setError(json.message || common.errorLoad);
   }
 
   if (loading) return <AnimatedSkeletonLoader rows={8} />;
-  if (!pr) return <p className="text-red-600">{error || 'Not found'}</p>;
+  if (!pr) return <p className="text-red-600">{error || detail.notFound}</p>;
 
   const canApprove = pr.canApproveCurrentStep === true;
   const canRetrySap = pr.canRetrySap === true;
@@ -55,7 +56,12 @@ export default function PrDetailView({ id }) {
     ['Pending Warehouse Approval', 'Pending Project Manager Approval'].includes(pr.status) &&
     currentWorkflowStep?.stepName;
 
-  const tabs = ['details', 'attachments', 'comments', 'history'];
+  const tabs = [
+    { id: 'details', label: common.details },
+    { id: 'attachments', label: common.attachments },
+    { id: 'comments', label: common.comments },
+    { id: 'history', label: common.approvalHistory },
+  ];
 
   return (
     <div className="space-y-6">
@@ -70,7 +76,7 @@ export default function PrDetailView({ id }) {
         <div>
           <p className="text-sm text-slate-500">
             <Link href="/purchase-requests" className="text-brand-600 hover:underline">
-              Purchase Requests
+              {prI18n.title}
             </Link>
             {' / '}
             {pr.portalPRNumber}
@@ -82,39 +88,24 @@ export default function PrDetailView({ id }) {
         </div>
         <div className="flex gap-2">
           {canApprove && (
-            <Link href={`/purchase-requests/${id}/approve`} className="btn-primary">
-              Approve / Reject
+            <Link href={`/purchase-requests/${id}/approve`} className="btn-primary min-h-10">
+              {common.approveReject}
             </Link>
           )}
           {waitingForApproval && (
             <span className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Waiting for {currentWorkflowStep.stepName}
+              {common.waitingFor} {currentWorkflowStep.stepName}
             </span>
           )}
           {canRetrySap && (
-            <button type="button" className="btn-secondary" onClick={retrySap}>
-              Retry SAP
+            <button type="button" className="btn-secondary min-h-10" onClick={retrySap}>
+              {common.retrySap}
             </button>
           )}
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setActiveTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize ${
-              activeTab === t
-                ? 'border-b-2 border-brand-600 text-brand-700'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <AnimatedTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} className="max-w-2xl" />
 
       {activeTab === 'details' && (
         <>

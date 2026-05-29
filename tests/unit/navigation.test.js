@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { getVisibleNavItems, getVisibleSettingsNav } from '@/lib/navigation';
 import { PORTAL_ROUTE_PATHS, SIDEBAR_ENTRY_PATHS } from '@/lib/appRoutes';
+import { nav } from '@/lib/i18n';
 
 describe('navigation permissions', () => {
   const adminPerms = ['admin.settings', 'view.all', 'pr.create'];
 
   it('shows dashboard for any authenticated user', () => {
-    const nav = getVisibleNavItems([]);
-    expect(nav.some((n) => n.href === '/dashboard')).toBe(true);
+    const items = getVisibleNavItems([]);
+    expect(items.some((n) => n.href === '/dashboard')).toBe(true);
+    const dash = items.find((n) => n.href === '/dashboard');
+    expect(dash?.label).toBe(nav.dashboard);
   });
 
   it('filters purchase requests by permission', () => {

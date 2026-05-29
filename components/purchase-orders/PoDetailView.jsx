@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import { AnimatedSkeletonLoader, AnimatedStatusBadge, AnimatedTabs } from '@/components/ui';
+import { common, detail, po as poI18n } from '@/lib/i18n';
 import WorkflowStepper from '@/components/workflow/WorkflowStepper';
 import PoEditForm from '@/components/purchase-orders/PoEditForm';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
@@ -30,7 +31,7 @@ export default function PoDetailView({ id }) {
     setLoading(true);
     const { json } = await apiFetch(`/api/purchase-orders/${id}`);
     if (json.success) setPo(json.data);
-    else setError(json.message || 'Failed to load');
+    else setError(json.message || common.errorLoad);
     setLoading(false);
   }, [id]);
 
@@ -45,7 +46,7 @@ export default function PoDetailView({ id }) {
   }
 
   if (loading) return <AnimatedSkeletonLoader rows={8} />;
-  if (!po) return <p className="text-red-600">{error || 'Not found'}</p>;
+  if (!po) return <p className="text-red-600">{error || detail.notFound}</p>;
 
   const canApprove = po.canApproveCurrentStep === true;
   const currentWorkflowStep = po.workflowSteps?.find((s) => s.state === 'current');
@@ -54,7 +55,12 @@ export default function PoDetailView({ id }) {
     ['Pending Project Manager Approval', 'Pending Finance Approval'].includes(po.status) &&
     currentWorkflowStep?.stepName;
 
-  const tabs = ['details', 'attachments', 'comments', 'history'];
+  const tabs = [
+    { id: 'details', label: common.details },
+    { id: 'attachments', label: common.attachments },
+    { id: 'comments', label: common.comments },
+    { id: 'history', label: common.approvalHistory },
+  ];
 
   return (
     <div className="space-y-6">
@@ -69,7 +75,7 @@ export default function PoDetailView({ id }) {
         <div>
           <p className="text-sm text-slate-500">
             <Link href="/purchase-orders" className="text-brand-600 hover:underline">
-              Purchase Orders
+              {poI18n.title}
             </Link>
             {' / '}
             {po.portalPONumber}
@@ -81,45 +87,30 @@ export default function PoDetailView({ id }) {
         </div>
         <div className="flex gap-2">
           {po.canEdit && !editing && (
-            <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>
-              Edit
+            <button type="button" className="btn-secondary min-h-10" onClick={() => setEditing(true)}>
+              {common.edit}
             </button>
           )}
           {canApprove && (
-            <Link href={`/purchase-orders/${id}/approve`} className="btn-primary">
-              Approve / Reject
+            <Link href={`/purchase-orders/${id}/approve`} className="btn-primary min-h-10">
+              {common.approveReject}
             </Link>
           )}
           {waitingForApproval && (
             <span className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Waiting for {currentWorkflowStep.stepName} Approval
+              {common.waitingForApproval}: {currentWorkflowStep.stepName}
             </span>
           )}
           {po.status === 'Failed to Create in SAP' &&
             (hasPermission('view.all') || hasPermission('admin.settings')) && (
-              <button type="button" className="btn-secondary" onClick={retrySap}>
-                Retry SAP
+              <button type="button" className="btn-secondary min-h-10" onClick={retrySap}>
+                {common.retrySap}
               </button>
             )}
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setActiveTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize ${
-              activeTab === t
-                ? 'border-b-2 border-brand-600 text-brand-700'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <AnimatedTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} className="max-w-2xl" />
 
       {activeTab === 'details' && editing && po.canEdit && (
         <PoEditForm

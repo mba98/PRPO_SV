@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { dashboard as dashI18n } from '@/lib/i18n';
 import { useMotionSafe } from './useMotionSafe';
 
 export default function AnimatedDashboardCard({
@@ -27,7 +28,7 @@ export default function AnimatedDashboardCard({
 
   const inner = (
     <motion.div
-      className={`rounded-lg border p-5 shadow-sm transition-shadow hover:shadow-md ${toneClasses[tone] || toneClasses.default}`}
+      className={`rounded-xl border p-5 shadow-sm transition-shadow hover:shadow-md ${toneClasses[tone] || toneClasses.default}`}
       {...motionProps}
     >
       <p className="text-sm font-medium text-slate-600">{title}</p>
@@ -35,7 +36,7 @@ export default function AnimatedDashboardCard({
         {loading ? '—' : value ?? 0}
       </p>
       {href && (
-        <p className="mt-3 text-xs font-medium text-brand-600">View list →</p>
+        <p className="mt-3 text-xs font-medium text-brand-600">{dashI18n.viewList} ←</p>
       )}
     </motion.div>
   );

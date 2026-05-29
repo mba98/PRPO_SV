@@ -7,6 +7,7 @@ import PageHeader from '@/components/layout/PageHeader';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import { common, po } from '@/lib/i18n';
 
 export default function ReadyForApriPage() {
   const router = useRouter();
@@ -50,10 +51,7 @@ export default function ReadyForApriPage() {
 
   return (
     <div>
-      <PageHeader
-        title="POs ready for A/P Reserve Invoice"
-        description="Purchase orders created in SAP without an existing A/P reserve invoice."
-      />
+      <PageHeader title={po.readyForApriTitle} description={po.readyForApriDesc} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {loading ? (
         <AnimatedSkeletonLoader rows={5} />

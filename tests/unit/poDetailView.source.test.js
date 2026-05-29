@@ -15,6 +15,6 @@ describe('PoDetailView source', () => {
   });
 
   it('shows waiting message for non-approvers', () => {
-    expect(source).toContain('Waiting for');
+    expect(source).toContain('waitingForApproval');
   });
 });

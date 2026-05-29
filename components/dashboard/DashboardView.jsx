@@ -9,6 +9,7 @@ import {
   AnimatedSkeletonLoader,
   AnimatedStatusBadge,
 } from '@/components/ui';
+import { common, dashboard as dashI18n, pr, po, apri } from '@/lib/i18n';
 
 function RecentTable({ title, rows, columns, emptyMessage }) {
   return (
@@ -18,7 +19,7 @@ function RecentTable({ title, rows, columns, emptyMessage }) {
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+          <thead className="bg-slate-50 text-right text-xs font-semibold uppercase text-slate-500">
             <tr>
               {columns.map((col) => (
                 <th key={col.key} className="px-4 py-2">
@@ -76,7 +77,7 @@ export default function DashboardView() {
       apiFetch('/api/dashboard/recent?limit=5'),
     ]);
     if (summaryRes.json.success) setSummary(summaryRes.json.data);
-    else setError(summaryRes.json.message || 'Failed to load dashboard');
+    else setError(summaryRes.json.message || common.errorLoad);
     if (recentRes.json.success) setRecent(recentRes.json.data);
     setLoading(false);
   }, []);
@@ -88,15 +89,15 @@ export default function DashboardView() {
   const cards = [];
   if (canViewPr && summary?.prs) {
     cards.push(
-      { title: 'Total PRs', value: summary.prs.total, href: '/purchase-requests?tab=my', tone: 'default' },
+      { title: dashI18n.totalPrs, value: summary.prs.total, href: '/purchase-requests?tab=my', tone: 'default' },
       {
-        title: 'PRs Pending Approval',
+        title: dashI18n.prsPending,
         value: summary.prs.pendingApproval,
         href: '/purchase-requests?tab=pending',
         tone: 'warning',
       },
       {
-        title: 'PRs Created in SAP',
+        title: dashI18n.prsInSap,
         value: summary.prs.createdInSap,
         href: '/purchase-requests?tab=sap',
         tone: 'success',
@@ -105,15 +106,15 @@ export default function DashboardView() {
   }
   if (canViewPo && summary?.pos) {
     cards.push(
-      { title: 'Total POs', value: summary.pos.total, href: '/purchase-orders', tone: 'default' },
+      { title: dashI18n.totalPos, value: summary.pos.total, href: '/purchase-orders', tone: 'default' },
       {
-        title: 'POs Pending Approval',
+        title: dashI18n.posPending,
         value: summary.pos.pendingApproval,
         href: '/purchase-orders?tab=pending',
         tone: 'warning',
       },
       {
-        title: 'POs Created in SAP',
+        title: dashI18n.posInSap,
         value: summary.pos.createdInSap,
         href: '/purchase-orders?tab=sap',
         tone: 'success',
@@ -122,7 +123,7 @@ export default function DashboardView() {
   }
   if (canViewApri && summary?.apri) {
     cards.push({
-      title: 'APRIs Created in SAP',
+      title: dashI18n.apriCreated,
       value: summary.apri.createdInSap,
       href: '/ap-reserve-invoices',
       tone: 'success',
@@ -130,7 +131,7 @@ export default function DashboardView() {
   }
   if (canViewLogs && summary?.sap) {
     cards.push({
-      title: 'Failed SAP Integrations',
+      title: dashI18n.sapFailures,
       value: summary.sap.failedIntegrations,
       href: '/settings/system-logs?log=sap',
       tone: 'danger',
@@ -138,7 +139,7 @@ export default function DashboardView() {
   }
   if (canViewLogs && summary?.email?.failedEmails != null) {
     cards.push({
-      title: 'Failed Emails',
+      title: dashI18n.emailFailures,
       value: summary.email.failedEmails,
       href: '/settings/system-logs?log=email',
       tone: 'danger',
@@ -154,7 +155,7 @@ export default function DashboardView() {
       )}
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Key metrics</h2>
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">{dashI18n.title}</h2>
         {loading ? (
           <AnimatedSkeletonLoader rows={3} />
         ) : (
@@ -172,9 +173,9 @@ export default function DashboardView() {
         <div className="grid gap-6 xl:grid-cols-2">
           {canViewPr && (
             <RecentTable
-              title="Recent purchase requests"
+              title={dashI18n.recentPrs}
               rows={recent?.purchaseRequests}
-              emptyMessage="No recent purchase requests"
+              emptyMessage={pr.noPrs}
               columns={[
                 {
                   key: 'num',
@@ -190,12 +191,12 @@ export default function DashboardView() {
                 },
                 {
                   key: 'status',
-                  label: 'Status',
+                  label: common.status,
                   render: (r) => <AnimatedStatusBadge status={r.status} />,
                 },
                 {
                   key: 'created',
-                  label: 'Created',
+                  label: common.createdAt,
                   render: (r) =>
                     r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—',
                 },
@@ -204,9 +205,9 @@ export default function DashboardView() {
           )}
           {canViewPo && (
             <RecentTable
-              title="Recent purchase orders"
+              title={dashI18n.recentPos}
               rows={recent?.purchaseOrders}
-              emptyMessage="No recent purchase orders"
+              emptyMessage={po.noPos}
               columns={[
                 {
                   key: 'num',
@@ -222,12 +223,12 @@ export default function DashboardView() {
                 },
                 {
                   key: 'status',
-                  label: 'Status',
+                  label: common.status,
                   render: (r) => <AnimatedStatusBadge status={r.status} />,
                 },
                 {
                   key: 'vendor',
-                  label: 'Vendor',
+                  label: common.vendor,
                   render: (r) => r.vendor || '—',
                 },
               ]}
@@ -235,9 +236,9 @@ export default function DashboardView() {
           )}
           {canViewApri && (
             <RecentTable
-              title="Recent AP reserve invoices"
+              title={dashI18n.recentApri}
               rows={recent?.apReserveInvoices}
-              emptyMessage="No recent APRIs"
+              emptyMessage={apri.noApri}
               columns={[
                 {
                   key: 'num',
@@ -253,7 +254,7 @@ export default function DashboardView() {
                 },
                 {
                   key: 'status',
-                  label: 'Status',
+                  label: common.status,
                   render: (r) => <AnimatedStatusBadge status={r.status} />,
                 },
               ]}
@@ -261,15 +262,15 @@ export default function DashboardView() {
           )}
           {canViewLogs && (
             <RecentTable
-              title="Recent SAP failures"
+              title={dashI18n.recentSapFailures}
               rows={recent?.sapFailures}
-              emptyMessage="No recent SAP failures"
+              emptyMessage={common.noData}
               columns={[
-                { key: 'type', label: 'Type', render: (r) => r.documentType },
-                { key: 'action', label: 'Action', render: (r) => r.action },
+                { key: 'type', label: common.status, render: (r) => r.documentType },
+                { key: 'action', label: common.actions, render: (r) => r.action },
                 {
                   key: 'error',
-                  label: 'Error',
+                  label: common.failed,
                   render: (r) => (
                     <span className="line-clamp-2 text-xs text-red-700">{r.errorMessage || '—'}</span>
                   ),

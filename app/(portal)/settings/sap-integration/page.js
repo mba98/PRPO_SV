@@ -1,13 +1,11 @@
 import PageHeader from '@/components/layout/PageHeader';
 import HealthCheckGate from '@/components/settings/HealthCheckGate';
+import { settings } from '@/lib/i18n';
 
 export default function SapIntegrationPage() {
   return (
     <div>
-      <PageHeader
-        title="SAP Integration"
-        description="Test connectivity to SAP Service Layer and related dependencies."
-      />
+      <PageHeader title={settings.sapTitle} description={settings.sapDesc} />
       <HealthCheckGate />
     </div>
   );

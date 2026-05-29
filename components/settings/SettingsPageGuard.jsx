@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/stores/authStore';
 import { useEffectivePermissions } from '@/lib/hooks/useEffectivePermissions';
 import { canAccessSettingsPath } from '@/lib/settingsRoutePermissions';
+import { common } from '@/lib/i18n';
 import { AnimatedSkeletonLoader } from '@/components/ui';
 
 export default function SettingsPageGuard({ children }) {
@@ -18,7 +19,7 @@ export default function SettingsPageGuard({ children }) {
 
   useEffect(() => {
     if (!loading && user && !allowed) {
-      document.title = 'Access denied — Settings';
+      document.title = common.accessDenied;
     }
   }, [loading, user, allowed]);
 
@@ -33,15 +34,13 @@ export default function SettingsPageGuard({ children }) {
         role="alert"
         data-testid="settings-access-denied"
       >
-        <h2 className="text-lg font-semibold text-rose-900">Access denied</h2>
-        <p className="mt-2 text-sm text-rose-800">
-          You do not have permission to view this settings page.
-        </p>
+        <h2 className="text-lg font-semibold text-rose-900">{common.accessDenied}</h2>
+        <p className="mt-2 text-sm text-rose-800">{common.accessDeniedSettings}</p>
         <Link
           href="/dashboard"
           className="mt-4 inline-block text-sm font-medium text-brand-600 hover:text-brand-700"
         >
-          Return to dashboard
+          {common.returnDashboard}
         </Link>
       </div>
     );

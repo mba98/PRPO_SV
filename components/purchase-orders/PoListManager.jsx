@@ -6,16 +6,23 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { navigateWithQuery } from '@/lib/listUrl';
 import { useAuthStore } from '@/stores/authStore';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import {
+  AnimatedFilterPanel,
+  AnimatedSkeletonLoader,
+  AnimatedStatusBadge,
+  AnimatedTableContainer,
+  AnimatedTabs,
+} from '@/components/ui';
 import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
+import { common, filters, po as poI18n } from '@/lib/i18n';
 
 const TABS = [
-  { id: 'pending', label: 'Pending My Approval' },
-  { id: 'approved', label: 'Approved' },
-  { id: 'rejected', label: 'Rejected' },
-  { id: 'sap', label: 'Created in SAP' },
-  { id: 'all', label: 'All', perm: 'view.all' },
+  { id: 'pending', label: poI18n.pendingTab },
+  { id: 'approved', label: poI18n.approvedTab },
+  { id: 'rejected', label: poI18n.rejectedTab },
+  { id: 'sap', label: poI18n.inSapTab },
+  { id: 'all', label: poI18n.allTab, perm: 'view.all' },
 ];
 
 const EMPTY_FILTERS = {
@@ -117,59 +124,53 @@ export default function PoListManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
-          {visibleTabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => pushParams({ tab: t.id, page: 1 })}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-                tab === t.id ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-600'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <AnimatedTabs
+          tabs={visibleTabs}
+          activeId={tab}
+          onChange={(id) => pushParams({ tab: id, page: 1 })}
+          className="w-full lg:max-w-3xl"
+        />
         <div className="flex flex-wrap gap-2">
           {hasAnyPermission(['apinvoice.create', 'view.all']) && (
             <Link
               href="/purchase-orders/ready-for-ap-reserve-invoice"
-              className="btn-secondary"
+              className="btn-secondary min-h-10"
             >
-              POs ready for APRI
+              {poI18n.posReadyForApri}
             </Link>
           )}
-          <button type="button" onClick={exportExcel} className="btn-secondary">
-            Export Excel
+          <button type="button" onClick={exportExcel} className="btn-secondary min-h-10">
+            {common.exportExcel}
           </button>
         </div>
       </div>
 
+      <AnimatedFilterPanel>
       <form
-        className="card grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
         onSubmit={(e) => {
           e.preventDefault();
           pushParams({ page: 1 });
         }}
       >
         <label className="text-sm sm:col-span-2">
-          <span className="text-slate-600">Search</span>
+          <span className="text-slate-600">{common.search}</span>
           <input
             className="input-field mt-1"
+            placeholder={filters.searchPo}
             value={filters.q}
             onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
           />
         </label>
         {[
-          ['portalPONumber', 'PO Number'],
-          ['relatedPRNumber', 'PR Number'],
-          ['sapPODocNum', 'SAP PO #'],
-          ['vendor', 'Vendor'],
-          ['status', 'Status'],
-          ['from', 'From'],
-          ['to', 'To'],
+          ['portalPONumber', filters.portalPo],
+          ['relatedPRNumber', filters.relatedPr],
+          ['sapPODocNum', filters.sapPoDoc],
+          ['vendor', common.vendor],
+          ['status', common.status],
+          ['from', common.fromDate],
+          ['to', common.toDate],
         ].map(([key, label]) => (
           <label key={key} className="text-sm">
             <span className="text-slate-600">{label}</span>
@@ -182,74 +183,75 @@ export default function PoListManager() {
           </label>
         ))}
         <div className="flex items-end gap-2">
-          <button type="submit" className="btn-secondary">
-            Apply
+          <button type="submit" className="btn-secondary min-h-10">
+            {common.applyFilters}
           </button>
           <button
             type="button"
-            className="text-sm text-slate-600"
+            className="min-h-10 text-sm text-slate-600"
             onClick={() => {
               setFilters({ ...EMPTY_FILTERS });
               navigateWithQuery(router, '/purchase-orders', new URLSearchParams({ tab }));
             }}
           >
-            Reset
+            {common.reset}
           </button>
         </div>
       </form>
+      </AnimatedFilterPanel>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {loading ? (
         <AnimatedSkeletonLoader rows={6} />
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+          <AnimatedTableContainer>
+            <table className="data-table min-w-full text-sm">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">PO Number</th>
-                  <th className="px-4 py-3">PR Number</th>
-                  <th className="px-4 py-3">Vendor</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">SAP PO</th>
-                  <th className="px-4 py-3">Actions</th>
+                  <th>{poI18n.portalNumber}</th>
+                  <th>{poI18n.relatedPr}</th>
+                  <th>{common.vendor}</th>
+                  <th>{common.status}</th>
+                  <th>{filters.sapPoDoc}</th>
+                  <th>{common.actions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {items.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                      No purchase orders
+                      {filters.noResultsPo}
                     </td>
                   </tr>
                 )}
-                {items.map((po) => (
-                  <tr key={po.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3">
-                      <Link href={`/purchase-orders/${po.id}`} className="font-medium text-brand-600 hover:underline">
-                        {po.portalPONumber}
+                {items.map((row) => (
+                  <tr key={row.id}>
+                    <td>
+                      <Link href={`/purchase-orders/${row.id}`} className="font-medium text-brand-600 hover:underline">
+                        {row.portalPONumber}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">{po.relatedPRNumber || '—'}</td>
-                    <td className="px-4 py-3">{po.vendor}</td>
-                    <td className="px-4 py-3">
-                      <AnimatedStatusBadge status={po.status} />
+                    <td>{row.relatedPRNumber || '—'}</td>
+                    <td>{row.vendor}</td>
+                    <td>
+                      <AnimatedStatusBadge status={row.status} />
                     </td>
-                    <td className="px-4 py-3">{po.sapPODocNum || '—'}</td>
-                    <td className="px-4 py-3">
+                    <td className="font-mono text-xs">{row.sapPODocNum || '—'}</td>
+                    <td>
                       <button
                         type="button"
-                        className="text-sm font-medium text-brand-600 hover:underline"
-                        onClick={() => setHistoryRow(po)}
+                        className="min-h-10 text-sm font-medium text-brand-600 hover:underline"
+                        onClick={() => setHistoryRow(row)}
                       >
-                        History
+                        {common.history}
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </AnimatedTableContainer>
           <ListPagination pagination={pagination} page={page} onPageChange={(p) => pushParams({ page: p })} />
         </>
       )}

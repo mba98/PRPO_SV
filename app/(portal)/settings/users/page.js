@@ -1,13 +1,11 @@
 import PageHeader from '@/components/layout/PageHeader';
 import UsersManager from '@/components/settings/UsersManager';
+import { settings } from '@/lib/i18n';
 
-export default function SettingsUsersPage() {
+export default function UsersSettingsPage() {
   return (
     <div>
-      <PageHeader
-        title="Users"
-        description="Create, edit, and deactivate portal users. Assign roles and manage access."
-      />
+      <PageHeader title={settings.usersTitle} description={settings.usersDesc} />
       <UsersManager />
     </div>
   );

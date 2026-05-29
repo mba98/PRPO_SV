@@ -1,12 +1,15 @@
 'use client';
 
+import { common } from '@/lib/i18n';
+
 export default function ListPagination({ pagination, page, onPageChange }) {
   if (!pagination || pagination.totalPages <= 1) return null;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
       <p>
-        Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+        {common.pageOf} {pagination.page} / {pagination.totalPages} ({pagination.total}{' '}
+        {common.total})
       </p>
       <div className="flex gap-2">
         <button
@@ -15,7 +18,7 @@ export default function ListPagination({ pagination, page, onPageChange }) {
           onClick={() => onPageChange(page - 1)}
           className="rounded-md border border-slate-300 px-3 py-1.5 disabled:opacity-40"
         >
-          Previous
+          {common.previous}
         </button>
         <button
           type="button"
@@ -23,7 +26,7 @@ export default function ListPagination({ pagination, page, onPageChange }) {
           onClick={() => onPageChange(page + 1)}
           className="rounded-md border border-slate-300 px-3 py-1.5 disabled:opacity-40"
         >
-          Next
+          {common.next}
         </button>
       </div>
     </div>

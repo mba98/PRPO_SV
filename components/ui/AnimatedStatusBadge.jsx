@@ -1,6 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
+import { statusLabel } from '@/lib/i18n';
 import { useMotionSafe } from './useMotionSafe';
 
 const STATUS_STYLES = {
@@ -47,11 +48,11 @@ export default function AnimatedStatusBadge({ status }) {
     <AnimatePresence mode="wait">
       <motion.span
         key={status}
-        className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${baseClass}`}
+        className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${baseClass}`}
         {...mountProps}
         {...pulseProps}
       >
-        {status}
+        {statusLabel(status)}
       </motion.span>
     </AnimatePresence>
   );

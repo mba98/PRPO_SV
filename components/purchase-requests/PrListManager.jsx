@@ -6,19 +6,26 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { navigateWithQuery } from '@/lib/listUrl';
 import { useAuthStore } from '@/stores/authStore';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import {
+  AnimatedFilterPanel,
+  AnimatedSkeletonLoader,
+  AnimatedStatusBadge,
+  AnimatedTableContainer,
+  AnimatedTabs,
+} from '@/components/ui';
 import { PR_STATUSES } from '@/lib/prPermissions';
 import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
+import { common, filters, pr as prI18n, statusLabel } from '@/lib/i18n';
 
 const TABS = [
-  { id: 'my', label: 'My PRs' },
-  { id: 'pending', label: 'Pending My Approval' },
-  { id: 'approved', label: 'Post-approval' },
-  { id: 'failed-sap', label: 'Failed SAP' },
-  { id: 'rejected', label: 'Rejected' },
-  { id: 'sap', label: 'Created in SAP' },
-  { id: 'all', label: 'All', perm: 'view.all' },
+  { id: 'my', label: prI18n.myPrs },
+  { id: 'pending', label: prI18n.pendingApproval },
+  { id: 'approved', label: prI18n.postApproval },
+  { id: 'failed-sap', label: prI18n.failedSapTab },
+  { id: 'rejected', label: prI18n.rejectedTab },
+  { id: 'sap', label: prI18n.inSapTab },
+  { id: 'all', label: prI18n.allTab, perm: 'view.all' },
 ];
 
 const EMPTY_FILTERS = {
@@ -88,7 +95,7 @@ export default function PrListManager() {
       setItems(json.data);
       setPagination(json.pagination);
     } else {
-      setError(json.message || 'Failed to load');
+      setError(json.message || common.errorLoad);
     }
     setLoading(false);
   }, [buildQueryParams]);
@@ -145,57 +152,45 @@ export default function PrListManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
-          {visibleTabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                tab === t.id ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <AnimatedTabs tabs={visibleTabs} activeId={tab} onChange={setTab} className="w-full lg:max-w-4xl" />
         <div className="flex flex-wrap gap-2">
           {hasAnyPermission(['po.create', 'view.all']) && (
-            <Link href="/purchase-requests/approved-for-po" className="btn-secondary">
-              PRs ready for PO
+            <Link href="/purchase-requests/approved-for-po" className="btn-secondary min-h-10">
+              {prI18n.prsReadyForPo}
             </Link>
           )}
-          <button type="button" onClick={exportExcel} className="btn-secondary">
-            Export Excel
+          <button type="button" onClick={exportExcel} className="btn-secondary min-h-10">
+            {common.exportExcel}
           </button>
           {hasPermission('pr.create') && (
-            <Link href="/purchase-requests/create" className="btn-primary">
-              New Purchase Request
+            <Link href="/purchase-requests/create" className="btn-primary min-h-10">
+              {prI18n.newPr}
             </Link>
           )}
         </div>
       </div>
 
-      <form onSubmit={applyFilters} className="card space-y-3">
+      <AnimatedFilterPanel>
+      <form onSubmit={applyFilters} className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm sm:col-span-2">
-            <span className="text-slate-600">Search</span>
+            <span className="text-slate-600">{common.search}</span>
             <input
               className="input-field mt-1"
-              placeholder="PR #, SAP #, department, project…"
+              placeholder={filters.searchPr}
               value={filters.q}
               onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
             />
           </label>
           {[
-            ['portalPRNumber', 'Portal PR #'],
-            ['sapPRDocNum', 'SAP PR Doc #'],
-            ['department', 'Department'],
-            ['project', 'Project'],
-            ['warehouse', 'Warehouse'],
-            ['from', 'From date'],
-            ['to', 'To date'],
+            ['portalPRNumber', filters.portalPr],
+            ['sapPRDocNum', filters.sapPrDoc],
+            ['department', common.department],
+            ['project', common.project],
+            ['warehouse', common.warehouse],
+            ['from', common.fromDate],
+            ['to', common.toDate],
           ].map(([key, label]) => (
             <label key={key} className="text-sm">
               <span className="text-slate-600">{label}</span>
@@ -208,30 +203,31 @@ export default function PrListManager() {
             </label>
           ))}
           <label className="text-sm">
-            <span className="text-slate-600">Status</span>
+            <span className="text-slate-600">{common.status}</span>
             <select
               className="input-field mt-1"
               value={filters.status}
               onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
             >
-              <option value="">All statuses</option>
+              <option value="">{filters.allStatuses}</option>
               {PR_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {statusLabel(s)}
                 </option>
               ))}
             </select>
           </label>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="submit" className="btn-secondary">
-            Apply filters
+          <button type="submit" className="btn-secondary min-h-10">
+            {common.applyFilters}
           </button>
-          <button type="button" onClick={resetFilters} className="rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">
-            Reset
+          <button type="button" onClick={resetFilters} className="min-h-10 rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">
+            {common.reset}
           </button>
         </div>
       </form>
+      </AnimatedFilterPanel>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -239,66 +235,98 @@ export default function PrListManager() {
         <AnimatedSkeletonLoader rows={6} />
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+          <div className="space-y-3 md:hidden">
+            {items.length === 0 && (
+              <p className="rounded-lg border border-slate-200 bg-white px-4 py-8 text-center text-slate-500">
+                {filters.noResultsPr}
+              </p>
+            )}
+            {items.map((row) => (
+              <article key={row.id} className="card space-y-2">
+                <Link
+                  href={`/purchase-requests/${row.id}`}
+                  className="text-base font-semibold text-brand-600 hover:underline"
+                >
+                  {row.portalPRNumber}
+                </Link>
+                <div className="flex flex-wrap items-center gap-2">
+                  <AnimatedStatusBadge status={row.status} />
+                  <span className="text-sm text-slate-500">{row.department}</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  SAP: {row.sapPRDocNum || '—'} ·{' '}
+                  {row.createdAt ? new Date(row.createdAt).toLocaleDateString('ar-IQ') : '—'}
+                </p>
+                <button
+                  type="button"
+                  className="min-h-10 text-sm font-medium text-brand-600"
+                  onClick={() => setHistoryRow(row)}
+                >
+                  {common.history}
+                </button>
+              </article>
+            ))}
+          </div>
+          <AnimatedTableContainer className="hidden md:block">
+            <table className="data-table min-w-full text-sm">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">
+                  <th className="sticky start-0 z-10 bg-slate-50">
                     <button type="button" onClick={() => toggleSort('portalPRNumber')}>
-                      PR Number
+                      {prI18n.portalNumber}
                     </button>
                   </th>
-                  <th className="px-4 py-3">Department</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">SAP Doc</th>
-                  <th className="px-4 py-3">
+                  <th>{common.department}</th>
+                  <th>{common.status}</th>
+                  <th>{prI18n.sapDocNum}</th>
+                  <th>
                     <button type="button" onClick={() => toggleSort('createdAt')}>
-                      Created
+                      {common.createdAt}
                     </button>
                   </th>
-                  <th className="px-4 py-3">Actions</th>
+                  <th>{common.actions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {items.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                      No purchase requests found
+                      {filters.noResultsPr}
                     </td>
                   </tr>
                 )}
-                {items.map((pr) => (
-                  <tr key={pr.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3">
+                {items.map((row) => (
+                  <tr key={row.id}>
+                    <td className="sticky start-0 z-10 bg-white">
                       <Link
-                        href={`/purchase-requests/${pr.id}`}
+                        href={`/purchase-requests/${row.id}`}
                         className="font-medium text-brand-600 hover:underline"
                       >
-                        {pr.portalPRNumber}
+                        {row.portalPRNumber}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">{pr.department}</td>
-                    <td className="px-4 py-3">
-                      <AnimatedStatusBadge status={pr.status} />
+                    <td>{row.department}</td>
+                    <td>
+                      <AnimatedStatusBadge status={row.status} />
                     </td>
-                    <td className="px-4 py-3">{pr.sapPRDocNum || '—'}</td>
-                    <td className="px-4 py-3 text-slate-500">
-                      {pr.createdAt ? new Date(pr.createdAt).toLocaleDateString() : '—'}
+                    <td className="font-mono text-xs">{row.sapPRDocNum || '—'}</td>
+                    <td className="text-slate-500">
+                      {row.createdAt ? new Date(row.createdAt).toLocaleDateString('ar-IQ') : '—'}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <button
                         type="button"
-                        className="text-sm font-medium text-brand-600 hover:underline"
-                        onClick={() => setHistoryRow(pr)}
+                        className="min-h-10 text-sm font-medium text-brand-600 hover:underline"
+                        onClick={() => setHistoryRow(row)}
                       >
-                        History
+                        {common.history}
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </AnimatedTableContainer>
           <ListPagination pagination={pagination} page={page} onPageChange={(p) => pushParams({ page: p })} />
         </>
       )}
