@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
+import { navigateWithQuery } from '@/lib/listUrl';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
 import ListPagination from '@/components/lists/ListPagination';
@@ -97,7 +98,7 @@ export default function PoListManager() {
   }, [load]);
 
   function pushParams(overrides = {}) {
-    router.push(`/purchase-orders?${buildQueryParams(overrides)}`);
+    navigateWithQuery(router, '/purchase-orders', buildQueryParams(overrides));
   }
 
   function exportExcel() {
@@ -131,9 +132,19 @@ export default function PoListManager() {
             </button>
           ))}
         </div>
-        <button type="button" onClick={exportExcel} className="btn-secondary">
-          Export Excel
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {hasAnyPermission(['apinvoice.create', 'view.all']) && (
+            <Link
+              href="/purchase-orders/ready-for-ap-reserve-invoice"
+              className="btn-secondary"
+            >
+              POs ready for APRI
+            </Link>
+          )}
+          <button type="button" onClick={exportExcel} className="btn-secondary">
+            Export Excel
+          </button>
+        </div>
       </div>
 
       <form
@@ -179,7 +190,7 @@ export default function PoListManager() {
             className="text-sm text-slate-600"
             onClick={() => {
               setFilters({ ...EMPTY_FILTERS });
-              router.push(`/purchase-orders?tab=${tab}`);
+              navigateWithQuery(router, '/purchase-orders', new URLSearchParams({ tab }));
             }}
           >
             Reset

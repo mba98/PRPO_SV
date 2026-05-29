@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/stores/authStore';
+import { useEffectivePermissions } from '@/lib/hooks/useEffectivePermissions';
 import { canAccessSettingsPath } from '@/lib/settingsRoutePermissions';
 import { AnimatedSkeletonLoader } from '@/components/ui';
 
@@ -11,7 +12,7 @@ export default function SettingsPageGuard({ children }) {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const loading = useAuthStore((s) => s.loading);
-  const permissions = useAuthStore((s) => s.getEffectivePermissions());
+  const permissions = useEffectivePermissions();
 
   const allowed = user ? canAccessSettingsPath(permissions, pathname) : false;
 

@@ -11,7 +11,10 @@ export default function AuthProvider({ initialUser, children }) {
 
   useEffect(() => {
     if (initialUser) {
-      setUser(initialUser);
+      const current = useAuthStore.getState().user;
+      if (current?.id !== initialUser.id) {
+        setUser(initialUser);
+      }
     } else if (!useAuthStore.getState().user) {
       fetchMe();
     }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getVisibleNavItems, getVisibleSettingsNav } from '@/lib/navigation';
+import { PORTAL_ROUTE_PATHS, SIDEBAR_ENTRY_PATHS } from '@/lib/appRoutes';
 
 describe('navigation permissions', () => {
   const adminPerms = ['admin.settings', 'view.all', 'pr.create'];
@@ -64,5 +65,40 @@ describe('navigation permissions', () => {
     expect(getVisibleSettingsNav(['admin.settings']).some((s) => s.href === '/settings/users')).toBe(
       false,
     );
+  });
+
+  it('shows PRs Ready for PO for po.create or view.all', () => {
+    expect(
+      getVisibleNavItems(['po.create']).some((n) => n.href === '/purchase-requests/approved-for-po'),
+    ).toBe(true);
+    expect(
+      getVisibleNavItems(['view.all']).some((n) => n.href === '/purchase-requests/approved-for-po'),
+    ).toBe(true);
+    expect(
+      getVisibleNavItems(['pr.create']).some((n) => n.href === '/purchase-requests/approved-for-po'),
+    ).toBe(false);
+  });
+
+  it('finance user sees PO nav with po.approve.finance', () => {
+    const nav = getVisibleNavItems(['po.approve.finance']);
+    expect(nav.some((n) => n.href === '/purchase-orders')).toBe(true);
+  });
+
+  it('procurement sees approved-for-po with po.create', () => {
+    const nav = getVisibleNavItems(['po.create']);
+    expect(nav.some((n) => n.href === '/purchase-requests/approved-for-po')).toBe(true);
+    expect(nav.some((n) => n.href === '/purchase-orders')).toBe(true);
+  });
+
+  it('sidebar entries cover all list and settings routes', () => {
+    const listAndSettings = PORTAL_ROUTE_PATHS.filter(
+      (p) =>
+        !p.includes('/create') &&
+        !p.includes('/[id]') &&
+        p !== '/dashboard',
+    );
+    for (const route of listAndSettings) {
+      expect(SIDEBAR_ENTRY_PATHS).toContain(route);
+    }
   });
 });

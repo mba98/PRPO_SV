@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
+import { navigateWithQuery } from '@/lib/listUrl';
+import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
 import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
@@ -24,6 +26,7 @@ const EMPTY_FILTERS = {
 export default function ApriListManager() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
   const sort = searchParams.get('sort') || 'createdAt';
   const order = searchParams.get('order') || 'desc';
@@ -79,7 +82,7 @@ export default function ApriListManager() {
   }, [load]);
 
   function pushParams(overrides = {}) {
-    router.push(`/ap-reserve-invoices?${buildQueryParams(overrides)}`);
+    navigateWithQuery(router, '/ap-reserve-invoices', buildQueryParams(overrides));
   }
 
   function exportExcel() {
@@ -90,7 +93,12 @@ export default function ApriListManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        {hasAnyPermission(['apinvoice.create', 'view.all']) && (
+          <Link href="/purchase-orders/ready-for-ap-reserve-invoice" className="btn-secondary">
+            POs ready for APRI
+          </Link>
+        )}
         <button type="button" onClick={exportExcel} className="btn-secondary">
           Export Excel
         </button>
@@ -152,7 +160,7 @@ export default function ApriListManager() {
             className="text-sm text-slate-600"
             onClick={() => {
               setFilters({ ...EMPTY_FILTERS });
-              router.push('/ap-reserve-invoices');
+              navigateWithQuery(router, '/ap-reserve-invoices', new URLSearchParams());
             }}
           >
             Reset

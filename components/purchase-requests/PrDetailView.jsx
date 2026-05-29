@@ -49,6 +49,11 @@ export default function PrDetailView({ id }) {
   const canApprove = pr.canApproveCurrentStep === true;
   const canRetrySap = pr.canRetrySap === true;
   const showRetryDeniedNote = pr.status === 'Failed to Create in SAP' && !canRetrySap;
+  const currentWorkflowStep = pr.workflowSteps?.find((s) => s.state === 'current');
+  const waitingForApproval =
+    !canApprove &&
+    ['Pending Warehouse Approval', 'Pending Project Manager Approval'].includes(pr.status) &&
+    currentWorkflowStep?.stepName;
 
   const tabs = ['details', 'attachments', 'comments', 'history'];
 
@@ -80,6 +85,11 @@ export default function PrDetailView({ id }) {
             <Link href={`/purchase-requests/${id}/approve`} className="btn-primary">
               Approve / Reject
             </Link>
+          )}
+          {waitingForApproval && (
+            <span className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Waiting for {currentWorkflowStep.stepName}
+            </span>
           )}
           {canRetrySap && (
             <button type="button" className="btn-secondary" onClick={retrySap}>

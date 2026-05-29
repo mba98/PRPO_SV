@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
+import { navigateWithQuery } from '@/lib/listUrl';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
 import { PR_STATUSES } from '@/lib/prPermissions';
@@ -97,7 +98,7 @@ export default function PrListManager() {
   }, [load]);
 
   function pushParams(overrides = {}) {
-    router.push(`/purchase-requests?${buildQueryParams(overrides)}`);
+    navigateWithQuery(router, '/purchase-requests', buildQueryParams(overrides));
   }
 
   function setTab(next) {
@@ -111,7 +112,7 @@ export default function PrListManager() {
 
   function resetFilters() {
     setFilters({ ...EMPTY_FILTERS });
-    router.push(`/purchase-requests?tab=${tab}`);
+    navigateWithQuery(router, '/purchase-requests', new URLSearchParams({ tab }));
   }
 
   function toggleSort(field) {
@@ -160,6 +161,11 @@ export default function PrListManager() {
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
+          {hasAnyPermission(['po.create', 'view.all']) && (
+            <Link href="/purchase-requests/approved-for-po" className="btn-secondary">
+              PRs ready for PO
+            </Link>
+          )}
           <button type="button" onClick={exportExcel} className="btn-secondary">
             Export Excel
           </button>
