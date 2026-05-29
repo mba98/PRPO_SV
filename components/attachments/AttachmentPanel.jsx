@@ -9,7 +9,7 @@ import {
   AnimatedSkeletonLoader,
 } from '@/components/ui';
 import { ALLOWED_MIME_TYPES_CLIENT, MAX_FILE_SIZE_BYTES } from '@/lib/attachmentClientConstants';
-import { common } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
 
 function formatBytes(bytes) {
   if (bytes == null) return '—';
@@ -33,6 +33,7 @@ export default function AttachmentPanel({
   emptyTitle = 'No files attached',
   emptyDescription = 'Upload PDFs, images, or Office files (up to 25 MB).',
 }) {
+  const { common } = useI18n();
   const shouldReduceMotion = useReducedMotion();
   const inputRef = useRef(null);
   const [items, setItems] = useState([]);
@@ -121,9 +122,9 @@ export default function AttachmentPanel({
     <section className="card space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">{common.attachments}</h2>
-          <p className="text-xs text-slate-500">
-            {items.length} file{items.length === 1 ? '' : 's'} · max 25 MB each
+          <h2 className="text-lg font-bold text-foreground">{common.attachments}</h2>
+          <p className="text-xs text-muted-foreground">
+            {items.length} · {common.attachmentsHint}
           </p>
         </div>
         {canUpload && (

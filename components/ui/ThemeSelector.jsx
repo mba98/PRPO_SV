@@ -2,29 +2,29 @@
 
 import { ACCENT_THEMES } from '@/lib/theme/themes';
 import { useThemeStore } from '@/stores/themeStore';
-import { common } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
+import Select from './Select';
 
 export default function ThemeSelector({ compact = false }) {
   const accent = useThemeStore((s) => s.accent);
   const setAccent = useThemeStore((s) => s.setAccent);
+  const { common, locale } = useI18n();
 
   return (
     <label className={compact ? 'inline-flex items-center gap-2' : 'block'}>
-      {!compact && (
-        <span className="mb-1 block text-xs font-medium text-slate-600">{common.themeColor}</span>
-      )}
-      <select
+      {!compact && <span className="form-label">{common.themeColor}</span>}
+      <Select
         value={accent}
         onChange={(e) => setAccent(e.target.value)}
-        className="min-h-10 rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         aria-label={common.themeColor}
+        className={compact ? 'min-w-[7rem]' : ''}
       >
         {ACCENT_THEMES.map((t) => (
           <option key={t.id} value={t.id}>
-            {t.labelAr}
+            {locale === 'en' ? t.labelEn : t.labelAr}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

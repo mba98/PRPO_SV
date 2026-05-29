@@ -1,13 +1,12 @@
 import { Suspense } from 'react';
-import PageHeader from '@/components/layout/PageHeader';
+import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import SystemLogsManager from '@/components/settings/SystemLogsManager';
 import { AnimatedSkeletonLoader } from '@/components/ui';
-import { settings } from '@/lib/i18n';
 
 export default function SystemLogsPage() {
   return (
     <div>
-      <PageHeader title={settings.logsTitle} description={settings.logsDesc} />
+      <SectionPageHeader section="settings" titleKey="logsTitle" descriptionKey="logsDesc" />
       <Suspense fallback={<AnimatedSkeletonLoader rows={6} />}>
         <SystemLogsManager />
       </Suspense>

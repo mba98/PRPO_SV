@@ -7,7 +7,6 @@ import { apiFetch } from '@/lib/apiClient';
 import { navigateWithQuery } from '@/lib/listUrl';
 import { useAuthStore } from '@/stores/authStore';
 import {
-  AnimatedFilterPanel,
   AnimatedSkeletonLoader,
   AnimatedStatusBadge,
   AnimatedTableContainer,
@@ -16,7 +15,9 @@ import {
 import { PR_STATUSES } from '@/lib/prPermissions';
 import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
-import { common, filters, pr as prI18n, statusLabel } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
+import { formatDate } from '@/lib/formatDate';
+import { FilterBar, Button } from '@/components/ui';
 
 const TABS = [
   { id: 'my', label: prI18n.myPrs },
@@ -41,6 +42,7 @@ const EMPTY_FILTERS = {
 };
 
 export default function PrListManager() {
+  const { common, filters: filterLabels, pr: prI18n, statusLabel, locale } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -171,21 +173,21 @@ export default function PrListManager() {
         </div>
       </div>
 
-      <AnimatedFilterPanel>
+      <FilterBar>
       <form onSubmit={applyFilters} className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm sm:col-span-2">
             <span className="text-slate-600">{common.search}</span>
             <input
               className="input-field mt-1"
-              placeholder={filters.searchPr}
+              placeholder={filterLabels.searchPr}
               value={filters.q}
               onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
             />
           </label>
           {[
-            ['portalPRNumber', filters.portalPr],
-            ['sapPRDocNum', filters.sapPrDoc],
+            ['portalPRNumber', filterLabels.portalPr],
+            ['sapPRDocNum', filterLabels.sapPrDoc],
             ['department', common.department],
             ['project', common.project],
             ['warehouse', common.warehouse],
@@ -209,7 +211,7 @@ export default function PrListManager() {
               value={filters.status}
               onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
             >
-              <option value="">{filters.allStatuses}</option>
+              <option value="">{filterLabels.allStatuses}</option>
               {PR_STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {statusLabel(s)}
@@ -227,7 +229,7 @@ export default function PrListManager() {
           </button>
         </div>
       </form>
-      </AnimatedFilterPanel>
+      </FilterBar>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -238,7 +240,7 @@ export default function PrListManager() {
           <div className="space-y-3 md:hidden">
             {items.length === 0 && (
               <p className="rounded-lg border border-slate-200 bg-white px-4 py-8 text-center text-slate-500">
-                {filters.noResultsPr}
+                {filterLabels.noResultsPr}
               </p>
             )}
             {items.map((row) => (
@@ -255,7 +257,7 @@ export default function PrListManager() {
                 </div>
                 <p className="text-xs text-slate-500">
                   SAP: {row.sapPRDocNum || '—'} ·{' '}
-                  {row.createdAt ? new Date(row.createdAt).toLocaleDateString('ar-IQ') : '—'}
+                  {formatDate(row.createdAt, locale)}
                 </p>
                 <button
                   type="button"
@@ -291,7 +293,7 @@ export default function PrListManager() {
                 {items.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                      {filters.noResultsPr}
+                      {filterLabels.noResultsPr}
                     </td>
                   </tr>
                 )}
@@ -311,7 +313,7 @@ export default function PrListManager() {
                     </td>
                     <td className="font-mono text-xs">{row.sapPRDocNum || '—'}</td>
                     <td className="text-slate-500">
-                      {row.createdAt ? new Date(row.createdAt).toLocaleDateString('ar-IQ') : '—'}
+                      {formatDate(row.createdAt, locale)}
                     </td>
                     <td>
                       <button

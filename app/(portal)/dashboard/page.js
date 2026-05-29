@@ -1,13 +1,12 @@
 import { Suspense } from 'react';
-import PageHeader from '@/components/layout/PageHeader';
+import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import DashboardView from '@/components/dashboard/DashboardView';
 import { AnimatedSkeletonLoader } from '@/components/ui';
-import { dashboard } from '@/lib/i18n';
 
 export default function DashboardPage() {
   return (
     <div>
-      <PageHeader title={dashboard.title} description={dashboard.description} />
+      <SectionPageHeader section="dashboard" />
       <Suspense fallback={<AnimatedSkeletonLoader rows={8} />}>
         <DashboardView />
       </Suspense>

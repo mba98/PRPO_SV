@@ -6,13 +6,13 @@ import { useMotionSafe } from './useMotionSafe';
 export default function AnimatedTabs({ tabs, activeId, onChange, className = '' }) {
   const motionProps = useMotionSafe({
     layoutId: 'tab-indicator',
-    className: 'absolute inset-0 rounded-lg bg-white shadow-sm',
+    className: 'absolute inset-0 rounded-xl bg-card shadow-md',
     transition: { type: 'spring', stiffness: 400, damping: 30 },
   });
 
   return (
     <div
-      className={`flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-slate-50/80 p-1 ${className}`}
+      className={`flex flex-wrap gap-1 rounded-2xl border border-border bg-muted p-1 ${className}`}
       role="tablist"
     >
       {tabs.map((tab) => {

@@ -1,33 +1,35 @@
 'use client';
 
-import { common } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
+import Button from '@/components/ui/Button';
 
 export default function ListPagination({ pagination, page, onPageChange }) {
+  const { common } = useI18n();
   if (!pagination || pagination.totalPages <= 1) return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
+    <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
       <p>
         {common.pageOf} {pagination.page} / {pagination.totalPages} ({pagination.total}{' '}
         {common.total})
       </p>
       <div className="flex gap-2">
-        <button
+        <Button
           type="button"
+          variant="secondary"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          className="rounded-md border border-slate-300 px-3 py-1.5 disabled:opacity-40"
         >
           {common.previous}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="secondary"
           disabled={page >= pagination.totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="rounded-md border border-slate-300 px-3 py-1.5 disabled:opacity-40"
         >
           {common.next}
-        </button>
+        </Button>
       </div>
     </div>
   );

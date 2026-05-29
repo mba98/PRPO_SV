@@ -1,11 +1,10 @@
-import PageHeader from '@/components/layout/PageHeader';
+import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import EmailGroupsManager from '@/components/settings/EmailGroupsManager';
-import { settings } from '@/lib/i18n';
 
 export default function EmailGroupsPage() {
   return (
     <div>
-      <PageHeader title={settings.emailTitle} description={settings.emailDesc} />
+      <SectionPageHeader section="settings" titleKey="emailTitle" descriptionKey="emailDesc" />
       <EmailGroupsManager />
     </div>
   );

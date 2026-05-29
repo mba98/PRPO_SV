@@ -6,10 +6,11 @@ import Link from 'next/link';
 import { useAuthStore } from '@/stores/authStore';
 import { useEffectivePermissions } from '@/lib/hooks/useEffectivePermissions';
 import { canAccessSettingsPath } from '@/lib/settingsRoutePermissions';
-import { common } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
 import { AnimatedSkeletonLoader } from '@/components/ui';
 
 export default function SettingsPageGuard({ children }) {
+  const { common } = useI18n();
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const loading = useAuthStore((s) => s.loading);
@@ -30,15 +31,15 @@ export default function SettingsPageGuard({ children }) {
   if (!allowed) {
     return (
       <div
-        className="rounded-lg border border-rose-200 bg-rose-50 p-6"
+        className="card border-destructive/30 bg-destructive/10"
         role="alert"
         data-testid="settings-access-denied"
       >
-        <h2 className="text-lg font-semibold text-rose-900">{common.accessDenied}</h2>
-        <p className="mt-2 text-sm text-rose-800">{common.accessDeniedSettings}</p>
+        <h2 className="text-lg font-bold text-destructive">{common.accessDenied}</h2>
+        <p className="mt-2 text-sm text-destructive/90">{common.accessDeniedSettings}</p>
         <Link
           href="/dashboard"
-          className="mt-4 inline-block text-sm font-medium text-brand-600 hover:text-brand-700"
+          className="mt-4 inline-block text-sm font-semibold text-primary hover:underline"
         >
           {common.returnDashboard}
         </Link>

@@ -6,10 +6,10 @@ import { getVisibleNavItems } from '@/lib/navigation';
 import { nav, statusLabel, login } from '@/lib/i18n';
 
 describe('Phase 12 — Arabic RTL and theme UI', () => {
-  it('root layout sets lang=ar and dir=rtl', () => {
+  it('root layout bootstraps locale and uses AppProviders', () => {
     const layout = fs.readFileSync(path.resolve(process.cwd(), 'app/layout.js'), 'utf8');
-    expect(layout).toMatch(/lang=["']ar["']/);
-    expect(layout).toMatch(/dir=["']rtl["']/);
+    expect(layout).toContain('procurement-locale');
+    expect(layout).toContain('AppProviders');
   });
 
   it('navigation exposes Arabic dashboard label', () => {
@@ -38,10 +38,10 @@ describe('Phase 12 — Arabic RTL and theme UI', () => {
     expect(statusLabel('Pending Finance Approval')).toContain('المالية');
   });
 
-  it('login form uses Arabic labels', () => {
+  it('login form uses bilingual i18n hook', () => {
     const src = fs.readFileSync(path.resolve(process.cwd(), 'app/login/LoginForm.jsx'), 'utf8');
-    expect(src).toContain('loginAr');
-    expect(src).toContain('from \'@/lib/i18n\'');
+    expect(src).toContain('useI18n');
+    expect(src).toContain('LanguageSelector');
     expect(login.username).toBe('اسم المستخدم');
   });
 
@@ -82,15 +82,17 @@ describe('Phase 12 — Arabic RTL and theme UI', () => {
       path.resolve(process.cwd(), 'app/(portal)/settings/users/page.js'),
       'utf8',
     );
-    expect(users).toContain('settings.usersTitle');
+    expect(users).toContain('SectionPageHeader');
+    expect(users).toContain('usersTitle');
   });
 
-  it('theme provider initializes without selector loops', () => {
+  it('app providers initialize theme and locale', () => {
     const src = fs.readFileSync(
-      path.resolve(process.cwd(), 'components/providers/ThemeProvider.jsx'),
+      path.resolve(process.cwd(), 'components/providers/AppProviders.jsx'),
       'utf8',
     );
     expect(src).toContain('initTheme');
+    expect(src).toContain('initLocale');
     expect(src).not.toContain('getEffectivePermissions');
   });
 });

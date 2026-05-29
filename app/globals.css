@@ -10,33 +10,40 @@
     --brand-600: #4f46e5;
     --brand-700: #4338ca;
     --brand-900: #312e81;
+
+    --background: #0b1220;
+    --foreground: #f1f5f9;
+    --card: #111827;
+    --card-foreground: #f1f5f9;
+    --muted: #1f2937;
+    --muted-foreground: #94a3b8;
+    --primary: var(--brand-600);
+    --primary-foreground: #ffffff;
+    --destructive: #e11d48;
+    --destructive-foreground: #ffffff;
+    --border: #1e293b;
   }
 
   html {
     @apply h-full;
   }
 
-  html[dir='rtl'] body {
-    text-align: right;
-  }
-
   body {
-    @apply min-h-full bg-slate-50 text-slate-900 antialiased;
+    @apply min-h-full bg-background text-foreground antialiased;
   }
 
   input,
   select,
   textarea,
   button {
-    @apply text-slate-900;
+    @apply text-foreground;
   }
 
   input::placeholder,
   textarea::placeholder {
-    @apply text-slate-400;
+    @apply text-muted-foreground;
   }
 
-  /* LTR mono fields for codes */
   .font-mono-ltr {
     direction: ltr;
     text-align: left;
@@ -46,27 +53,35 @@
 
 @layer components {
   .input-field {
-    @apply min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm shadow-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
+    @apply min-h-10 w-full rounded-xl border border-border bg-card py-2.5 px-4 text-sm shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
 
   .btn-primary {
-    @apply inline-flex min-h-10 items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-10 items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100;
   }
 
   .btn-secondary {
-    @apply inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:opacity-50;
+    @apply inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:opacity-50;
+  }
+
+  .btn-danger {
+    @apply inline-flex min-h-10 items-center justify-center rounded-2xl bg-destructive px-4 py-2.5 text-sm font-bold text-destructive-foreground shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-foreground transition-colors hover:bg-muted;
   }
 
   .card {
-    @apply rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6;
+    @apply rounded-3xl border border-border bg-card p-5 shadow-xl sm:p-6;
   }
 
   .card-elevated {
-    @apply rounded-xl border border-slate-200/80 bg-white p-5 shadow-md sm:p-6;
+    @apply rounded-3xl border border-border bg-card p-5 shadow-2xl sm:p-6;
   }
 
   .page-shell {
-    @apply mx-auto w-full max-w-[1400px];
+    @apply mx-auto w-full max-w-[1600px];
   }
 
   .table-scroll {
@@ -78,7 +93,7 @@
   }
 
   .data-table thead {
-    @apply bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500;
+    @apply bg-muted text-[10px] font-bold uppercase tracking-widest text-muted-foreground;
   }
 
   .data-table th,
@@ -87,18 +102,22 @@
   }
 
   .data-table tbody tr {
-    @apply border-t border-slate-100 transition-colors hover:bg-slate-50/80;
+    @apply border-t border-border transition-colors hover:bg-muted;
+  }
+
+  .form-label {
+    @apply mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground;
   }
 
   .tab-chip {
-    @apply min-h-10 rounded-lg px-3 py-2 text-sm font-medium transition-colors;
+    @apply min-h-10 rounded-xl px-3 py-2 text-sm font-semibold transition-colors;
   }
 
   .tab-chip-active {
-    @apply bg-white text-brand-700 shadow-sm;
+    @apply bg-card text-primary shadow-md;
   }
 
   .tab-chip-inactive {
-    @apply text-slate-600 hover:bg-white/60 hover:text-slate-900;
+    @apply text-muted-foreground hover:bg-muted hover:text-foreground;
   }
 }

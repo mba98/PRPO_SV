@@ -1,13 +1,16 @@
 import { Suspense } from 'react';
-import PageHeader from '@/components/layout/PageHeader';
+import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import ApprovedForPoManager from '@/components/purchase-requests/ApprovedForPoManager';
 import { AnimatedSkeletonLoader } from '@/components/ui';
-import { pr } from '@/lib/i18n';
 
 export default function ApprovedForPoPage() {
   return (
     <div>
-      <PageHeader title={pr.approvedForPoTitle} description={pr.approvedForPoDesc} />
+      <SectionPageHeader
+        section="pr"
+        titleKey="approvedForPoTitle"
+        descriptionKey="approvedForPoDesc"
+      />
       <Suspense fallback={<AnimatedSkeletonLoader rows={6} />}>
         <ApprovedForPoManager />
       </Suspense>

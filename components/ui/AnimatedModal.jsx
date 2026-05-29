@@ -32,7 +32,7 @@ export default function AnimatedModal({ isOpen, onClose, title, children, size =
           <motion.button
             type="button"
             aria-label="Close modal"
-            className="absolute inset-0 bg-slate-900"
+            className="absolute inset-0 bg-background/70 backdrop-blur-md"
             onClick={onClose}
             {...backdropProps}
           />
@@ -40,17 +40,17 @@ export default function AnimatedModal({ isOpen, onClose, title, children, size =
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
-            className={`relative z-10 w-full rounded-t-xl bg-white p-6 shadow-xl sm:rounded-lg ${SIZE_CLASSES[size]} sm:max-h-[90vh] sm:overflow-y-auto`}
+            className={`relative z-10 w-full rounded-t-3xl border border-border bg-card p-6 shadow-2xl shadow-black/20 sm:rounded-3xl ${SIZE_CLASSES[size]} sm:max-h-[90vh] sm:overflow-y-auto`}
             {...panelProps}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 id="modal-title" className="text-lg font-semibold text-slate-900">
+              <h2 id="modal-title" className="text-lg font-bold text-foreground">
                 {title}
               </h2>
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100"
+                className="btn-ghost"
               >
                 ✕
               </button>

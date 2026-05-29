@@ -9,17 +9,18 @@ import {
   AnimatedSkeletonLoader,
   AnimatedStatusBadge,
 } from '@/components/ui';
-import { common, dashboard as dashI18n, pr, po, apri } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
+import { formatDate } from '@/lib/formatDate';
 
 function RecentTable({ title, rows, columns, emptyMessage }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-4 py-3">
-        <h3 className="font-semibold text-slate-900">{title}</h3>
+    <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl shadow-black/5">
+      <div className="border-b border-border px-4 py-3">
+        <h3 className="font-bold text-foreground">{title}</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-slate-50 text-right text-xs font-semibold uppercase text-slate-500">
+          <thead className="bg-muted/50 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             <tr>
               {columns.map((col) => (
                 <th key={col.key} className="px-4 py-2">
@@ -31,13 +32,13 @@ function RecentTable({ title, rows, columns, emptyMessage }) {
           <tbody className="divide-y divide-slate-100">
             {!rows?.length && (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-6 text-center text-slate-500">
+                <td colSpan={columns.length} className="px-4 py-6 text-center text-muted-foreground">
                   {emptyMessage}
                 </td>
               </tr>
             )}
             {rows?.map((row) => (
-              <tr key={row.id} className="hover:bg-slate-50">
+              <tr key={row.id} className="border-t border-border hover:bg-muted/30">
                 {columns.map((col) => (
                   <td key={col.key} className="px-4 py-2">
                     {col.render ? col.render(row) : row[col.key]}
@@ -53,6 +54,7 @@ function RecentTable({ title, rows, columns, emptyMessage }) {
 }
 
 export default function DashboardView() {
+  const { common, dashboard: dashI18n, pr, po, apri, locale } = useI18n();
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const canViewLogs = hasAnyPermission(['view.all', 'admin.settings']);
   const canViewPr = hasAnyPermission(['pr.create', 'pr.approve.whs', 'pr.approve.pm', 'view.all']);
@@ -80,7 +82,7 @@ export default function DashboardView() {
     else setError(summaryRes.json.message || common.errorLoad);
     if (recentRes.json.success) setRecent(recentRes.json.data);
     setLoading(false);
-  }, []);
+  }, [common.errorLoad]);
 
   useEffect(() => {
     load();
@@ -155,7 +157,7 @@ export default function DashboardView() {
       )}
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">{dashI18n.title}</h2>
+        <h2 className="mb-4 text-lg font-bold text-foreground">{dashI18n.title}</h2>
         {loading ? (
           <AnimatedSkeletonLoader rows={3} />
         ) : (
@@ -198,7 +200,7 @@ export default function DashboardView() {
                   key: 'created',
                   label: common.createdAt,
                   render: (r) =>
-                    r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—',
+                    formatDate(r.createdAt, locale),
                 },
               ]}
             />

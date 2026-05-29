@@ -1,11 +1,10 @@
-import PageHeader from '@/components/layout/PageHeader';
+import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import HealthCheckGate from '@/components/settings/HealthCheckGate';
-import { settings } from '@/lib/i18n';
 
 export default function SapIntegrationPage() {
   return (
     <div>
-      <PageHeader title={settings.sapTitle} description={settings.sapDesc} />
+      <SectionPageHeader section="settings" titleKey="sapTitle" descriptionKey="sapDesc" />
       <HealthCheckGate />
     </div>
   );

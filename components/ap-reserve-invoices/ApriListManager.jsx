@@ -6,7 +6,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { navigateWithQuery } from '@/lib/listUrl';
 import { useAuthStore } from '@/stores/authStore';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import {
+  AnimatedSkeletonLoader,
+  AnimatedStatusBadge,
+  AnimatedTableContainer,
+  FilterBar,
+  Button,
+} from '@/components/ui';
+import { useI18n } from '@/lib/hooks/useI18n';
 import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
 
@@ -24,6 +31,7 @@ const EMPTY_FILTERS = {
 };
 
 export default function ApriListManager() {
+  const { common, filters: filterLabels, apri: apriI18n, po: poI18n, statusLabel } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
@@ -72,7 +80,7 @@ export default function ApriListManager() {
       setItems(json.data);
       setPagination(json.pagination);
     } else {
-      setError(json.message || 'Failed to load');
+      setError(json.message || common.errorLoad);
     }
     setLoading(false);
   }, [buildQueryParams]);
@@ -95,24 +103,25 @@ export default function ApriListManager() {
     <div className="space-y-6">
       <div className="flex flex-wrap justify-end gap-2">
         {hasAnyPermission(['apinvoice.create', 'view.all']) && (
-          <Link href="/purchase-orders/ready-for-ap-reserve-invoice" className="btn-secondary">
-            POs ready for APRI
+          <Link href="/purchase-orders/ready-for-ap-reserve-invoice" className="btn-secondary min-h-10">
+            {poI18n.posReadyForApri}
           </Link>
         )}
-        <button type="button" onClick={exportExcel} className="btn-secondary">
-          Export Excel
-        </button>
+        <Button type="button" variant="secondary" onClick={exportExcel}>
+          {common.exportExcel}
+        </Button>
       </div>
 
+      <FilterBar>
       <form
-        className="card grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
         onSubmit={(e) => {
           e.preventDefault();
           pushParams({ page: 1 });
         }}
       >
         <label className="text-sm sm:col-span-2">
-          <span className="text-slate-600">Search</span>
+          <span className="form-label">{common.search}</span>
           <input
             className="input-field mt-1"
             value={filters.q}
@@ -120,12 +129,12 @@ export default function ApriListManager() {
           />
         </label>
         {[
-          ['portalAPNumber', 'AP Number'],
-          ['relatedPONumber', 'PO Number'],
+          ['portalAPNumber', filterLabels.portalApri],
+          ['relatedPONumber', apriI18n.relatedPo],
           ['sapAPDocNum', 'SAP AP #'],
-          ['vendor', 'Vendor'],
-          ['from', 'From'],
-          ['to', 'To'],
+          ['vendor', common.vendor],
+          ['from', common.fromDate],
+          ['to', common.toDate],
         ].map(([key, label]) => (
           <label key={key} className="text-sm">
             <span className="text-slate-600">{label}</span>
@@ -138,7 +147,7 @@ export default function ApriListManager() {
           </label>
         ))}
         <label className="text-sm">
-          <span className="text-slate-600">Status</span>
+          <span className="form-label">{common.status}</span>
           <select
             className="input-field mt-1"
             value={filters.status}
@@ -146,80 +155,81 @@ export default function ApriListManager() {
           >
             {STATUS_OPTIONS.map((s) => (
               <option key={s || 'all'} value={s}>
-                {s || 'All'}
+                {s ? statusLabel(s) : filterLabels.allStatuses}
               </option>
             ))}
           </select>
         </label>
         <div className="flex items-end gap-2">
-          <button type="submit" className="btn-secondary">
-            Apply
-          </button>
-          <button
+          <Button type="submit" variant="secondary">
+            {common.applyFilters}
+          </Button>
+          <Button
             type="button"
-            className="text-sm text-slate-600"
+            variant="ghost"
             onClick={() => {
               setFilters({ ...EMPTY_FILTERS });
               navigateWithQuery(router, '/ap-reserve-invoices', new URLSearchParams());
             }}
           >
-            Reset
-          </button>
+            {common.reset}
+          </Button>
         </div>
       </form>
+      </FilterBar>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {loading ? (
         <AnimatedSkeletonLoader rows={6} />
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+          <AnimatedTableContainer>
+            <table className="data-table min-w-full text-sm">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">AP Number</th>
-                  <th className="px-4 py-3">PO Number</th>
-                  <th className="px-4 py-3">Vendor</th>
-                  <th className="px-4 py-3">SAP AP</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Actions</th>
+                  <th>{apriI18n.portalNumber}</th>
+                  <th>{apriI18n.relatedPo}</th>
+                  <th>{common.vendor}</th>
+                  <th>SAP AP</th>
+                  <th>{common.status}</th>
+                  <th>{common.actions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                      No A/P Reserve Invoices found
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                      {filterLabels.noResultsApri}
                     </td>
                   </tr>
                 )}
                 {items.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3">
-                      <Link href={`/ap-reserve-invoices/${row.id}`} className="font-medium text-brand-600 hover:underline">
+                  <tr key={row.id}>
+                    <td>
+                      <Link href={`/ap-reserve-invoices/${row.id}`} className="font-medium text-primary hover:underline">
                         {row.portalAPNumber}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">{row.relatedPONumber}</td>
-                    <td className="px-4 py-3">{row.vendor}</td>
-                    <td className="px-4 py-3">{row.sapAPDocNum || '—'}</td>
-                    <td className="px-4 py-3">
+                    <td>{row.relatedPONumber}</td>
+                    <td>{row.vendor}</td>
+                    <td className="font-mono-ltr font-mono text-xs">{row.sapAPDocNum || '—'}</td>
+                    <td>
                       <AnimatedStatusBadge status={row.status} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <button
                         type="button"
-                        className="text-sm font-medium text-brand-600 hover:underline"
+                        className="min-h-10 text-sm font-semibold text-primary hover:underline"
                         onClick={() => setHistoryRow(row)}
                       >
-                        History
+                        {common.history}
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </AnimatedTableContainer>
           <ListPagination pagination={pagination} page={page} onPageChange={(p) => pushParams({ page: p })} />
         </>
       )}

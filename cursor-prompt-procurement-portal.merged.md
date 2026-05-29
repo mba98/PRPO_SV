@@ -37,7 +37,7 @@ Ask **one** focused question and wait. Do not generate placeholder code or `TODO
 
 ## Project Status
 
-**All implementation phases from Phase 0 through Phase 12 are complete.**
+**All implementation phases from Phase 0 through Phase 12B are complete.**
 
 ### Completed modules
 - Foundations
@@ -78,6 +78,7 @@ Ask **one** focused question and wait. Do not generate placeholder code or `TODO
 | Phase 10 — Dashboard & Reports | **Completed** |
 | Phase 11 — Admin Settings | **Completed** |
 | Phase 12 — UI/UX Modernization | **Completed** |
+| Phase 12B — HRMS Design System Alignment | **Completed** |
 
 ### Phase 12 notes
 - Arabic RTL supported (`lang="ar"` `dir="rtl"` on root layout).
@@ -86,6 +87,13 @@ Ask **one** focused question and wait. Do not generate placeholder code or `TODO
 - Seven accent color themes (indigo, blue, emerald, amber, rose, violet, slate) via CSS variables and `localStorage`.
 - Centralized Arabic copy in `lib/i18n/ar.js`.
 - Production UI polish completed without changing SAP creation, approval workflow, or duplicate guards.
+
+### Phase 12B notes
+- HRMS-inspired dark enterprise design system (Cairo font, semantic tokens, rounded-3xl cards, pill tabs).
+- Bilingual Arabic + English with `procurement-locale` in localStorage; RTL for Arabic, LTR for English.
+- Shared UI primitives: Button, Card, FormField, Input, DataTable, FilterBar, LanguageSelector.
+- `lib/formatDate.js` for localized display; SAP dates remain `YYYY-MM-DD` via `formatSapDate`.
+- No changes to SAP creation, approval workflow, or duplicate guards.
 
 ---
 

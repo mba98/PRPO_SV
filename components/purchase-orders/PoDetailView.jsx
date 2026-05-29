@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { AnimatedSkeletonLoader, AnimatedStatusBadge, AnimatedTabs } from '@/components/ui';
-import { common, detail, po as poI18n } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
 import WorkflowStepper from '@/components/workflow/WorkflowStepper';
 import PoEditForm from '@/components/purchase-orders/PoEditForm';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
@@ -14,6 +14,7 @@ import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 
 export default function PoDetailView({ id }) {
+  const { common, detail, po: poI18n } = useI18n();
   const searchParams = useSearchParams();
   const attachmentWarning = searchParams.get('attachmentWarning');
   const hasPermission = useAuthStore((s) => s.hasPermission);

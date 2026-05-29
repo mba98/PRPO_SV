@@ -11,6 +11,8 @@ function applyAccentToDocument(accentId) {
   Object.entries(vars).forEach(([key, value]) => {
     root.style.setProperty(key, value);
   });
+  root.style.setProperty('--primary', vars['--brand-600']);
+  root.style.setProperty('--primary-foreground', '#ffffff');
 }
 
 function readStoredAccent() {

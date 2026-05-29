@@ -5,12 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/stores/authStore';
 import { useMotionSafe } from '@/components/ui/useMotionSafe';
-import { login as loginAr, common } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
+import { Button, FormField, Input, LanguageSelector } from '@/components/ui';
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setUser = useAuthStore((s) => s.setUser);
+  const { login, common } = useI18n();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -39,7 +41,7 @@ export default function LoginForm() {
       const json = await res.json();
 
       if (!json.success) {
-        setError(json.message || loginAr.loginFailed);
+        setError(json.message || login.loginFailed);
         return;
       }
 
@@ -48,30 +50,30 @@ export default function LoginForm() {
       router.push(from.startsWith('/') ? from : '/dashboard');
       router.refresh();
     } catch (err) {
-      setError(err.message || loginAr.loginFailed);
+      setError(err.message || login.loginFailed);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-100 to-slate-50 px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <div className="absolute end-4 top-4 sm:end-6 sm:top-6">
+        <LanguageSelector compact />
+      </div>
       <motion.div className="w-full max-w-md" {...cardProps}>
         <div className="card-elevated">
-          <header className="mb-8 border-b border-slate-100 pb-6 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">
-              {loginAr.title}
+          <header className="mb-8 border-b border-border pb-6 text-center">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              {login.title}
             </p>
-            <h1 className="mt-2 text-2xl font-bold text-slate-900">{common.appName}</h1>
-            <p className="mt-2 text-sm text-slate-600">{loginAr.subtitle}</p>
+            <h1 className="mt-2 text-2xl font-bold text-foreground">{common.appName}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{login.subtitle}</p>
           </header>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate={false}>
-            <div>
-              <label htmlFor="username" className="mb-2 block text-sm font-medium text-slate-700">
-                {loginAr.username}
-              </label>
-              <input
+            <FormField label={login.username} htmlFor="username" required>
+              <Input
                 id="username"
                 name="username"
                 type="text"
@@ -79,15 +81,11 @@ export default function LoginForm() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="input-field"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-700">
-                {loginAr.password}
-              </label>
-              <input
+            <FormField label={login.password} htmlFor="password" required>
+              <Input
                 id="password"
                 name="password"
                 type="password"
@@ -95,21 +93,20 @@ export default function LoginForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
               />
-            </div>
+            </FormField>
 
             <div className="min-h-[2.5rem] text-sm" role="alert" aria-live="polite">
               {error ? (
-                <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-rose-800">
+                <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive">
                   {error}
                 </p>
               ) : null}
             </div>
 
-            <button type="submit" disabled={loading} className="btn-primary w-full">
-              {loading ? loginAr.signingIn : loginAr.signIn}
-            </button>
+            <Button type="submit" loading={loading} className="w-full">
+              {loading ? login.signingIn : login.signIn}
+            </Button>
           </form>
         </div>
       </motion.div>

@@ -4,14 +4,34 @@ export default {
     './app/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
     './stores/**/*.{js,jsx}',
+    './lib/**/*.{js,jsx}',
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-arabic)', 'var(--font-inter)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-cairo)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
       colors: {
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+        card: {
+          DEFAULT: 'var(--card)',
+          foreground: 'var(--card-foreground)',
+        },
+        muted: {
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--muted-foreground)',
+        },
+        primary: {
+          DEFAULT: 'var(--primary)',
+          foreground: 'var(--primary-foreground)',
+        },
+        destructive: {
+          DEFAULT: 'var(--destructive)',
+          foreground: 'var(--destructive-foreground)',
+        },
+        border: 'var(--border)',
         brand: {
           50: 'var(--brand-50)',
           100: 'var(--brand-100)',

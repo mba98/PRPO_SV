@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import PageHeader from '@/components/layout/PageHeader';
+import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
-import { common, po } from '@/lib/i18n';
+import { AnimatedSkeletonLoader, AnimatedStatusBadge, AnimatedTableContainer, Button } from '@/components/ui';
+import { useI18n } from '@/lib/hooks/useI18n';
 
 export default function ReadyForApriPage() {
+  const { common, po: poI18n } = useI18n();
   const router = useRouter();
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const canCreate = hasPermission('apinvoice.create');
@@ -23,7 +24,7 @@ export default function ReadyForApriPage() {
     setError('');
     const { json } = await apiFetch('/api/purchase-orders/ready-for-ap-reserve-invoice?limit=100');
     if (json.success) setItems(json.data);
-    else setError(json.message || 'Failed to load');
+    else setError(json.message || common.errorLoad);
     setLoading(false);
   }, []);
 
@@ -51,8 +52,8 @@ export default function ReadyForApriPage() {
 
   return (
     <div>
-      <PageHeader title={po.readyForApriTitle} description={po.readyForApriDesc} />
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+      <SectionPageHeader section="po" titleKey="readyForApriTitle" descriptionKey="readyForApriDesc" />
+      {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
       {loading ? (
         <AnimatedSkeletonLoader rows={5} />
       ) : (

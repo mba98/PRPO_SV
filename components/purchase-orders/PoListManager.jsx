@@ -7,7 +7,6 @@ import { apiFetch } from '@/lib/apiClient';
 import { navigateWithQuery } from '@/lib/listUrl';
 import { useAuthStore } from '@/stores/authStore';
 import {
-  AnimatedFilterPanel,
   AnimatedSkeletonLoader,
   AnimatedStatusBadge,
   AnimatedTableContainer,
@@ -15,7 +14,8 @@ import {
 } from '@/components/ui';
 import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
-import { common, filters, po as poI18n } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
+import { FilterBar, Button } from '@/components/ui';
 
 const TABS = [
   { id: 'pending', label: poI18n.pendingTab },
@@ -40,6 +40,7 @@ const EMPTY_FILTERS = {
 };
 
 export default function PoListManager() {
+  const { common, filters: filterLabels, po: poI18n } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -146,7 +147,7 @@ export default function PoListManager() {
         </div>
       </div>
 
-      <AnimatedFilterPanel>
+      <FilterBar>
       <form
         className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
         onSubmit={(e) => {
@@ -158,15 +159,15 @@ export default function PoListManager() {
           <span className="text-slate-600">{common.search}</span>
           <input
             className="input-field mt-1"
-            placeholder={filters.searchPo}
+            placeholder={filterLabels.searchPo}
             value={filters.q}
             onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
           />
         </label>
         {[
-          ['portalPONumber', filters.portalPo],
-          ['relatedPRNumber', filters.relatedPr],
-          ['sapPODocNum', filters.sapPoDoc],
+          ['portalPONumber', filterLabels.portalPo],
+          ['relatedPRNumber', filterLabels.relatedPr],
+          ['sapPODocNum', filterLabels.sapPoDoc],
           ['vendor', common.vendor],
           ['status', common.status],
           ['from', common.fromDate],
@@ -198,7 +199,7 @@ export default function PoListManager() {
           </button>
         </div>
       </form>
-      </AnimatedFilterPanel>
+      </FilterBar>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {loading ? (
@@ -213,7 +214,7 @@ export default function PoListManager() {
                   <th>{poI18n.relatedPr}</th>
                   <th>{common.vendor}</th>
                   <th>{common.status}</th>
-                  <th>{filters.sapPoDoc}</th>
+                  <th>{filterLabels.sapPoDoc}</th>
                   <th>{common.actions}</th>
                 </tr>
               </thead>
@@ -221,7 +222,7 @@ export default function PoListManager() {
                 {items.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                      {filters.noResultsPo}
+                      {filterLabels.noResultsPo}
                     </td>
                   </tr>
                 )}

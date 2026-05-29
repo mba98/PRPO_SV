@@ -1,11 +1,10 @@
-import PageHeader from '@/components/layout/PageHeader';
+import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import RolesManager from '@/components/settings/RolesManager';
-import { settings } from '@/lib/i18n';
 
 export default function RolesSettingsPage() {
   return (
     <div>
-      <PageHeader title={settings.rolesTitle} description={settings.rolesDesc} />
+      <SectionPageHeader section="settings" titleKey="rolesTitle" descriptionKey="rolesDesc" />
       <RolesManager />
     </div>
   );

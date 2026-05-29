@@ -1,11 +1,10 @@
-import PageHeader from '@/components/layout/PageHeader';
+import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import UsersManager from '@/components/settings/UsersManager';
-import { settings } from '@/lib/i18n';
 
 export default function UsersSettingsPage() {
   return (
     <div>
-      <PageHeader title={settings.usersTitle} description={settings.usersDesc} />
+      <SectionPageHeader section="settings" titleKey="usersTitle" descriptionKey="usersDesc" />
       <UsersManager />
     </div>
   );
