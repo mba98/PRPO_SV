@@ -4,18 +4,37 @@ import { isPublicApiRoute } from '@/lib/apiPublicRoutes.js';
 
 const PUBLIC_PATHS = ['/login'];
 
+const STATIC_FILE_PATTERN =
+  /\.(?:png|jpe?g|gif|webp|svg|ico|css|js|woff2?|ttf|eot)$/i;
+
+/**
+ * Never run auth middleware on Next internals or public static files.
+ * Prevents returning HTML redirects instead of CSS/JS (broken styling in fresh browsers).
+ */
+function isStaticOrPublicAsset(pathname) {
+  if (
+    pathname.startsWith('/_next/static') ||
+    pathname.startsWith('/_next/image')
+  ) {
+    return true;
+  }
+  if (pathname === '/favicon.ico' || pathname === '/robots.txt' || pathname === '/sitemap.xml') {
+    return true;
+  }
+  return STATIC_FILE_PATTERN.test(pathname);
+}
+
 function isPublicPage(pathname) {
-  if (PUBLIC_PATHS.includes(pathname)) {
-    return true;
-  }
-  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon')) {
-    return true;
-  }
-  return false;
+  return PUBLIC_PATHS.includes(pathname);
 }
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
+
+  if (isStaticOrPublicAsset(pathname)) {
+    return NextResponse.next();
+  }
+
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = token ? await verifySessionToken(token) : { valid: false };
 
@@ -48,5 +67,7 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|.*\\..*).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|css|js|woff|woff2|ttf|eot)$).*)',
+  ],
 };
