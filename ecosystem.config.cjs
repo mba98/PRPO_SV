@@ -7,6 +7,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: '5420',
+        // For internal HTTP (no TLS), set in .env.local: COOKIE_SECURE=false
       },
       instances: 1,
       exec_mode: 'fork',
