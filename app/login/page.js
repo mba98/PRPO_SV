@@ -3,8 +3,8 @@ import LoginForm from './LoginForm';
 
 function LoginFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="card-elevated w-full max-w-md">
+    <div className="login-page">
+      <div className="login-card">
         <div className="animate-pulse space-y-4">
           <div className="mx-auto h-6 w-48 rounded bg-muted" />
           <div className="h-10 rounded bg-muted" />

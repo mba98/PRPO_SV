@@ -1,38 +1,31 @@
 'use client';
 
+/** @deprecated Use SunMoonToggle in TopBar */
 import { useI18n } from '@/lib/hooks/useI18n';
-import { useColorModeStore } from '@/stores/colorModeStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 export default function ColorModeSelector({ compact = false }) {
   const { common } = useI18n();
-  const mode = useColorModeStore((s) => s.mode);
-  const setColorMode = useColorModeStore((s) => s.setColorMode);
+  const mode = useThemeStore((s) => s.mode);
+  const setColorMode = useThemeStore((s) => s.setMode);
 
   return (
     <div
-      className={`inline-flex rounded-xl border border-border bg-card p-0.5 ${compact ? 'text-xs' : 'text-sm'}`}
+      className={`lang-pill-group ${compact ? 'text-xs' : 'text-sm'}`}
       role="group"
       aria-label={common.colorMode}
     >
       <button
         type="button"
         onClick={() => setColorMode('light')}
-        className={`min-h-9 rounded-lg px-2.5 font-semibold transition-colors sm:px-3 ${
-          mode === 'light'
-            ? 'bg-primary text-primary-foreground shadow-md'
-            : 'text-muted-foreground hover:bg-muted'
-        }`}
+        className={`lang-pill ${mode === 'light' ? 'lang-pill-active' : 'lang-pill-inactive'}`}
       >
         {common.lightMode}
       </button>
       <button
         type="button"
         onClick={() => setColorMode('dark')}
-        className={`min-h-9 rounded-lg px-2.5 font-semibold transition-colors sm:px-3 ${
-          mode === 'dark'
-            ? 'bg-primary text-primary-foreground shadow-md'
-            : 'text-muted-foreground hover:bg-muted'
-        }`}
+        className={`lang-pill ${mode === 'dark' ? 'lang-pill-active' : 'lang-pill-inactive'}`}
       >
         {common.darkMode}
       </button>

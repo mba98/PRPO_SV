@@ -33,6 +33,12 @@ export default {
           foreground: 'var(--destructive-foreground)',
         },
         border: 'var(--border)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
+        popover: {
+          DEFAULT: 'var(--popover)',
+          foreground: 'var(--popover-foreground)',
+        },
         brand: {
           50: 'var(--brand-50)',
           100: 'var(--brand-100)',

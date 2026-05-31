@@ -3,37 +3,48 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root,
+  [data-theme='light'] {
     --brand-50: #eef2ff;
     --brand-100: #e0e7ff;
     --brand-500: #6366f1;
-    --brand-600: #4f46e5;
-    --brand-700: #4338ca;
-    --brand-900: #312e81;
+    --brand-600: #3b82f6;
+    --brand-700: #2563eb;
+    --brand-900: #1e3a8a;
+    --accent-color: #3b82f6;
 
     --background: #f8fafc;
     --foreground: #0f172a;
     --card: #ffffff;
     --card-foreground: #0f172a;
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
     --muted: #f1f5f9;
     --muted-foreground: #64748b;
-    --primary: var(--brand-600);
+    --primary: var(--accent-color, var(--brand-600));
     --primary-foreground: #ffffff;
     --destructive: #e11d48;
     --destructive-foreground: #ffffff;
     --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: var(--accent-color, var(--brand-600));
   }
 
-  .dark {
+  .dark,
+  [data-theme='dark'] {
     --background: #0b1220;
     --foreground: #f1f5f9;
     --card: #111827;
     --card-foreground: #f1f5f9;
+    --popover: #111827;
+    --popover-foreground: #f1f5f9;
     --muted: #1f2937;
     --muted-foreground: #94a3b8;
     --destructive: #e11d48;
     --destructive-foreground: #ffffff;
     --border: #1e293b;
+    --input: #334155;
+    --ring: var(--accent-color, var(--brand-600));
   }
 
   html {
@@ -49,6 +60,10 @@
   textarea,
   button {
     @apply text-foreground;
+  }
+
+  option {
+    @apply bg-card text-foreground;
   }
 
   input::placeholder,
@@ -84,12 +99,142 @@
     @apply inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-foreground transition-colors hover:bg-muted;
   }
 
+  .topbar-control {
+    @apply inline-flex h-11 min-h-11 min-w-11 items-center justify-center rounded-2xl border border-border bg-card text-foreground shadow-sm transition-all duration-200 hover:bg-muted active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+
+  .topbar-control-accent {
+    @apply topbar-control bg-muted hover:bg-muted;
+    background-color: color-mix(in srgb, var(--primary) 12%, var(--card));
+  }
+
+  .topbar-control-accent:hover {
+    background-color: color-mix(in srgb, var(--primary) 18%, var(--card));
+  }
+
+  .lang-pill-group {
+    @apply inline-flex rounded-2xl border border-border bg-card p-1 shadow-sm;
+  }
+
+  .lang-pill {
+    @apply min-h-9 rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-200 sm:px-4 sm:text-sm;
+  }
+
+  .lang-pill-active {
+    @apply bg-primary text-primary-foreground shadow-md;
+  }
+
+  .lang-pill-inactive {
+    @apply text-muted-foreground hover:bg-muted hover:text-foreground;
+  }
+
   .card {
-    @apply rounded-3xl border border-border bg-card p-5 shadow-xl sm:p-6;
+    @apply rounded-3xl border border-border bg-card p-5 text-card-foreground shadow-xl sm:p-6;
   }
 
   .card-elevated {
-    @apply rounded-3xl border border-border bg-card p-5 shadow-2xl sm:p-6;
+    @apply rounded-3xl border border-border bg-card p-5 text-card-foreground shadow-2xl sm:p-6;
+  }
+
+  .login-page {
+    @apply relative flex min-h-screen items-center justify-center bg-background px-4 py-12 text-foreground;
+  }
+
+  .login-card {
+    @apply w-full max-w-md rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-xl sm:p-8;
+    animation: login-fade-in 0.35s ease-out forwards;
+  }
+
+  .login-card-header {
+    @apply mb-8 border-b border-border pb-6 text-center;
+  }
+
+  .accent-popover {
+    @apply absolute end-0 top-full z-50 mt-2 min-w-[280px] rounded-2xl border border-border bg-popover p-4 text-popover-foreground shadow-xl;
+  }
+
+  .accent-popover-title {
+    @apply mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground;
+  }
+
+  .accent-palette-row {
+    @apply flex flex-wrap items-center justify-center gap-2;
+  }
+
+  .accent-swatch {
+    @apply relative h-9 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-transform duration-200 ease-out;
+    background-color: var(--color);
+  }
+
+  .accent-swatch:hover {
+    transform: scale(1.15);
+    z-index: 2;
+  }
+
+  .accent-palette-row:hover .accent-swatch:not(:hover) {
+    transform: scale(1.05);
+  }
+
+  .accent-swatch-selected {
+    @apply ring-2 ring-primary;
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    transform: scale(1.12);
+  }
+
+  .sun-moon-toggle {
+    @apply topbar-control relative overflow-hidden p-0;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .sun-moon-toggle-inner {
+    @apply relative flex h-full w-full items-center justify-center;
+  }
+
+  .sun-moon-svg {
+    width: 1.35rem;
+    height: 1.35rem;
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sun-moon-body {
+    fill: currentColor;
+    color: var(--foreground);
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sun-moon-rays {
+    fill: currentColor;
+    color: var(--primary);
+    transform-origin: 12px 12px;
+    transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sun-moon-mask {
+    fill: var(--background);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html.dark .sun-moon-rays,
+  [data-theme='dark'] .sun-moon-rays {
+    opacity: 0;
+    transform: scale(0.4) rotate(-90deg);
+  }
+
+  html.dark .sun-moon-body,
+  [data-theme='dark'] .sun-moon-body {
+    transform: translateX(-6px);
+  }
+
+  html.dark .sun-moon-mask,
+  [data-theme='dark'] .sun-moon-mask {
+    transform: translateX(14px);
+  }
+
+  html:not(.dark) .sun-moon-mask,
+  [data-theme='light'] .sun-moon-mask {
+    transform: translateX(30px);
   }
 
   .page-shell {
@@ -118,7 +263,7 @@
 
   .data-table th,
   .data-table td {
-    @apply px-4 py-3 text-start text-foreground;
+    @apply border-border px-4 py-3 text-start text-foreground;
   }
 
   .data-table tbody tr {
@@ -147,5 +292,16 @@
 
   .tab-chip-inactive {
     @apply text-muted-foreground hover:bg-muted hover:text-foreground;
+  }
+}
+
+@keyframes login-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

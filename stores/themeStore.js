@@ -1,43 +1,87 @@
 'use client';
 
 import { create } from 'zustand';
-import { ACCENT_CSS_VARS, DEFAULT_ACCENT, THEME_STORAGE_KEY } from '@/lib/theme/themes';
-
-function applyAccentToDocument(accentId) {
-  if (typeof document === 'undefined') return;
-  const vars = ACCENT_CSS_VARS[accentId] || ACCENT_CSS_VARS[DEFAULT_ACCENT];
-  const root = document.documentElement;
-  root.setAttribute('data-accent', accentId);
-  Object.entries(vars).forEach(([key, value]) => {
-    root.style.setProperty(key, value);
-  });
-  root.style.setProperty('--primary', vars['--brand-600']);
-  root.style.setProperty('--primary-foreground', '#ffffff');
-}
+import {
+  ACCENT_CSS_VARS,
+  ACCENT_PALETTE,
+  DEFAULT_ACCENT,
+  THEME_STORAGE_KEY,
+} from '@/lib/theme/themes';
+import {
+  ACCENT_STORAGE_KEY,
+  COLOR_MODE_STORAGE_KEY,
+  DEFAULT_COLOR_MODE,
+  LEGACY_ACCENT_STORAGE_KEY,
+  applyAccentVarsToDocument,
+  applyColorModeToDocument,
+  normalizeAccentId,
+} from '@/lib/theme/documentTheme';
 
 function readStoredAccent() {
   if (typeof window === 'undefined') return DEFAULT_ACCENT;
-  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (stored && ACCENT_CSS_VARS[stored]) return stored;
+  const stored =
+    window.localStorage.getItem(ACCENT_STORAGE_KEY) ||
+    window.localStorage.getItem(LEGACY_ACCENT_STORAGE_KEY) ||
+    window.localStorage.getItem(THEME_STORAGE_KEY);
+  const id = normalizeAccentId(stored);
+  if (id && ACCENT_CSS_VARS[id]) return id;
   return DEFAULT_ACCENT;
 }
 
-export const useThemeStore = create((set) => ({
+function readStoredColorMode() {
+  if (typeof window === 'undefined') return DEFAULT_COLOR_MODE;
+  const stored = window.localStorage.getItem(COLOR_MODE_STORAGE_KEY);
+  return stored === 'light' ? 'light' : 'dark';
+}
+
+function persistAccent(accentId) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(ACCENT_STORAGE_KEY, accentId);
+  window.localStorage.setItem(THEME_STORAGE_KEY, accentId);
+}
+
+function persistColorMode(mode) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, mode);
+}
+
+export const useThemeStore = create((set, get) => ({
   accent: DEFAULT_ACCENT,
+  mode: DEFAULT_COLOR_MODE,
   initialized: false,
 
   initTheme: () => {
     const accent = readStoredAccent();
-    applyAccentToDocument(accent);
-    set({ accent, initialized: true });
+    const mode = readStoredColorMode();
+    applyAccentVarsToDocument(accent, ACCENT_CSS_VARS);
+    applyColorModeToDocument(mode);
+    set({ accent, mode, initialized: true });
   },
 
   setAccent: (accentId) => {
-    const id = ACCENT_CSS_VARS[accentId] ? accentId : DEFAULT_ACCENT;
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(THEME_STORAGE_KEY, id);
-    }
-    applyAccentToDocument(id);
-    set({ accent: id });
+    const id = normalizeAccentId(accentId);
+    const resolved = id && ACCENT_CSS_VARS[id] ? id : DEFAULT_ACCENT;
+    persistAccent(resolved);
+    applyAccentVarsToDocument(resolved, ACCENT_CSS_VARS);
+    set({ accent: resolved });
+  },
+
+  setMode: (mode) => {
+    const next = mode === 'light' ? 'light' : 'dark';
+    persistColorMode(next);
+    applyColorModeToDocument(next);
+    set({ mode: next });
+  },
+
+  /** @alias setMode */
+  setColorMode: (mode) => {
+    get().setMode(mode);
+  },
+
+  toggleMode: () => {
+    const next = get().mode === 'dark' ? 'light' : 'dark';
+    get().setMode(next);
   },
 }));
+
+export { ACCENT_PALETTE };

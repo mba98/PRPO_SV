@@ -1,9 +1,17 @@
 'use client';
 
+/**
+ * Backward-compatible color mode API — state lives in themeStore.
+ */
 import { create } from 'zustand';
+import {
+  COLOR_MODE_STORAGE_KEY,
+  DEFAULT_COLOR_MODE,
+  applyColorModeToDocument,
+} from '@/lib/theme/documentTheme';
+import { useThemeStore } from '@/stores/themeStore';
 
-export const COLOR_MODE_STORAGE_KEY = 'procurement-color-mode';
-export const DEFAULT_COLOR_MODE = 'dark';
+export { COLOR_MODE_STORAGE_KEY, DEFAULT_COLOR_MODE };
 
 function readStoredColorMode() {
   if (typeof window === 'undefined') return DEFAULT_COLOR_MODE;
@@ -11,39 +19,30 @@ function readStoredColorMode() {
   return stored === 'light' ? 'light' : 'dark';
 }
 
-function applyColorModeToDocument(mode) {
-  if (typeof document === 'undefined') return;
-  const root = document.documentElement;
-  root.classList.toggle('dark', mode === 'dark');
-  root.setAttribute('data-theme', mode);
-}
-
 export const useColorModeStore = create((set) => ({
   mode: DEFAULT_COLOR_MODE,
   initialized: false,
 
   initColorMode: () => {
-    const mode = readStoredColorMode();
-    applyColorModeToDocument(mode);
-    set({ mode, initialized: true });
+    const theme = useThemeStore.getState();
+    if (!theme.initialized) {
+      theme.initTheme();
+    }
+    set({ mode: useThemeStore.getState().mode, initialized: true });
   },
 
   setColorMode: (mode) => {
-    const next = mode === 'light' ? 'light' : 'dark';
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, next);
-    }
-    applyColorModeToDocument(next);
-    set({ mode: next });
+    useThemeStore.getState().setMode(mode);
+    set({ mode: useThemeStore.getState().mode });
   },
 
   toggleColorMode: () => {
-    const current = readStoredColorMode();
-    const next = current === 'dark' ? 'light' : 'dark';
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, next);
-    }
-    applyColorModeToDocument(next);
-    set({ mode: next });
+    useThemeStore.getState().toggleMode();
+    set({ mode: useThemeStore.getState().mode });
   },
 }));
+
+/** Standalone apply for legacy imports */
+export function applyColorModeToDocumentLegacy(mode) {
+  applyColorModeToDocument(mode);
+}

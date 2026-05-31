@@ -8,8 +8,13 @@ import { nav, statusLabel, login } from '@/lib/i18n';
 describe('Phase 12 — Arabic RTL and theme UI', () => {
   it('root layout bootstraps locale and uses AppProviders', () => {
     const layout = fs.readFileSync(path.resolve(process.cwd(), 'app/layout.js'), 'utf8');
-    expect(layout).toContain('procurement-locale');
+    expect(layout).toContain('buildThemeBootstrapScript');
     expect(layout).toContain('AppProviders');
+    const bootstrap = fs.readFileSync(
+      path.resolve(process.cwd(), 'lib/theme/bootstrapScript.js'),
+      'utf8',
+    );
+    expect(bootstrap).toContain('procurement-locale');
   });
 
   it('navigation exposes Arabic dashboard label', () => {
@@ -18,18 +23,20 @@ describe('Phase 12 — Arabic RTL and theme UI', () => {
     expect(dash?.label).toBe(nav.dashboard);
   });
 
-  it('theme selector supports 7 accent colors', () => {
-    expect(ACCENT_THEMES).toHaveLength(7);
+  it('accent palette supports 10 HRMS colors', () => {
+    expect(ACCENT_THEMES).toHaveLength(10);
     const ids = ACCENT_THEMES.map((t) => t.id);
-    expect(ids).toEqual(['indigo', 'blue', 'emerald', 'amber', 'rose', 'violet', 'slate']);
+    expect(ids).toContain('rose');
+    expect(ids).toContain('blue');
+    expect(ids).toContain('purple');
   });
 
   it('theme store persists accent in localStorage', () => {
     const src = fs.readFileSync(path.resolve(process.cwd(), 'stores/themeStore.js'), 'utf8');
-    expect(src).toContain('THEME_STORAGE_KEY');
+    expect(src).toContain('ACCENT_STORAGE_KEY');
     expect(src).toContain('localStorage.setItem');
     expect(src).toContain('localStorage.getItem');
-    expect(THEME_STORAGE_KEY).toBe('portal-accent-theme');
+    expect(THEME_STORAGE_KEY).toBe('procurement-accent-theme');
   });
 
   it('status labels map to Arabic', () => {

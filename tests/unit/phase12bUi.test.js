@@ -25,8 +25,13 @@ describe('Phase 12B — HRMS design system and bilingual UI', () => {
 
   it('layout bootstraps locale before hydration', () => {
     const layout = fs.readFileSync(path.resolve(process.cwd(), 'app/layout.js'), 'utf8');
-    expect(layout).toContain('procurement-locale');
-    expect(layout).toContain('document.documentElement.dir');
+    expect(layout).toContain('buildThemeBootstrapScript');
+    const bootstrap = fs.readFileSync(
+      path.resolve(process.cwd(), 'lib/theme/bootstrapScript.js'),
+      'utf8',
+    );
+    expect(bootstrap).toContain('procurement-locale');
+    expect(bootstrap).toContain('document.documentElement.dir');
   });
 
   it('navigation labels switch language', () => {
@@ -40,8 +45,8 @@ describe('Phase 12B — HRMS design system and bilingual UI', () => {
     expect(statusLabel('Draft', 'en')).toBe('Draft');
   });
 
-  it('theme selector still supports 7 colors', () => {
-    expect(ACCENT_THEMES).toHaveLength(7);
+  it('accent palette supports 10 HRMS colors', () => {
+    expect(ACCENT_THEMES).toHaveLength(10);
   });
 
   it('Button component defines variants', () => {

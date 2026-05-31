@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import ThemeSelector from '@/components/ui/ThemeSelector';
+import AccentPalette from '@/components/ui/AccentPalette';
+import SunMoonToggle from '@/components/ui/SunMoonToggle';
 import LanguageSelector from '@/components/ui/LanguageSelector';
-import ColorModeSelector from '@/components/ui/ColorModeSelector';
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 import { useI18n } from '@/lib/hooks/useI18n';
@@ -39,9 +39,9 @@ export default function TopBar({ user, onMenuClick }) {
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <ColorModeSelector compact />
+        <AccentPalette />
+        <SunMoonToggle />
         <LanguageSelector compact />
-        <ThemeSelector compact />
         <Button variant="secondary" onClick={handleLogout}>
           {common.signOut}
         </Button>

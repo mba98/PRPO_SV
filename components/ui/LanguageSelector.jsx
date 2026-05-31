@@ -9,29 +9,21 @@ export default function LanguageSelector({ compact = false }) {
 
   return (
     <div
-      className={`inline-flex rounded-xl border border-border bg-card p-0.5 ${compact ? 'text-xs' : 'text-sm'}`}
+      className={`lang-pill-group ${compact ? 'text-xs' : 'text-sm'}`}
       role="group"
       aria-label={common.language}
     >
       <button
         type="button"
         onClick={() => setLocale('ar')}
-        className={`min-h-9 rounded-lg px-2.5 font-semibold transition-colors sm:px-3 ${
-          locale === 'ar'
-            ? 'bg-primary text-primary-foreground shadow-md'
-            : 'text-muted-foreground hover:bg-muted'
-        }`}
+        className={`lang-pill ${locale === 'ar' ? 'lang-pill-active' : 'lang-pill-inactive'}`}
       >
         {common.arabic}
       </button>
       <button
         type="button"
         onClick={() => setLocale('en')}
-        className={`min-h-9 rounded-lg px-2.5 font-semibold transition-colors sm:px-3 ${
-          locale === 'en'
-            ? 'bg-primary text-primary-foreground shadow-md'
-            : 'text-muted-foreground hover:bg-muted'
-        }`}
+        className={`lang-pill ${locale === 'en' ? 'lang-pill-active' : 'lang-pill-inactive'}`}
       >
         {common.english}
       </button>

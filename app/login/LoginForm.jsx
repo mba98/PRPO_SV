@@ -2,11 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { useAuthStore } from '@/stores/authStore';
-import { useMotionSafe } from '@/components/ui/useMotionSafe';
 import { useI18n } from '@/lib/hooks/useI18n';
-import { Button, FormField, Input, LanguageSelector } from '@/components/ui';
+import { Button, FormField, Input, LanguageSelector, SunMoonToggle } from '@/components/ui';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -18,12 +16,6 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const cardProps = useMotionSafe({
-    initial: { opacity: 0, y: 16, scale: 0.98 },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    transition: { duration: 0.3 },
-  });
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -57,59 +49,58 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="absolute end-4 top-4 sm:end-6 sm:top-6">
+    <div className="login-page">
+      <div className="absolute end-4 top-4 flex items-center gap-2 sm:end-6 sm:top-6">
+        <SunMoonToggle />
         <LanguageSelector compact />
       </div>
-      <motion.div className="w-full max-w-md" {...cardProps}>
-        <div className="card-elevated">
-          <header className="mb-8 border-b border-border pb-6 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-              {login.title}
-            </p>
-            <h1 className="mt-2 text-2xl font-bold text-foreground">{common.appName}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">{login.subtitle}</p>
-          </header>
+      <div className="login-card">
+        <header className="login-card-header">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+            {login.title}
+          </p>
+          <h1 className="mt-2 text-2xl font-bold text-foreground">{common.appName}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{login.subtitle}</p>
+        </header>
 
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate={false}>
-            <FormField label={login.username} htmlFor="username" required>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </FormField>
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate={false}>
+          <FormField label={login.username} htmlFor="username" required>
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </FormField>
 
-            <FormField label={login.password} htmlFor="password" required>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </FormField>
+          <FormField label={login.password} htmlFor="password" required>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </FormField>
 
-            <div className="min-h-[2.5rem] text-sm" role="alert" aria-live="polite">
-              {error ? (
-                <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive">
-                  {error}
-                </p>
-              ) : null}
-            </div>
+          <div className="min-h-[2.5rem] text-sm" role="alert" aria-live="polite">
+            {error ? (
+              <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive">
+                {error}
+              </p>
+            ) : null}
+          </div>
 
-            <Button type="submit" loading={loading} className="w-full">
-              {loading ? login.signingIn : login.signIn}
-            </Button>
-          </form>
-        </div>
-      </motion.div>
+          <Button type="submit" loading={loading} className="w-full">
+            {loading ? login.signingIn : login.signIn}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
