@@ -38,23 +38,52 @@ describe('WorkflowStepper UI', () => {
     expect(stepper).toContain('useI18n');
   });
 
-  it('supports RTL list direction', () => {
-    expect(stepper).toContain('workflow-stepper-list--rtl');
-    expect(stepper).toContain('isRtl');
-    expect(stepper).toContain('rotate-180');
+  it('English LTR keeps logical step order for desktop row', () => {
+    expect(stepper).toContain('const visualSteps = isRtl ? [...computedSteps].reverse() : computedSteps');
+    expect(stepper).toContain('warehouseApproval');
+    expect(stepper).toContain('projectManagerApproval');
+    expect(stepper).toContain('sapCreated');
+  });
+
+  it('Arabic RTL reverses computed visual steps without mutating source steps', () => {
+    expect(stepper).toContain('const computedSteps = steps.map');
+    expect(stepper).toContain('[...computedSteps].reverse()');
+    expect(stepper).not.toContain('workflow-stepper-list--rtl');
+    expect(css).not.toContain('flex-row-reverse');
+  });
+
+  it('uses ArrowLeft for RTL and ArrowRight for LTR connectors', () => {
+    expect(stepper).toContain('ArrowLeftIcon');
+    expect(stepper).toContain('ArrowRightIcon');
+    expect(stepper).toContain('isRtl ? <ArrowLeftIcon /> : <ArrowRightIcon />');
+    expect(stepper).toContain('x: isRtl ? [0, -4, 0] : [0, 4, 0]');
+    expect(stepper).not.toContain('rotate-180');
+  });
+
+  it('uses text-start and avoids hardcoded left-only layout classes', () => {
+    expect(stepper).toContain('text-start');
+    expect(stepper).not.toMatch(/text-left/);
+    expect(stepper).not.toContain('workflow-stepper-list--rtl');
+  });
+
+  it('connector active state uses logical source step when RTL reversed', () => {
+    expect(stepper).toContain('connectorSourceStep');
+    expect(stepper).toContain('visualSteps[visualIndex + 1]');
   });
 
   it('has vertical mobile and horizontal desktop layout', () => {
+    expect(stepper).toContain('workflow-stepper-mobile');
+    expect(stepper).toContain('workflow-stepper-row');
     expect(stepper).toContain('md:hidden');
-    expect(stepper).toContain('md:flex');
-    expect(stepper).toContain('flex-col');
-    expect(css).toContain('md:flex-row');
-    expect(css).toContain('workflow-stepper-list');
+    expect(stepper).toContain('hidden md:flex');
+    expect(css).toContain('min-w-[220px]');
   });
 
   it('Arabic and English workflow labels exist', () => {
     expect(getDictionary('en').workflow.current).toBe('Current');
     expect(getDictionary('ar').workflow.current).toBe('الحالية');
+    expect(getDictionary('en').workflow.completed).toBe('Completed');
+    expect(getDictionary('ar').workflow.completed).toBe('مكتملة');
     expect(getDictionary('en').workflow.warehouseApproval).toBe('Warehouse Approval');
     expect(getDictionary('ar').workflow.warehouseApproval).toBe('موافقة المخزن');
     expect(getDictionary('en').workflow.sapPoCreated).toBe('SAP PO Created');

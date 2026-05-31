@@ -467,23 +467,41 @@
   }
 
   .workflow-stepper {
-    @apply overflow-x-auto rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5;
+    @apply rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5;
   }
 
-  .workflow-stepper-list {
-    @apply flex list-none flex-col gap-0 p-0 md:flex-row md:items-start md:gap-1;
+  .workflow-stepper-row {
+    @apply w-full min-w-0;
   }
 
-  .workflow-stepper-list--rtl {
-    @apply md:flex-row-reverse;
+  .workflow-stepper-mobile {
+    @apply flex flex-col;
   }
 
-  .workflow-step-item {
-    @apply flex flex-col md:flex-1 md:min-w-[8.5rem] md:flex-row md:items-center;
+  .workflow-step-mobile-item {
+    @apply flex flex-col;
   }
 
   .workflow-step-card {
-    @apply flex min-w-[8.5rem] flex-1 gap-3 rounded-2xl border border-border bg-card p-3;
+    @apply flex min-w-[220px] flex-1 gap-3 rounded-2xl border border-border bg-card p-3 text-start;
+  }
+
+  .workflow-connector-horizontal {
+    @apply shrink-0 px-0;
+  }
+
+  .workflow-connector-vertical {
+    @apply shrink-0;
+  }
+
+  @media (max-width: 767px) {
+    .workflow-stepper {
+      @apply overflow-x-auto;
+    }
+
+    .workflow-step-card {
+      @apply min-w-0;
+    }
   }
 
   .workflow-step-circle {

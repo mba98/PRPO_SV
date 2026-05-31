@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { useMotionSafe } from '@/components/ui/useMotionSafe';
@@ -75,6 +76,10 @@ function connectorActive(prevState) {
   );
 }
 
+function connectorSourceStep(visualSteps, visualIndex, isRtl) {
+  return isRtl ? visualSteps[visualIndex + 1] : visualSteps[visualIndex];
+}
+
 function CheckIcon() {
   return (
     <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden fill="currentColor">
@@ -83,11 +88,11 @@ function CheckIcon() {
   );
 }
 
-function ChevronIcon({ rtl }) {
+function ArrowRightIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className={`workflow-connector-chevron h-4 w-4 shrink-0 ${rtl ? 'rotate-180' : ''}`}
+      className="workflow-connector-chevron h-4 w-4 shrink-0"
       aria-hidden
       fill="none"
       stroke="currentColor"
@@ -95,7 +100,26 @@ function ChevronIcon({ rtl }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M9 6l6 6-6 6" />
+      <path d="M5 12h14" />
+      <path d="M12 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+function ArrowLeftIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="workflow-connector-chevron h-4 w-4 shrink-0"
+      aria-hidden
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M19 12H5" />
+      <path d="M12 19l-7-7 7-7" />
     </svg>
   );
 }
@@ -105,37 +129,38 @@ function WorkflowConnector({ active, isRtl, reduceMotion }) {
     reduceMotion
       ? {}
       : {
-          x: isRtl ? [-4, 0, -4] : [0, 4, 0],
+          x: isRtl ? [0, -4, 0] : [0, 4, 0],
           transition: { duration: 1.2, repeat: Infinity, ease: 'easeInOut' },
         },
   );
 
   return (
     <>
-      <div
-        className="workflow-connector my-1 flex min-h-[1.5rem] flex-col items-center md:hidden"
-        aria-hidden
-      >
+      <div className="workflow-connector-vertical my-1 flex min-h-[1.5rem] flex-col items-center md:hidden" aria-hidden>
         <div
           className={`workflow-connector-line min-h-[1.25rem] w-[2px] rounded-full ${active ? 'workflow-connector-line--active-vertical' : ''}`}
         />
       </div>
-      <div
-        className="workflow-connector mx-1 hidden min-w-[2.5rem] flex-1 items-center gap-1 md:flex"
-        aria-hidden
-      >
+      <div className="workflow-connector-horizontal hidden min-w-[3rem] flex-1 items-center gap-1 md:flex" aria-hidden>
         <div
           className={`workflow-connector-line h-[2px] flex-1 rounded-full ${active ? 'workflow-connector-line--active' : ''}`}
         />
         <motion.span className="flex shrink-0" animate={active ? chevronMotion : undefined}>
-          <ChevronIcon rtl={isRtl} />
+          {isRtl ? <ArrowLeftIcon /> : <ArrowRightIcon />}
         </motion.span>
       </div>
     </>
   );
 }
 
-function WorkflowStepCard({ step, index, workflow, documentType, reduceMotion }) {
+function WorkflowStepCard({
+  step,
+  displayIndex,
+  workflow,
+  documentType,
+  reduceMotion,
+  animationDelay,
+}) {
   const title = resolveStepTitle(step, workflow, documentType);
   const status = stateLabel(step.state, workflow);
   const isCurrent = step.state === 'current' || step.state === 'sap_creating';
@@ -144,7 +169,7 @@ function WorkflowStepCard({ step, index, workflow, documentType, reduceMotion })
   const enterProps = useMotionSafe({
     initial: { opacity: 0, y: 8 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.25, delay: index * 0.05 },
+    transition: { duration: 0.25, delay: animationDelay },
   });
 
   const pulseProps = useMotionSafe(
@@ -159,15 +184,17 @@ function WorkflowStepCard({ step, index, workflow, documentType, reduceMotion })
       : {},
   );
 
+  const badgeNumber = step.stepOrder ?? displayIndex + 1;
+
   return (
     <motion.div className="workflow-step-card" {...enterProps}>
       <motion.div
         className={`workflow-step-circle ${circleClass(step.state)}`}
         animate={pulseProps}
       >
-        {isDone ? <CheckIcon /> : index + 1}
+        {isDone ? <CheckIcon /> : badgeNumber}
       </motion.div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 text-start">
         <p className="truncate text-sm font-semibold text-foreground">{title}</p>
         <p
           className={`mt-0.5 text-[10px] font-bold uppercase tracking-widest ${
@@ -193,27 +220,58 @@ export default function WorkflowStepper({ steps = [], documentType = 'PR' }) {
 
   if (!steps.length) return null;
 
+  const computedSteps = steps.map((step, logicalIndex) => ({
+    ...step,
+    logicalIndex,
+    key: `${step.kind}-${step.stepOrder}`,
+  }));
+
+  const visualSteps = isRtl ? [...computedSteps].reverse() : computedSteps;
+
   return (
     <nav aria-label={wf.progressLabel} className="workflow-stepper">
-      <ol
-        className={`workflow-stepper-list ${isRtl ? 'workflow-stepper-list--rtl' : ''}`}
+      <div
+        className="workflow-stepper-row hidden md:flex md:items-center md:gap-3"
+        dir="ltr"
       >
-        {steps.map((step, index) => (
-          <li
-            key={`${step.kind}-${step.stepOrder}`}
-            className="workflow-step-item snap-center md:snap-align-none"
-          >
+        {visualSteps.map((step, visualIndex) => (
+          <Fragment key={step.key}>
             <WorkflowStepCard
               step={step}
-              index={index}
+              displayIndex={step.logicalIndex}
               workflow={wf}
               documentType={documentType}
               reduceMotion={reduceMotion}
+              animationDelay={step.logicalIndex * 0.05}
             />
-            {index < steps.length - 1 && (
+            {visualIndex < visualSteps.length - 1 && (
+              <WorkflowConnector
+                active={connectorActive(
+                  connectorSourceStep(visualSteps, visualIndex, isRtl).state,
+                )}
+                isRtl={isRtl}
+                reduceMotion={reduceMotion}
+              />
+            )}
+          </Fragment>
+        ))}
+      </div>
+
+      <ol className="workflow-stepper-mobile list-none space-y-0 p-0 md:hidden">
+        {computedSteps.map((step) => (
+          <li key={step.key} className="workflow-step-mobile-item">
+            <WorkflowStepCard
+              step={step}
+              displayIndex={step.logicalIndex}
+              workflow={wf}
+              documentType={documentType}
+              reduceMotion={reduceMotion}
+              animationDelay={step.logicalIndex * 0.05}
+            />
+            {step.logicalIndex < computedSteps.length - 1 && (
               <WorkflowConnector
                 active={connectorActive(step.state)}
-                isRtl={isRtl}
+                isRtl={false}
                 reduceMotion={reduceMotion}
               />
             )}
