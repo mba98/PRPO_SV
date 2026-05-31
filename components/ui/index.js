@@ -30,6 +30,7 @@ export { default as IconButton } from './IconButton';
 export { default as Card } from './Card';
 export { default as FormField } from './FormField';
 export { default as Input } from './Input';
+export { default as PasswordInput } from './PasswordInput';
 export { default as Select } from './Select';
 export { default as DateInput } from './DateInput';
 export { default as Textarea } from './Textarea';

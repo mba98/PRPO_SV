@@ -4,7 +4,14 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { useI18n } from '@/lib/hooks/useI18n';
-import { Button, FormField, Input, LanguageSelector, SunMoonToggle } from '@/components/ui';
+import {
+  Button,
+  FormField,
+  Input,
+  LanguageSelector,
+  PasswordInput,
+  SunMoonToggle,
+} from '@/components/ui';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -48,6 +55,8 @@ export default function LoginForm() {
     }
   }
 
+  const submitLabel = loading ? login.signingIn : login.signIn;
+
   return (
     <div className="login-page">
       <div className="absolute end-4 top-4 flex items-center gap-2 sm:end-6 sm:top-6">
@@ -77,14 +86,15 @@ export default function LoginForm() {
           </FormField>
 
           <FormField label={login.password} htmlFor="password" required>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              showPasswordLabel={login.showPassword}
+              hidePasswordLabel={login.hidePassword}
             />
           </FormField>
 
@@ -96,8 +106,8 @@ export default function LoginForm() {
             ) : null}
           </div>
 
-          <Button type="submit" loading={loading} className="w-full">
-            {loading ? login.signingIn : login.signIn}
+          <Button type="submit" variant="primary" loading={loading} className="w-full">
+            {submitLabel}
           </Button>
         </form>
       </div>

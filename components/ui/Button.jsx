@@ -23,13 +23,16 @@ export default function Button({
     <button
       type={type}
       disabled={disabled || loading}
-      className={`${base} gap-2 ${className}`.trim()}
+      className={`${base} ${className}`.trim()}
       {...props}
     >
       {loading ? (
-        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        <span
+          className="inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"
+          aria-hidden
+        />
       ) : null}
-      {children}
+      <span className={variant === 'primary' ? 'text-primary-foreground' : ''}>{children}</span>
     </button>
   );
 }
