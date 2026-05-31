@@ -5,7 +5,7 @@ import { getDictionary } from '@/lib/i18n';
 
 describe('PR approval form loading and attachments', () => {
   const form = fs.readFileSync(
-    path.resolve(process.cwd(), 'components/purchase-requests/PrApproveForm.jsx'),
+    path.resolve(process.cwd(), 'components/approval/DocumentApproveForm.jsx'),
     'utf8',
   );
   const button = fs.readFileSync(
