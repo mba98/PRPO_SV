@@ -236,7 +236,9 @@ export default function PrListManager() {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {loading ? (
-        <PortalLoader />
+        <div className="flex justify-center py-12">
+          <PortalLoader />
+        </div>
       ) : (
         <>
           <div className="space-y-3 md:hidden">

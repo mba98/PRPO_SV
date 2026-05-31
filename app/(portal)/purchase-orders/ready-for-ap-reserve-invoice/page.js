@@ -55,7 +55,9 @@ export default function ReadyForApriPage() {
       <SectionPageHeader section="po" titleKey="readyForApriTitle" descriptionKey="readyForApriDesc" />
       {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
       {loading ? (
-        <PortalLoader />
+        <div className="flex justify-center py-12">
+          <PortalLoader />
+        </div>
       ) : (
         <AnimatedTableContainer>
           <table className="data-table">

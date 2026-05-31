@@ -180,7 +180,9 @@ export default function ApriListManager() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {loading ? (
-        <PortalLoader />
+        <div className="flex justify-center py-12">
+          <PortalLoader />
+        </div>
       ) : (
         <>
           <AnimatedTableContainer>

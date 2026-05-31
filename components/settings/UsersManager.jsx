@@ -253,7 +253,9 @@ export default function UsersManager() {
       )}
 
       {loading ? (
-        <PortalLoader />
+        <div className="flex justify-center py-12">
+          <PortalLoader />
+        </div>
       ) : (
         <>
           <SettingsTable

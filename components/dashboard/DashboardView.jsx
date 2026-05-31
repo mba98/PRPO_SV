@@ -148,6 +148,14 @@ export default function DashboardView() {
     });
   }
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <PortalLoader />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {error && (
@@ -158,23 +166,14 @@ export default function DashboardView() {
 
       <section>
         <h2 className="mb-4 text-lg font-bold text-foreground">{dashI18n.title}</h2>
-        {loading ? (
-          <div className="col-span-full">
-            <PortalLoader />
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {cards.map((card) => (
-              <AnimatedDashboardCard key={card.title} {...card} loading={loading} />
-            ))}
-          </div>
-        )}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {cards.map((card) => (
+            <AnimatedDashboardCard key={card.title} {...card} loading={false} />
+          ))}
+        </div>
       </section>
 
-      {loading ? (
-        <PortalLoader />
-      ) : (
-        <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
           {canViewPr && (
             <RecentTable
               title={dashI18n.recentPrs}
@@ -283,7 +282,6 @@ export default function DashboardView() {
             />
           )}
         </div>
-      )}
     </div>
   );
 }

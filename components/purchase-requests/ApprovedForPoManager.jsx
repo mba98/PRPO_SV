@@ -84,7 +84,9 @@ export default function ApprovedForPoManager() {
       )}
 
       {loading ? (
-        <PortalLoader />
+        <div className="flex justify-center py-12">
+          <PortalLoader />
+        </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 overflow-x-auto rounded-lg border border-border bg-card">

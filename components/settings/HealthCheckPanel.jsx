@@ -122,7 +122,11 @@ export default function HealthCheckPanel() {
           <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
         )}
 
-        {loading && <PortalLoader />}
+        {loading && (
+          <div className="flex justify-center py-8">
+            <PortalLoader />
+          </div>
+        )}
 
         {dependencies && !loading && (
           <div className="space-y-2">

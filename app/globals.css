@@ -395,57 +395,44 @@
     @apply text-muted-foreground hover:bg-muted hover:text-foreground;
   }
 
-  .portal-loader-card {
-    --loader-bg: var(--card);
-    background: var(--loader-bg);
-    padding: 1rem 2rem;
-    border-radius: 1.25rem;
-    border: 1px solid var(--border);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  .portal-loader-screen {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
   }
 
-  .portal-loader-card--sm {
-    padding: 0.75rem 1.25rem;
-    border-radius: 1rem;
-  }
-
-  .portal-loader {
+  .portal-loader-text {
     color: var(--muted-foreground);
-    font-family: inherit;
     font-weight: 700;
     font-size: 1.25rem;
-    box-sizing: content-box;
-    height: 40px;
-    padding: 10px;
     display: flex;
     align-items: center;
-    border-radius: 8px;
+    justify-content: center;
+    height: 40px;
   }
 
-  .portal-loader--sm {
+  .portal-loader-text--sm {
     font-size: 1rem;
     height: 32px;
-    padding: 8px;
   }
 
-  .portal-loader--sm .portal-loader-words {
+  .portal-loader-text--sm .portal-loader-words {
     height: 32px;
   }
 
-  .portal-loader--sm .portal-loader-word {
+  .portal-loader-text--sm .portal-loader-word {
     height: 32px;
     line-height: 32px;
-  }
-
-  .portal-loader-base {
-    margin: 0;
-    white-space: nowrap;
   }
 
   .portal-loader-words {
     overflow: hidden;
     position: relative;
     height: 40px;
+    display: inline-block;
+    margin-inline-start: 0.5rem;
   }
 
   .portal-loader-words::after {
@@ -453,10 +440,10 @@
     position: absolute;
     inset: 0;
     background: linear-gradient(
-      var(--loader-bg) 10%,
+      var(--background) 10%,
       transparent 30%,
       transparent 70%,
-      var(--loader-bg) 90%
+      var(--background) 90%
     );
     z-index: 20;
     pointer-events: none;
@@ -466,7 +453,6 @@
     display: block;
     height: 40px;
     line-height: 40px;
-    padding-inline-start: 0.5rem;
     color: var(--primary);
     animation: portal-loader-spin 4s infinite;
   }

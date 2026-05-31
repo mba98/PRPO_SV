@@ -9,7 +9,9 @@ describe('Logout confirmation and PortalLoader', () => {
       path.resolve(process.cwd(), 'components/ui/PortalLoader.jsx'),
       'utf8',
     );
+    expect(src).toContain('portal-loader-text');
     expect(src).toContain('portal-loader-word');
+    expect(src).not.toContain('portal-loader-card');
     expect(src).toContain("'SV'");
     expect(src).toContain("'PR'");
     expect(src).toContain("'PO'");
@@ -73,15 +75,18 @@ describe('Logout confirmation and PortalLoader', () => {
     expect(en.common.cancel).toBe('Cancel');
   });
 
-  it('route loading files use PortalLoader', () => {
+  it('route loading uses single root loading.js without nested portal loader', () => {
     const root = fs.readFileSync(path.resolve(process.cwd(), 'app/loading.js'), 'utf8');
-    const portal = fs.readFileSync(
-      path.resolve(process.cwd(), 'app/(portal)/loading.js'),
-      'utf8',
-    );
     expect(root).toContain('PortalLoader');
-    expect(portal).toContain('PortalLoader');
-    expect(portal).toContain('fullScreen');
+    expect(root).toContain('fullScreen');
+    const portalPath = path.resolve(process.cwd(), 'app/(portal)/loading.js');
+    expect(fs.existsSync(portalPath)).toBe(false);
+  });
+
+  it('PortalLoader CSS has no card box styles', () => {
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
+    expect(css).toContain('.portal-loader-text');
+    expect(css).not.toContain('.portal-loader-card');
   });
 
   it('AppProviders or layout exports ConfirmDialog via TopBar integration', () => {
