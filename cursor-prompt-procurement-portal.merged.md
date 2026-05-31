@@ -37,7 +37,7 @@ Ask **one** focused question and wait. Do not generate placeholder code or `TODO
 
 ## Project Status
 
-**All implementation phases from Phase 0 through Phase 12B are complete.**
+**All implementation phases from Phase 0 through Phase 12B are complete.** The portal is functionally complete; active work is **UI/UX stabilization and page-by-page polish** (post–Phase 12B).
 
 ### Completed modules
 - Foundations
@@ -79,6 +79,7 @@ Ask **one** focused question and wait. Do not generate placeholder code or `TODO
 | Phase 11 — Admin Settings | **Completed** |
 | Phase 12 — UI/UX Modernization | **Completed** |
 | Phase 12B — HRMS Design System Alignment | **Completed** |
+| Post Phase 12B — UI/UX stabilization and page-by-page polish | **In Progress** |
 
 ### Phase 12 notes
 - Arabic RTL supported (`lang="ar"` `dir="rtl"` on root layout).
@@ -94,6 +95,142 @@ Ask **one** focused question and wait. Do not generate placeholder code or `TODO
 - Shared UI primitives: Button, Card, FormField, Input, DataTable, FilterBar, LanguageSelector.
 - `lib/formatDate.js` for localized display; SAP dates remain `YYYY-MM-DD` via `formatSapDate`.
 - No changes to SAP creation, approval workflow, or duplicate guards.
+
+---
+
+## Current Status After Phase 12B
+
+The project is functionally complete and currently in **UI/UX stabilization** and **page-by-page polish**.
+
+### Completed major phases
+- Phase 0 — Foundations — **Completed**
+- Phase 1 — Authentication — **Completed**
+- Phase 2 — Users / Roles / Permissions — **Completed**
+- Phase 3 — Purchase Requests — **Completed**
+- Phase 4 — Purchase Orders — **Completed**
+- Phase 5 — A/P Reserve Invoices — **Completed**
+- Phase 6 — Attachments — **Completed**
+- Phase 7 — Comments & Approval History — **Completed**
+- Phase 8 — Email Notifications — **Completed**
+- Phase 9 — SAP Integration Hardening — **Completed**
+- Phase 10 — Dashboard & Reports — **Completed**
+- Phase 11 — Admin Settings — **Completed**
+- Phase 12 — Arabic RTL Responsive UI Modernization — **Completed**
+- Phase 12B — HRMS-style bilingual UI alignment — **Completed**
+
+---
+
+## Latest UI/UX Stabilization Work
+
+The following fixes and improvements were completed or are being applied after Phase 12B:
+
+### Theme / Language / Layout
+- Added Arabic + English support with RTL/LTR switching.
+- Added language switcher using compact AR/EN control.
+- Added light/dark mode support.
+- Added accent color palette.
+- Fixed mixed dark/light UI issues by replacing hardcoded colors with semantic tokens.
+- Fixed login page dark rendering issue.
+- Fixed login button text visibility.
+- Added password show/hide toggle.
+- Added quick actions menu in the header.
+- SV logo must always stay on the physical right.
+- SPC logo must always stay on the physical left.
+- Quick actions menu is centered and compact.
+- Sidebar user identity moved under Procurement Portal.
+- Sign out moved to sidebar bottom.
+- Sign out requires confirmation modal.
+- Mobile sidebar opens from the right in Arabic RTL and from the left in English LTR.
+
+### Loader
+- Added custom PortalLoader text animation:
+  - loading SV
+  - loading PR
+  - loading PO
+  - loading Portal
+- Loader uses selected theme color via `var(--primary)`.
+- Loader was simplified to text-only without card/background.
+- Reduced-motion behavior updated so the loader still animates slowly instead of becoming static.
+
+### Dashboard
+- Dashboard bilingual labels are being corrected page-by-page.
+- Dashboard must not show Arabic text in English mode.
+- Dashboard must not show English UI labels in Arabic mode.
+- Dashboard statuses must use centralized `statusLabel(status, locale)`.
+
+### Purchase Request Create
+- PR create page is being compacted.
+- Header date fields are smaller and closer.
+- Line items should be compact one-row layout on desktop.
+- Line remarks removed from line UI.
+- Item/vendor suggestions show only after typing.
+- Warehouse remains empty initially.
+- Warehouse is searchable; on focus it shows existing warehouses from the system.
+- Attachments changed to modern drag-and-drop.
+
+### PR / PO Details
+- Workflow steppers must use one shared modern `WorkflowStepper` component everywhere.
+- Workflow connectors/arrows use theme color and motion.
+- Arabic RTL workflow layout must be corrected:
+  - first logical step appears on the right, arrows point left.
+- English LTR workflow layout:
+  - first logical step appears on the left, arrows point right.
+- Approval History timeline must move dots/line to the right in Arabic RTL and left in English LTR.
+- Attachment tabs must use modern drag-and-drop upload.
+- Attachments, comments, and history loading states must use `PortalLoader`.
+- Arabic attachment filenames must display correctly using `originalFileName` / `fileName`, not sanitized S3 key.
+
+### Approval Pages
+- PR approval page buttons must show spinner/loading on Approve or Reject.
+- PO approval page buttons must show spinner/loading on Approve or Reject.
+- Double submit must be prevented.
+- Approval attachments must use staged drag-and-drop upload.
+- Approval action runs first; attachments upload after approval succeeds.
+- Attachment upload failure must not roll back approval.
+
+### Purchase Orders
+- PO workflow must use the same modern `WorkflowStepper`.
+- PO workflow Arabic RTL layout must be fixed.
+- PO edit form should match compact PR line-item design.
+- PO line items should appear as compact one-row layout on desktop.
+- Create PO from PR page must hide PRs that already have a portal PO.
+- Vendor field when creating PO from PR must show searchable SAP vendor suggestions.
+- Creating PO button must show loading and prevent double submit.
+
+### Navigation
+- Sidebar active route must use most-specific route matching.
+- `/purchase-requests/approved-for-po` should only highlight PRs Ready for PO, not Purchase Requests too.
+- Sidebar navigation should show immediate `PortalLoader` feedback when changing pages.
+- Clicking the active route should not start navigation loading.
+
+---
+
+## Current Known Follow-up Areas
+
+- Continue page-by-page bilingual cleanup until no mixed Arabic/English UI text remains.
+- Finish modernizing PO edit form.
+- Confirm all workflow steppers use shared `WorkflowStepper`.
+- Confirm all attachment areas use shared `AttachmentDropzone`.
+- Confirm all tab loading states use `PortalLoader`.
+- Confirm Arabic filenames display correctly after upload.
+- Confirm sidebar route loading is smooth and not duplicated.
+- Confirm no hardcoded light/dark colors remain.
+- Run final UAT workflow after UI stabilization.
+
+---
+
+## Important Rules Still Active
+
+- Do not change SAP PR creation payload.
+- Do not change SAP PO creation payload.
+- SAP PO remains standalone, not based on PR BaseEntry.
+- SAP PR is updated/commented and closed after standalone PO creation.
+- APRI is created from SAP PO using BaseType 22.
+- Do not change approval workflow logic.
+- Do not change duplicate guards.
+- Do not change database models unless required for safe UI metadata such as `originalFileName`.
+- Email sending remains non-blocking.
+- SAP duplicate guards remain enforced.
 
 ---
 
