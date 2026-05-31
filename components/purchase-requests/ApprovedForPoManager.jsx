@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
-import { PortalLoader, AnimatedStatusBadge } from '@/components/ui';
+import VendorSelect from '@/components/lookups/VendorSelect';
+import { PortalLoader, AnimatedStatusBadge, Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 
 function formatTemplate(template, vars) {
@@ -14,13 +15,15 @@ function formatTemplate(template, vars) {
 }
 
 export default function ApprovedForPoManager() {
-  const { pr } = useI18n();
+  const { pr, po: poI18n } = useI18n();
   const t = pr.approvedForPo;
+  const c = poI18n.create;
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [vendor, setVendor] = useState('');
+  const [vendorLabel, setVendorLabel] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -48,11 +51,13 @@ export default function ApprovedForPoManager() {
     const defaultVendor =
       selected.pendingVendors?.[0] || selected.suggestedVendors?.[0] || '';
     setVendor(defaultVendor);
+    setVendorLabel(defaultVendor);
   }, [selectedId, selected]);
 
   async function handleCreatePo() {
+    if (submitting) return;
     if (!selectedId || !vendor.trim()) {
-      setError(t.selectPrAndVendor);
+      setError(c.vendorRequired);
       return;
     }
     setSubmitting(true);
@@ -198,29 +203,37 @@ export default function ApprovedForPoManager() {
                   </div>
                 )}
                 <label className="block text-sm">
-                  <span className="form-label">{t.vendorLabel}</span>
-                  <input
-                    className="input mt-1 w-full"
-                    value={vendor}
-                    list="vendor-suggestions"
-                    placeholder={t.vendorPlaceholder}
-                    onChange={(e) => setVendor(e.target.value)}
-                    disabled={submitting}
-                  />
-                  <datalist id="vendor-suggestions">
-                    {(selected.pendingVendors || selected.suggestedVendors || []).map((v) => (
-                      <option key={v} value={v} />
-                    ))}
-                  </datalist>
+                  <span className="form-label">{c.vendor}</span>
+                  <div className="mt-1">
+                    <VendorSelect
+                      loadAllOnFocus
+                      valueCode={vendor}
+                      valueLabel={vendorLabel}
+                      disabled={submitting}
+                      placeholder={c.searchVendor}
+                      emptyMessage={c.noVendorsFound}
+                      loadingMessage={c.loadingVendors}
+                      failedMessage={c.failedLoadVendors}
+                      inputClassName="input w-full"
+                      debounceMs={250}
+                      listLimit={100}
+                      onSelect={(code, label) => {
+                        setVendor(code);
+                        setVendorLabel(label || code);
+                      }}
+                    />
+                  </div>
                 </label>
-                <button
+                <Button
                   type="button"
-                  className="btn-primary w-full"
+                  variant="primary"
+                  className="w-full"
+                  loading={submitting}
                   disabled={submitting || !vendor.trim()}
                   onClick={handleCreatePo}
                 >
-                  {submitting ? t.creating : t.createButton}
-                </button>
+                  {submitting ? c.creatingPurchaseOrder : c.createPurchaseOrder}
+                </Button>
               </>
             )}
           </div>
