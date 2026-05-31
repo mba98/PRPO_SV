@@ -6,12 +6,14 @@ import { useThemeStore } from '@/stores/themeStore';
 import { useI18n } from '@/lib/hooks/useI18n';
 
 export default function AccentPalette({ className = '' }) {
-  const { common } = useI18n();
+  const { common, locale } = useI18n();
   const accent = useThemeStore((s) => s.accent);
   const setAccent = useThemeStore((s) => s.setAccent);
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const titleId = useId();
+
+  const currentHex = ACCENT_PALETTE.find((p) => p.id === accent)?.hex || '#3b82f6';
 
   useEffect(() => {
     if (!open) return undefined;
@@ -35,7 +37,7 @@ export default function AccentPalette({ className = '' }) {
     <div ref={rootRef} className={`relative ${className}`.trim()}>
       <button
         type="button"
-        className="topbar-control-accent"
+        className="topbar-icon-btn topbar-icon-btn-accent"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="dialog"
@@ -43,36 +45,36 @@ export default function AccentPalette({ className = '' }) {
         title={common.accentPaletteTitle}
       >
         <span
-          className="h-5 w-5 rounded-full border-2 border-border shadow-inner"
-          style={{ backgroundColor: ACCENT_PALETTE.find((p) => p.id === accent)?.hex || '#3b82f6' }}
+          className="h-4 w-4 shrink-0 rounded-full border border-border shadow-sm"
+          style={{ backgroundColor: currentHex }}
           aria-hidden
         />
       </button>
       {open && (
-        <div
-          className="accent-popover"
-          role="dialog"
-          aria-labelledby={titleId}
-        >
-          <p id={titleId} className="accent-popover-title">
+        <div className="accent-popover-card" role="dialog" aria-labelledby={titleId}>
+          <p id={titleId} className="accent-popover-heading">
             {common.accentPaletteTitle}
           </p>
           <div className="accent-palette-row" role="listbox" aria-label={common.accentPaletteTitle}>
-            {ACCENT_PALETTE.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                role="option"
-                aria-selected={accent === item.id}
-                title={item.hex}
-                className={`accent-swatch ${accent === item.id ? 'accent-swatch-selected' : ''}`}
-                style={{ '--color': item.hex }}
-                onClick={() => {
-                  setAccent(item.id);
-                  setOpen(false);
-                }}
-              />
-            ))}
+            {ACCENT_PALETTE.map((item) => {
+              const tooltipLabel = locale === 'en' ? item.labelEn : item.labelAr;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="option"
+                  aria-selected={accent === item.id}
+                  data-label={tooltipLabel}
+                  title={item.hex}
+                  className={`accent-color-item ${accent === item.id ? 'accent-color-item-selected' : ''}`}
+                  style={{ '--color': item.hex }}
+                  onClick={() => {
+                    setAccent(item.id);
+                    setOpen(false);
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
       )}

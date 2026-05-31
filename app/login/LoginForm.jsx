@@ -52,7 +52,7 @@ export default function LoginForm() {
     <div className="login-page">
       <div className="absolute end-4 top-4 flex items-center gap-2 sm:end-6 sm:top-6">
         <SunMoonToggle />
-        <LanguageSelector compact />
+        <LanguageSelector />
       </div>
       <div className="login-card">
         <header className="login-card-header">

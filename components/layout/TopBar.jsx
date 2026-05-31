@@ -38,11 +38,11 @@ export default function TopBar({ user, onMenuClick }) {
           )}
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="topbar-controls">
         <AccentPalette />
         <SunMoonToggle />
-        <LanguageSelector compact />
-        <Button variant="secondary" onClick={handleLogout}>
+        <LanguageSelector />
+        <Button variant="secondary" className="topbar-signout-btn" onClick={handleLogout}>
           {common.signOut}
         </Button>
       </div>

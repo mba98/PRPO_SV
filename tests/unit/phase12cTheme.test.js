@@ -51,14 +51,15 @@ describe('Phase 12C — light/dark, accent palette, login theme', () => {
     expect(src).toContain('switchToLightMode');
   });
 
-  it('AccentPalette includes all 10 colors with CSS variable --color', () => {
+  it('AccentPalette includes rectangular items with CSS variable --color', () => {
     expect(ACCENT_PALETTE).toHaveLength(10);
     const src = fs.readFileSync(
       path.resolve(process.cwd(), 'components/ui/AccentPalette.jsx'),
       'utf8',
     );
     expect(src).toContain("'--color'");
-    expect(src).toContain('ACCENT_PALETTE');
+    expect(src).toContain('accent-color-item');
+    expect(src).not.toContain('accent-swatch');
     expect(ACCENT_PALETTE.some((p) => p.hex === '#e11d48')).toBe(true);
   });
 
@@ -114,14 +115,16 @@ describe('Phase 12C — light/dark, accent palette, login theme', () => {
     expect(css).toContain("[data-theme='light']");
   });
 
-  it('LanguageSelector supports Arabic and English pills', () => {
+  it('LanguageSelector uses compact AR/EN icon toggle', () => {
     const src = fs.readFileSync(
       path.resolve(process.cwd(), 'components/ui/LanguageSelector.jsx'),
       'utf8',
     );
-    expect(src).toContain("setLocale('ar')");
-    expect(src).toContain("setLocale('en')");
-    expect(src).toContain('lang-pill-active');
+    expect(src).toContain('topbar-icon-btn');
+    expect(src).toContain("'AR'");
+    expect(src).toContain("'EN'");
+    expect(src).toContain('switchToEnglish');
+    expect(src).toContain('switchToArabic');
   });
 
   it('Arabic sets dir rtl and English sets dir ltr', () => {

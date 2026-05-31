@@ -5,11 +5,11 @@ import { getDictionary, getDir, navLabel, statusLabel, LOCALE_STORAGE_KEY } from
 import { ACCENT_THEMES } from '@/lib/theme/themes';
 
 describe('Phase 12B — HRMS design system and bilingual UI', () => {
-  it('LanguageSelector component exists', () => {
+  it('LanguageSelector component exists with AR/EN toggle', () => {
     const src = fs.readFileSync(path.resolve(process.cwd(), 'components/ui/LanguageSelector.jsx'), 'utf8');
     expect(src).toContain('setLocale');
-    expect(src).toContain('ar');
-    expect(src).toContain('en');
+    expect(src).toContain("'AR'");
+    expect(src).toContain("'EN'");
   });
 
   it('language store uses procurement-locale key', () => {

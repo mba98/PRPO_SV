@@ -14,7 +14,7 @@ export default function SunMoonToggle({ className = '' }) {
   return (
     <button
       type="button"
-      className={`sun-moon-toggle ${className}`.trim()}
+      className={`topbar-icon-btn sun-moon-toggle ${className}`.trim()}
       onClick={toggleMode}
       aria-label={ariaLabel}
       aria-pressed={isDark}
