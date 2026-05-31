@@ -17,6 +17,55 @@ describe('Layout shell — logos, sidebar identity, quick actions', () => {
     expect(src).toContain('QuickActionsMenu');
   });
 
+  it('TopBar locks SPC left and SV right regardless of locale', () => {
+    const src = fs.readFileSync(
+      path.resolve(process.cwd(), 'components/layout/TopBar.jsx'),
+      'utf8',
+    );
+    expect(src).toContain('dir="ltr"');
+    expect(src).toContain('topbar-logo-left');
+    expect(src).toContain('topbar-logo-right');
+    expect(src).toContain('topbar-logo-center');
+    expect(src).toMatch(/brand="spc"/);
+    expect(src).toMatch(/brand="sv"/);
+    const spcIdx = src.indexOf('brand="spc"');
+    const svIdx = src.indexOf('brand="sv"');
+    const leftIdx = src.indexOf('topbar-logo-left');
+    const rightIdx = src.indexOf('topbar-logo-right');
+    expect(spcIdx).toBeGreaterThan(leftIdx);
+    expect(svIdx).toBeGreaterThan(rightIdx);
+    expect(src).not.toContain('flex-row-reverse');
+    expect(src).not.toContain('justify-between');
+  });
+
+  it('QuickActionsMenu trigger is centered with compact popover', () => {
+    const topBar = fs.readFileSync(
+      path.resolve(process.cwd(), 'components/layout/TopBar.jsx'),
+      'utf8',
+    );
+    expect(topBar).toContain('topbar-logo-center');
+    const quick = fs.readFileSync(
+      path.resolve(process.cwd(), 'components/layout/QuickActionsMenu.jsx'),
+      'utf8',
+    );
+    expect(quick).toContain('quick-actions-menu');
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
+    expect(css).toContain('.quick-actions-popover');
+    expect(css).toContain('left-1/2');
+    expect(css).toContain('-translate-x-1/2');
+    expect(css).toContain('w-[220px]');
+    expect(css).not.toContain('min-w-[260px]');
+  });
+
+  it('accent palette uses compact dimensions and hover scale', () => {
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
+    expect(css).toMatch(/\.accent-color-item\s*\{[^}]*width:\s*24px/s);
+    expect(css).toMatch(/\.accent-color-item\s*\{[^}]*height:\s*32px/s);
+    expect(css).toContain('transform: scale(1.25)');
+    expect(css).toContain('transform: scale(1.12)');
+    expect(css).toContain('transform: scale(1.06)');
+  });
+
   it('Sidebar renders identity and sign out at bottom', () => {
     const src = fs.readFileSync(
       path.resolve(process.cwd(), 'components/layout/Sidebar.jsx'),

@@ -194,19 +194,23 @@
   }
 
   .quick-actions-popover {
-    @apply absolute end-0 top-full z-50 mt-2 min-w-[260px] rounded-3xl border border-border bg-card p-4 text-card-foreground shadow-2xl backdrop-blur-md;
+    @apply absolute left-1/2 top-full z-50 mt-2 w-[220px] max-w-[240px] -translate-x-1/2 rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-xl backdrop-blur-md;
   }
 
   .quick-actions-popover-title {
-    @apply mb-3 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground;
+    @apply mb-2 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground;
   }
 
   .quick-actions-popover-body {
-    @apply flex flex-col gap-4;
+    @apply flex flex-col gap-2;
+  }
+
+  .quick-actions-popover .topbar-icon-btn {
+    @apply h-9 w-9 rounded-xl sm:h-10 sm:w-10;
   }
 
   .quick-actions-row {
-    @apply flex flex-col gap-2;
+    @apply flex flex-col gap-1.5;
   }
 
   .quick-actions-row--center {
@@ -259,8 +263,8 @@
   .accent-color-item {
     position: relative;
     flex-shrink: 0;
-    width: 32px;
-    height: 40px;
+    width: 24px;
+    height: 32px;
     border: none;
     outline: none;
     cursor: pointer;
@@ -273,7 +277,7 @@
     content: '';
     inset: 0;
     width: 32px;
-    height: 40px;
+    height: 32px;
     background-color: var(--color);
     border-radius: 6px;
     transform: scale(1);
@@ -285,7 +289,7 @@
     position: absolute;
     content: attr(data-label);
     left: 50%;
-    bottom: 52px;
+    bottom: 44px;
     font-size: 8px;
     line-height: 12px;
     transform: translateX(-50%);
@@ -302,7 +306,7 @@
   }
 
   .accent-color-item:hover {
-    transform: scale(1.5);
+    transform: scale(1.25);
     z-index: 50;
   }
 
@@ -316,22 +320,22 @@
   }
 
   .accent-color-item:hover + .accent-color-item {
-    transform: scale(1.3);
+    transform: scale(1.12);
     z-index: 40;
   }
 
   .accent-color-item:hover + .accent-color-item + .accent-color-item {
-    transform: scale(1.15);
+    transform: scale(1.06);
     z-index: 30;
   }
 
   .accent-color-item:has(+ .accent-color-item:hover) {
-    transform: scale(1.3);
+    transform: scale(1.12);
     z-index: 40;
   }
 
   .accent-color-item:has(+ .accent-color-item + .accent-color-item:hover) {
-    transform: scale(1.15);
+    transform: scale(1.06);
     z-index: 30;
   }
 

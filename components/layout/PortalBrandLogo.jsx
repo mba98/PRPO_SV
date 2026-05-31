@@ -10,7 +10,7 @@ export default function PortalBrandLogo({ brand, className = '', priority = fals
 
   return (
     <div
-      className={`flex h-8 shrink-0 items-center sm:h-10 lg:h-11 ${className}`.trim()}
+      className={`flex h-7 shrink-0 items-center sm:h-9 lg:h-10 ${className}`.trim()}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -19,7 +19,7 @@ export default function PortalBrandLogo({ brand, className = '', priority = fals
         width={140}
         height={44}
         loading={priority ? 'eager' : 'lazy'}
-        className="h-8 w-auto max-w-[8.5rem] object-contain sm:h-10 sm:max-w-[9.5rem] lg:h-11 lg:max-w-[10.5rem]"
+        className="h-7 w-auto max-w-[7rem] object-contain sm:h-9 sm:max-w-[8.5rem] lg:h-10 lg:max-w-[9.5rem]"
       />
     </div>
   );

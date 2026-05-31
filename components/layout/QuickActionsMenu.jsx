@@ -31,7 +31,7 @@ export default function QuickActionsMenu() {
   }, [open]);
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="quick-actions-menu relative flex justify-center">
       <button
         type="button"
         className={`quick-menu-toggle ${open ? 'quick-menu-toggle--open' : ''}`}
