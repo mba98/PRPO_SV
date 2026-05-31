@@ -4,8 +4,18 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { PortalLoader, AnimatedStatusBadge } from '@/components/ui';
+import { useI18n } from '@/lib/hooks/useI18n';
+
+function formatTemplate(template, vars) {
+  return Object.entries(vars).reduce(
+    (str, [key, value]) => str.replaceAll(`{${key}}`, String(value ?? '')),
+    template,
+  );
+}
 
 export default function ApprovedForPoManager() {
+  const { pr } = useI18n();
+  const t = pr.approvedForPo;
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,7 +24,7 @@ export default function ApprovedForPoManager() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
-  const selected = items.find((pr) => pr.id === selectedId);
+  const selected = items.find((prItem) => prItem.id === selectedId);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -24,10 +34,10 @@ export default function ApprovedForPoManager() {
       setItems(json.data);
       setSelectedId((prev) => prev || json.data[0]?.id || '');
     } else {
-      setError(json.message || 'Failed to load');
+      setError(json.message || t.loadError);
     }
     setLoading(false);
-  }, []);
+  }, [t.loadError]);
 
   useEffect(() => {
     load();
@@ -36,15 +46,13 @@ export default function ApprovedForPoManager() {
   useEffect(() => {
     if (!selected) return;
     const defaultVendor =
-      selected.pendingVendors?.[0] ||
-      selected.suggestedVendors?.[0] ||
-      '';
+      selected.pendingVendors?.[0] || selected.suggestedVendors?.[0] || '';
     setVendor(defaultVendor);
   }, [selectedId, selected]);
 
   async function handleCreatePo() {
     if (!selectedId || !vendor.trim()) {
-      setError('Select a PR and enter a vendor code');
+      setError(t.selectPrAndVendor);
       return;
     }
     setSubmitting(true);
@@ -56,16 +64,15 @@ export default function ApprovedForPoManager() {
     });
     if (json.success) {
       const poId = json.data.po?.id;
-      setMessage(
-        `Portal PO ${json.data.po?.portalPONumber} created — pending Project Manager approval.`,
-      );
+      const poNumber = json.data.po?.portalPONumber;
+      setMessage(formatTemplate(t.poCreatedSuccess, { number: poNumber }));
       if (poId) {
         window.location.href = `/purchase-orders/${poId}`;
         return;
       }
       await load();
     } else {
-      setError(json.message || 'PO creation failed');
+      setError(json.message || t.createError);
     }
     setSubmitting(false);
   }
@@ -73,76 +80,84 @@ export default function ApprovedForPoManager() {
   return (
     <div className="space-y-6">
       {error && (
-        <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+        <p
+          role="alert"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
           {error}
         </p>
       )}
       {message && (
-        <p className="rounded-md bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
+        <p
+          role="status"
+          className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-200"
+        >
           {message}
         </p>
       )}
 
       {loading ? (
-        <div className="flex justify-center py-12">
+        <div className="flex min-h-[200px] items-center justify-center">
           <PortalLoader />
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 overflow-x-auto rounded-lg border border-border bg-card">
+          <div className="lg:col-span-2 overflow-x-auto rounded-3xl border border-border bg-card shadow-xl shadow-black/5">
             <table className="min-w-full text-sm">
-              <thead className="bg-muted text-left text-xs font-semibold uppercase text-muted-foreground">
+              <thead className="bg-muted text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 w-10" />
-                  <th className="px-4 py-3">PR Number</th>
-                  <th className="px-4 py-3">SAP PR</th>
-                  <th className="px-4 py-3">Department</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">SAP PO</th>
+                  <th className="w-10 px-4 py-3" />
+                  <th className="px-4 py-3">{t.colPrNumber}</th>
+                  <th className="px-4 py-3">{t.colSapPr}</th>
+                  <th className="px-4 py-3">{t.colDepartment}</th>
+                  <th className="px-4 py-3">{t.colStatus}</th>
+                  <th className="px-4 py-3">{t.colSapPo}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {items.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                      No PRs ready for PO creation
+                      {t.emptyList}
                     </td>
                   </tr>
                 )}
-                {items.map((pr) => (
+                {items.map((prItem) => (
                   <tr
-                    key={pr.id}
-                    className={`cursor-pointer hover:bg-muted ${selectedId === pr.id ? 'bg-primary/10 ring-1 ring-primary' : ''}`}
-                    onClick={() => setSelectedId(pr.id)}
+                    key={prItem.id}
+                    className={`cursor-pointer transition-colors hover:bg-muted/60 ${
+                      selectedId === prItem.id ? 'bg-primary/10 ring-1 ring-primary' : ''
+                    }`}
+                    onClick={() => setSelectedId(prItem.id)}
                   >
                     <td className="px-4 py-3">
                       <input
                         type="radio"
                         name="pr-select"
-                        checked={selectedId === pr.id}
-                        onChange={() => setSelectedId(pr.id)}
+                        checked={selectedId === prItem.id}
+                        onChange={() => setSelectedId(prItem.id)}
+                        aria-label={prItem.portalPRNumber}
                       />
                     </td>
                     <td className="px-4 py-3">
                       <Link
-                        href={`/purchase-requests/${pr.id}`}
+                        href={`/purchase-requests/${prItem.id}`}
                         className="font-medium text-primary hover:underline"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {pr.portalPRNumber}
+                        {prItem.portalPRNumber}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">{pr.sapPRDocNum || pr.sapPRDocEntry}</td>
-                    <td className="px-4 py-3">{pr.department}</td>
+                    <td className="px-4 py-3">{prItem.sapPRDocNum || prItem.sapPRDocEntry}</td>
+                    <td className="px-4 py-3">{prItem.department || '—'}</td>
                     <td className="px-4 py-3">
-                      <AnimatedStatusBadge status={pr.status} />
+                      <AnimatedStatusBadge status={prItem.status} />
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {pr.sapPODocNum || '—'}
-                      {pr.pendingVendors?.length > 0 && (
-                        <span className="ml-1 text-xs text-amber-700">
-                          ({pr.pendingVendors.length} vendor
-                          {pr.pendingVendors.length > 1 ? 's' : ''} pending)
+                      {prItem.sapPODocNum || '—'}
+                      {prItem.pendingVendors?.length > 0 && (
+                        <span className="ms-1 text-xs text-amber-700 dark:text-amber-300">
+                          ({formatTemplate(t.vendorsPending, { count: prItem.pendingVendors.length })})
                         </span>
                       )}
                     </td>
@@ -152,41 +167,45 @@ export default function ApprovedForPoManager() {
             </table>
           </div>
 
-          <div className="card space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Create Purchase Order</h2>
-            <p className="text-xs text-muted-foreground">
-              Creates a portal PO for approval. SAP PO is created after Finance approval.
-            </p>
+          <div className="space-y-4 rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5 sm:p-5">
+            <h2 className="text-lg font-semibold text-foreground">{t.createTitle}</h2>
+            <p className="text-xs text-muted-foreground">{t.createHint}</p>
             {!selected ? (
-              <p className="text-sm text-muted-foreground">Select a purchase request from the list.</p>
+              <p className="text-sm text-muted-foreground">{t.selectPr}</p>
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">
-                  PR <strong>{selected.portalPRNumber}</strong> · SAP PR{' '}
-                  <strong>{selected.sapPRDocNum}</strong>
+                  {formatTemplate(t.prLine, {
+                    pr: selected.portalPRNumber,
+                    sap: selected.sapPRDocNum || selected.sapPRDocEntry,
+                  })}
                 </p>
                 {selected.suggestedVendors?.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    Suggested vendors: {selected.suggestedVendors.join(', ')}
+                    {t.suggestedVendors}: {selected.suggestedVendors.join(', ')}
                   </p>
                 )}
                 {selected.existingPOs?.length > 0 && (
-                  <ul className="text-xs text-muted-foreground">
-                    {selected.existingPOs.map((o) => (
-                      <li key={o.id}>
-                        {o.portalPONumber} — {o.vendor} ({o.status})
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="text-xs text-muted-foreground">
+                    <p className="font-semibold text-foreground">{t.existingPos}</p>
+                    <ul className="mt-1 space-y-0.5">
+                      {selected.existingPOs.map((o) => (
+                        <li key={o.id}>
+                          {o.portalPONumber} — {o.vendor} ({o.status})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
                 <label className="block text-sm">
-                  <span className="text-muted-foreground">Vendor (SAP CardCode)</span>
+                  <span className="form-label">{t.vendorLabel}</span>
                   <input
-                    className="input-field mt-1"
+                    className="input mt-1 w-full"
                     value={vendor}
                     list="vendor-suggestions"
-                    placeholder="e.g. V10000"
+                    placeholder={t.vendorPlaceholder}
                     onChange={(e) => setVendor(e.target.value)}
+                    disabled={submitting}
                   />
                   <datalist id="vendor-suggestions">
                     {(selected.pendingVendors || selected.suggestedVendors || []).map((v) => (
@@ -194,16 +213,14 @@ export default function ApprovedForPoManager() {
                     ))}
                   </datalist>
                 </label>
-                <div className="flex flex-col gap-2">
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    disabled={submitting || !vendor.trim()}
-                    onClick={handleCreatePo}
-                  >
-                    {submitting ? 'Creating…' : 'Create purchase order'}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="btn-primary w-full"
+                  disabled={submitting || !vendor.trim()}
+                  onClick={handleCreatePo}
+                >
+                  {submitting ? t.creating : t.createButton}
+                </button>
               </>
             )}
           </div>
