@@ -40,9 +40,9 @@ describe('Phase 12 — Arabic RTL and theme UI', () => {
   });
 
   it('status labels map to Arabic', () => {
-    expect(statusLabel('Draft')).toBe('مسودة');
-    expect(statusLabel('Created in SAP')).toBe('تم الإنشاء في SAP');
-    expect(statusLabel('Pending Finance Approval')).toContain('المالية');
+    expect(statusLabel('Draft', 'ar')).toBe('مسودة');
+    expect(statusLabel('Created in SAP', 'ar')).toBe('تم الإنشاء في SAP');
+    expect(statusLabel('Pending Finance Approval', 'ar')).toContain('المالية');
   });
 
   it('login form uses bilingual i18n hook', () => {

@@ -167,7 +167,7 @@ describe('Phase 12C — light/dark, accent palette, login theme', () => {
     expect(css).toContain('text-foreground');
   });
 
-  it('default accent is blue for backward compatibility with indigo migration', () => {
-    expect(DEFAULT_ACCENT).toBe('blue');
+  it('default accent is yellow for first-load theme', () => {
+    expect(DEFAULT_ACCENT).toBe('yellow');
   });
 });

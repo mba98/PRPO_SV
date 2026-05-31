@@ -32,18 +32,18 @@
 
   .dark,
   [data-theme='dark'] {
-    --background: #0b1220;
+    --background: #000000;
     --foreground: #f1f5f9;
-    --card: #111827;
+    --card: #111111;
     --card-foreground: #f1f5f9;
-    --popover: #111827;
+    --popover: #111111;
     --popover-foreground: #f1f5f9;
-    --muted: #1f2937;
-    --muted-foreground: #94a3b8;
+    --muted: #1a1a1a;
+    --muted-foreground: #a3a3a3;
     --destructive: #e11d48;
     --destructive-foreground: #ffffff;
-    --border: #1e293b;
-    --input: #334155;
+    --border: #262626;
+    --input: #333333;
     --ring: var(--accent-color, var(--brand-600));
   }
 

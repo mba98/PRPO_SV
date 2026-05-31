@@ -7,7 +7,8 @@ import { useUiTransitionStore } from '@/stores/uiTransitionStore';
 function readStoredLocale() {
   if (typeof window === 'undefined') return DEFAULT_LOCALE;
   const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-  return stored === 'en' ? 'en' : 'ar';
+  if (stored === 'en' || stored === 'ar') return stored;
+  return DEFAULT_LOCALE;
 }
 
 function applyLocaleToDocument(locale) {
