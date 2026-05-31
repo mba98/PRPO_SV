@@ -3,10 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { apiFetch } from '@/lib/apiClient';
-import {
-  AnimatedEmptyState,
-  AnimatedSkeletonLoader,
-} from '@/components/ui';
+import { AnimatedEmptyState, PortalLoader } from '@/components/ui';
 import { COMMENT_MAX_LENGTH } from '@/lib/validators/comment';
 
 export default function CommentsPanel({
@@ -139,7 +136,9 @@ export default function CommentsPanel({
       )}
 
       {loading ? (
-        <AnimatedSkeletonLoader rows={3} />
+        <div className="flex min-h-[180px] items-center justify-center">
+          <PortalLoader />
+        </div>
       ) : items.length === 0 ? (
         <AnimatedEmptyState
           title="No comments yet"

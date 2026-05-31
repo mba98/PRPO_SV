@@ -3,10 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { apiFetch } from '@/lib/apiClient';
-import {
-  AnimatedEmptyState,
-  AnimatedSkeletonLoader,
-} from '@/components/ui';
+import { AnimatedEmptyState, PortalLoader } from '@/components/ui';
 
 const ACTION_TONE = {
   Created: 'bg-muted0',
@@ -51,7 +48,11 @@ export default function ApprovalTimeline({ documentType, documentId }) {
   }, [load]);
 
   if (loading) {
-    return <AnimatedSkeletonLoader variant="timeline" steps={4} />;
+    return (
+      <div className="flex min-h-[180px] items-center justify-center">
+        <PortalLoader />
+      </div>
+    );
   }
 
   if (error) {
