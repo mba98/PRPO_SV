@@ -18,6 +18,7 @@ export { default as LanguageSelector } from './LanguageSelector';
 export { default as ColorModeSelector } from './ColorModeSelector';
 export { default as AccentPalette } from './AccentPalette';
 export { default as SunMoonToggle } from './SunMoonToggle';
+export { default as ThemeTransitionOverlay } from './ThemeTransitionOverlay';
 export { default as AnimatedTabs } from './AnimatedTabs';
 export { default as AnimatedTableContainer } from './AnimatedTableContainer';
 export { default as AnimatedFilterPanel } from './AnimatedFilterPanel';

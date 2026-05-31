@@ -104,7 +104,7 @@
   }
 
   .topbar-icon-btn {
-    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-card text-sm font-black text-primary shadow-sm transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-100;
+    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-card text-sm font-black text-primary shadow-sm transition-all duration-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-100;
   }
 
   .topbar-icon-btn:hover {
@@ -245,60 +245,97 @@
   .accent-color-item-selected::after {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
-    transform: scale(1.08);
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 35%, transparent);
+  }
+
+  .theme-transition-overlay {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+  }
+
+  .theme-transition-overlay--accent {
+    background: radial-gradient(
+      circle at 92% 6%,
+      color-mix(in srgb, var(--primary) 38%, transparent) 0%,
+      transparent 58%
+    );
+  }
+
+  .theme-transition-overlay--mode {
+    background: radial-gradient(
+      circle at 88% 8%,
+      color-mix(in srgb, var(--primary) 28%, transparent) 0%,
+      color-mix(in srgb, var(--background) 40%, transparent) 45%,
+      transparent 72%
+    );
+  }
+
+  .theme-transition-overlay--locale {
+    background: linear-gradient(
+      105deg,
+      color-mix(in srgb, var(--primary) 12%, transparent) 0%,
+      transparent 42%,
+      color-mix(in srgb, var(--primary) 8%, transparent) 100%
+    );
   }
 
   .sun-moon-toggle {
-    @apply relative overflow-hidden p-0 text-primary;
+    @apply relative overflow-hidden p-0;
+    color: var(--primary);
+  }
+
+  .sun-moon-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 30%, transparent);
   }
 
   .sun-moon-toggle-inner {
     @apply relative flex h-full w-full items-center justify-center;
+    color: var(--primary);
   }
 
   .sun-moon-svg {
-    width: 1.35rem;
-    height: 1.35rem;
-    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--primary);
+    display: block;
   }
 
   .sun-moon-body {
     fill: currentColor;
-    color: var(--foreground);
-    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
   }
 
   .sun-moon-rays {
     fill: currentColor;
-    color: var(--primary);
+    opacity: 0.9;
     transform-origin: 12px 12px;
-    transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .sun-moon-mask {
-    fill: var(--background);
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    fill: var(--card);
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  html.dark .sun-moon-rays,
-  [data-theme='dark'] .sun-moon-rays {
+  .sun-moon-toggle--light .sun-moon-mask {
+    transform: translateX(28px);
+  }
+
+  .sun-moon-toggle--dark .sun-moon-rays {
     opacity: 0;
-    transform: scale(0.4) rotate(-90deg);
+    transform: scale(0.35) rotate(-90deg);
   }
 
-  html.dark .sun-moon-body,
-  [data-theme='dark'] .sun-moon-body {
-    transform: translateX(-6px);
+  .sun-moon-toggle--dark .sun-moon-body {
+    transform: translateX(-5px);
   }
 
-  html.dark .sun-moon-mask,
-  [data-theme='dark'] .sun-moon-mask {
-    transform: translateX(14px);
-  }
-
-  html:not(.dark) .sun-moon-mask,
-  [data-theme='light'] .sun-moon-mask {
-    transform: translateX(30px);
+  .sun-moon-toggle--dark .sun-moon-mask {
+    transform: translateX(12px);
   }
 
   .page-shell {

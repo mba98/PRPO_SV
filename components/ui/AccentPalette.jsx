@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ACCENT_PALETTE } from '@/lib/theme/themes';
 import { useThemeStore } from '@/stores/themeStore';
 import { useI18n } from '@/lib/hooks/useI18n';
@@ -9,6 +10,7 @@ export default function AccentPalette({ className = '' }) {
   const { common, locale } = useI18n();
   const accent = useThemeStore((s) => s.accent);
   const setAccent = useThemeStore((s) => s.setAccent);
+  const reduceMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const titleId = useId();
@@ -35,7 +37,7 @@ export default function AccentPalette({ className = '' }) {
 
   return (
     <div ref={rootRef} className={`relative ${className}`.trim()}>
-      <button
+      <motion.button
         type="button"
         className="topbar-icon-btn topbar-icon-btn-accent"
         onClick={() => setOpen((v) => !v)}
@@ -43,13 +45,18 @@ export default function AccentPalette({ className = '' }) {
         aria-haspopup="dialog"
         aria-labelledby={titleId}
         title={common.accentPaletteTitle}
+        animate={reduceMotion ? undefined : { scale: 1 }}
+        whileTap={reduceMotion ? undefined : { scale: 0.95 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
       >
-        <span
+        <motion.span
           className="h-4 w-4 shrink-0 rounded-full border border-border shadow-sm"
           style={{ backgroundColor: currentHex }}
           aria-hidden
+          layout={!reduceMotion}
+          transition={{ duration: 0.3 }}
         />
-      </button>
+      </motion.button>
       {open && (
         <div className="accent-popover-card" role="dialog" aria-labelledby={titleId}>
           <p id={titleId} className="accent-popover-heading">
@@ -58,15 +65,16 @@ export default function AccentPalette({ className = '' }) {
           <div className="accent-palette-row" role="listbox" aria-label={common.accentPaletteTitle}>
             {ACCENT_PALETTE.map((item) => {
               const tooltipLabel = locale === 'en' ? item.labelEn : item.labelAr;
+              const selected = accent === item.id;
               return (
                 <button
                   key={item.id}
                   type="button"
                   role="option"
-                  aria-selected={accent === item.id}
+                  aria-selected={selected}
                   data-label={tooltipLabel}
                   title={item.hex}
-                  className={`accent-color-item ${accent === item.id ? 'accent-color-item-selected' : ''}`}
+                  className={`accent-color-item ${selected ? 'accent-color-item-selected' : ''}`}
                   style={{ '--color': item.hex }}
                   onClick={() => {
                     setAccent(item.id);

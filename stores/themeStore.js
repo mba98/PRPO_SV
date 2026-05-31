@@ -16,6 +16,7 @@ import {
   applyColorModeToDocument,
   normalizeAccentId,
 } from '@/lib/theme/documentTheme';
+import { useUiTransitionStore } from '@/stores/uiTransitionStore';
 
 function readStoredAccent() {
   if (typeof window === 'undefined') return DEFAULT_ACCENT;
@@ -61,16 +62,20 @@ export const useThemeStore = create((set, get) => ({
   setAccent: (accentId) => {
     const id = normalizeAccentId(accentId);
     const resolved = id && ACCENT_CSS_VARS[id] ? id : DEFAULT_ACCENT;
+    if (resolved === get().accent) return;
     persistAccent(resolved);
     applyAccentVarsToDocument(resolved, ACCENT_CSS_VARS);
     set({ accent: resolved });
+    useUiTransitionStore.getState().triggerTransition('accent');
   },
 
   setMode: (mode) => {
     const next = mode === 'light' ? 'light' : 'dark';
+    if (next === get().mode) return;
     persistColorMode(next);
     applyColorModeToDocument(next);
     set({ mode: next });
+    useUiTransitionStore.getState().triggerTransition('mode');
   },
 
   /** @alias setMode */

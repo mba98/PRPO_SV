@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useThemeStore } from '@/stores/themeStore';
 import { useLanguageStore } from '@/stores/languageStore';
+import ThemeTransitionOverlay from '@/components/ui/ThemeTransitionOverlay';
 
 export default function AppProviders({ children }) {
   const initTheme = useThemeStore((s) => s.initTheme);
@@ -13,5 +14,10 @@ export default function AppProviders({ children }) {
     initLocale();
   }, [initTheme, initLocale]);
 
-  return children;
+  return (
+    <>
+      <ThemeTransitionOverlay />
+      {children}
+    </>
+  );
 }
