@@ -2,6 +2,16 @@
 
 import { useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
+import { useI18n } from '@/lib/hooks/useI18n';
+import VendorSelect from '@/components/lookups/VendorSelect';
+import WarehouseSelect from '@/components/lookups/WarehouseSelect';
+import ItemSearchInput from '@/components/lookups/ItemSearchInput';
+import { Button, DateInput, FormField, Input } from '@/components/ui';
+
+const COMPACT_INPUT = 'input-field-compact';
+
+const LINE_GRID =
+  'lg:grid-cols-[minmax(5.5rem,0.85fr)_minmax(6rem,1.15fr)_4.25rem_5rem_4rem_5rem_4.5rem]';
 
 function toDateInput(value) {
   if (!value) return '';
@@ -17,8 +27,15 @@ function recalcLineTotal(line) {
 }
 
 export default function PoEditForm({ po, onSaved, onCancel }) {
+  const { po: poI18n } = useI18n();
+  const t = poI18n.edit;
+  const c = poI18n.create;
+
+  const vendorEditable = po.canEdit !== false;
+
   const [header, setHeader] = useState({
     vendor: po.vendor || '',
+    vendorLabel: po.vendor || '',
     postingDate: toDateInput(po.postingDate),
     documentDate: toDateInput(po.documentDate),
     requiredDate: toDateInput(po.requiredDate),
@@ -35,6 +52,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
       unitPrice: line.unitPrice ?? '',
       lineTotal: line.lineTotal ?? recalcLineTotal(line),
       warehouseCode: line.warehouseCode || '',
+      warehouseLabel: line.warehouseCode || '',
       uomCode: line.uomCode || line.uom || '',
       remarks: line.remarks || '',
     })),
@@ -55,6 +73,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (saving) return;
     setSaving(true);
     setError('');
 
@@ -96,171 +115,220 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card space-y-6">
-      <h2 className="text-lg font-semibold text-foreground">Edit purchase order</h2>
-      {error && (
-        <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-          {error}
-        </p>
-      )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <section className="rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5 sm:p-5">
+        <h2 className="text-base font-bold text-foreground">{t.title}</h2>
+        {error && (
+          <p
+            className="mt-3 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <label className="text-sm">
-          <span className="text-muted-foreground">Vendor (CardCode) *</span>
-          <input
-            className="input-field mt-1"
-            required
-            value={header.vendor}
-            onChange={(e) => setHeader((h) => ({ ...h, vendor: e.target.value }))}
-          />
-        </label>
-        <label className="text-sm">
-          <span className="text-muted-foreground">Exchange rate (DocRate)</span>
-          <input
-            type="number"
-            min="0"
-            step="any"
-            className="input-field mt-1"
-            placeholder="Optional"
-            value={header.docRate}
-            onChange={(e) => setHeader((h) => ({ ...h, docRate: e.target.value }))}
-          />
-        </label>
-        <label className="text-sm">
-          <span className="text-muted-foreground">Posting date</span>
-          <input
-            type="date"
-            className="input-field mt-1"
-            value={header.postingDate}
-            onChange={(e) => setHeader((h) => ({ ...h, postingDate: e.target.value }))}
-          />
-        </label>
-        <label className="text-sm">
-          <span className="text-muted-foreground">Document date</span>
-          <input
-            type="date"
-            className="input-field mt-1"
-            value={header.documentDate}
-            onChange={(e) => setHeader((h) => ({ ...h, documentDate: e.target.value }))}
-          />
-        </label>
-        <label className="text-sm">
-          <span className="text-muted-foreground">Required date</span>
-          <input
-            type="date"
-            className="input-field mt-1"
-            value={header.requiredDate}
-            onChange={(e) => setHeader((h) => ({ ...h, requiredDate: e.target.value }))}
-          />
-        </label>
-        <label className="text-sm">
-          <span className="text-muted-foreground">Due date</span>
-          <input
-            type="date"
-            className="input-field mt-1"
-            value={header.dueDate}
-            onChange={(e) => setHeader((h) => ({ ...h, dueDate: e.target.value }))}
-          />
-        </label>
-        <label className="text-sm sm:col-span-2 lg:col-span-3">
-          <span className="text-muted-foreground">Remarks</span>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <FormField label={t.vendor} required className="sm:col-span-2 lg:col-span-1">
+            {vendorEditable ? (
+              <VendorSelect
+                loadAllOnFocus
+                valueCode={header.vendor}
+                valueLabel={header.vendorLabel}
+                disabled={saving}
+                placeholder={c.searchVendor}
+                emptyMessage={c.noVendorsFound}
+                loadingMessage={c.loadingVendors}
+                failedMessage={c.failedLoadVendors}
+                inputClassName={COMPACT_INPUT}
+                onSelect={(code, label) =>
+                  setHeader((h) => ({
+                    ...h,
+                    vendor: code,
+                    vendorLabel: label || code,
+                  }))
+                }
+              />
+            ) : (
+              <Input className={COMPACT_INPUT} readOnly value={header.vendor} />
+            )}
+          </FormField>
+          <FormField label={t.docRate}>
+            <Input
+              type="number"
+              min="0"
+              step="any"
+              className={COMPACT_INPUT}
+              value={header.docRate}
+              onChange={(e) => setHeader((h) => ({ ...h, docRate: e.target.value }))}
+            />
+          </FormField>
+          <FormField label={t.postingDate}>
+            <DateInput
+              className={COMPACT_INPUT}
+              value={header.postingDate}
+              onChange={(e) => setHeader((h) => ({ ...h, postingDate: e.target.value }))}
+            />
+          </FormField>
+          <FormField label={t.documentDate}>
+            <DateInput
+              className={COMPACT_INPUT}
+              value={header.documentDate}
+              onChange={(e) => setHeader((h) => ({ ...h, documentDate: e.target.value }))}
+            />
+          </FormField>
+          <FormField label={t.dueDate}>
+            <DateInput
+              className={COMPACT_INPUT}
+              value={header.dueDate}
+              onChange={(e) => setHeader((h) => ({ ...h, dueDate: e.target.value }))}
+            />
+          </FormField>
+          <FormField label={t.requiredDate}>
+            <DateInput
+              className={COMPACT_INPUT}
+              value={header.requiredDate}
+              onChange={(e) => setHeader((h) => ({ ...h, requiredDate: e.target.value }))}
+            />
+          </FormField>
+        </div>
+        <FormField label={t.remarks} className="mt-3">
           <textarea
-            className="input-field mt-1"
+            className={`${COMPACT_INPUT} max-h-24 resize-y`}
             rows={2}
             value={header.remarks}
             onChange={(e) => setHeader((h) => ({ ...h, remarks: e.target.value }))}
           />
-        </label>
-      </div>
+        </FormField>
+      </section>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead className="text-left text-xs uppercase text-muted-foreground">
-            <tr>
-              <th className="pb-2 pr-3">Item</th>
-              <th className="pb-2 pr-3">Qty</th>
-              <th className="pb-2 pr-3">Unit price</th>
-              <th className="pb-2 pr-3">UoM code</th>
-              <th className="pb-2 pr-3">Warehouse</th>
-              <th className="pb-2 pr-3">Total</th>
-              <th className="pb-2">Remarks</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {lines.map((line, idx) => (
-              <tr key={line._id || idx}>
-                <td className="py-2 pr-3">
-                  <input
-                    className="input-field mb-1"
-                    value={line.itemCode}
-                    required
-                    onChange={(e) => updateLine(idx, { itemCode: e.target.value })}
+      <section className="rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5 sm:p-5">
+        <h2 className="text-base font-bold text-foreground">{t.lineItems}</h2>
+
+        <div
+          className={`mt-3 hidden gap-2 px-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground lg:grid ${LINE_GRID}`}
+        >
+          <span>{t.item}</span>
+          <span>{t.itemName}</span>
+          <span>{t.quantity}</span>
+          <span>{t.unitPrice}</span>
+          <span>{t.uomCode}</span>
+          <span>{t.warehouse}</span>
+          <span>{t.total}</span>
+        </div>
+
+        <div className="mt-2 space-y-2">
+          {lines.map((line, idx) => (
+            <div
+              key={line._id || idx}
+              className="rounded-2xl border border-border bg-muted/20 p-3 text-sm"
+            >
+              <p className="mb-2 font-semibold text-foreground lg:hidden">
+                {t.lineNumber} {idx + 1}
+              </p>
+              <div className={`grid gap-2 sm:grid-cols-2 lg:items-start lg:gap-2 ${LINE_GRID}`}>
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.item}</span>
+                  <ItemSearchInput
+                    value={line}
+                    inputClassName={COMPACT_INPUT}
+                    onSelect={(item) =>
+                      updateLine(idx, {
+                        itemCode: item.itemCode,
+                        itemName: item.itemName,
+                        uomCode: item.uomCode || item.uom || line.uomCode,
+                      })
+                    }
                   />
-                  <input
-                    className="input-field text-xs"
+                </FormField>
+
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
+                    {t.itemName}
+                  </span>
+                  <Input
+                    className={COMPACT_INPUT}
                     value={line.itemName}
-                    placeholder="Item name"
                     onChange={(e) => updateLine(idx, { itemName: e.target.value })}
                   />
-                </td>
-                <td className="py-2 pr-3">
-                  <input
+                </FormField>
+
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
+                    {t.quantity}
+                  </span>
+                  <Input
                     type="number"
                     min="0.01"
                     step="any"
-                    className="input-field"
+                    className={COMPACT_INPUT}
                     required
                     value={line.quantity}
                     onChange={(e) => updateLine(idx, { quantity: e.target.value })}
                   />
-                </td>
-                <td className="py-2 pr-3">
-                  <input
+                </FormField>
+
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
+                    {t.unitPrice}
+                  </span>
+                  <Input
                     type="number"
                     min="0"
                     step="any"
-                    className="input-field"
+                    className={COMPACT_INPUT}
                     required
                     value={line.unitPrice}
                     onChange={(e) => updateLine(idx, { unitPrice: e.target.value })}
                   />
-                </td>
-                <td className="py-2 pr-3">
-                  <input
-                    className="input-field"
+                </FormField>
+
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
+                    {t.uomCode}
+                  </span>
+                  <Input
+                    className={COMPACT_INPUT}
                     value={line.uomCode}
                     onChange={(e) => updateLine(idx, { uomCode: e.target.value })}
                   />
-                </td>
-                <td className="py-2 pr-3">
-                  <input
-                    className="input-field"
-                    value={line.warehouseCode}
-                    onChange={(e) => updateLine(idx, { warehouseCode: e.target.value })}
-                  />
-                </td>
-                <td className="py-2 pr-3">{line.lineTotal || '—'}</td>
-                <td className="py-2">
-                  <input
-                    className="input-field"
-                    value={line.remarks}
-                    onChange={(e) => updateLine(idx, { remarks: e.target.value })}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </FormField>
 
-      <div className="flex gap-2">
-        <button type="submit" className="btn-primary" disabled={saving}>
-          {saving ? 'Saving…' : 'Save changes'}
-        </button>
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
+                    {t.warehouse}
+                  </span>
+                  <WarehouseSelect
+                    valueCode={line.warehouseCode}
+                    valueLabel={line.warehouseLabel}
+                    inputClassName={COMPACT_INPUT}
+                    onSelect={(code, label) =>
+                      updateLine(idx, { warehouseCode: code, warehouseLabel: label })
+                    }
+                  />
+                </FormField>
+
+                <div className="flex items-end lg:mt-0">
+                  <p className="w-full rounded-xl bg-muted/40 px-2 py-2 text-center text-sm font-semibold text-foreground lg:py-2.5">
+                    <span className="lg:hidden text-xs font-normal text-muted-foreground">
+                      {t.total}:{' '}
+                    </span>
+                    {line.lineTotal || '—'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" loading={saving} disabled={saving}>
+          {saving ? t.saving : t.saveChanges}
+        </Button>
         {onCancel && (
-          <button type="button" className="btn-secondary" onClick={onCancel}>
-            Cancel
-          </button>
+          <Button type="button" variant="secondary" disabled={saving} onClick={onCancel}>
+            {t.cancel}
+          </Button>
         )}
       </div>
     </form>

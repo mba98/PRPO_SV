@@ -234,10 +234,7 @@ export default function WorkflowStepper({ steps = [], documentType = 'PR' }) {
 
   return (
     <nav aria-label={wf.progressLabel} className="workflow-stepper">
-      <div
-        className="workflow-stepper-row hidden md:flex md:items-center md:gap-3"
-        dir="ltr"
-      >
+      <div className="workflow-stepper-row hidden md:flex" dir="ltr">
         {visualSteps.map((step, visualIndex) => (
           <Fragment key={step.key}>
             <WorkflowStepCard

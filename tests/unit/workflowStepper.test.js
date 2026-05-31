@@ -80,7 +80,7 @@ describe('WorkflowStepper UI', () => {
     expect(stepper).toContain('workflow-stepper-row');
     expect(stepper).toContain('md:hidden');
     expect(stepper).toContain('hidden md:flex');
-    expect(css).toContain('min-w-[220px]');
+    expect(css).toContain('min-w-[9.5rem]');
   });
 
   it('Arabic and English workflow labels exist', () => {
@@ -125,8 +125,8 @@ describe('WorkflowStepper UI', () => {
     expect(getDictionary('en').workflow.completed).toBe('Completed');
     expect(getDictionary('ar').workflow.current).toBe('الحالية');
     expect(getDictionary('ar').workflow.completed).toBe('مكتملة');
-    expect(getDictionary('en').workflow.poCreated).toBe('PO Created');
-    expect(getDictionary('ar').workflow.poCreated).toContain('PO');
+    expect(getDictionary('en').workflow.poCreated).toBe('Created');
+    expect(getDictionary('ar').workflow.poCreated).toBe('تم الإنشاء');
   });
 });
 
