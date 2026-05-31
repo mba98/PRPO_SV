@@ -46,6 +46,19 @@ describe('Logout confirmation and PortalLoader', () => {
     expect(src).toContain('onConfirm');
     expect(src).toContain('if (loading) return');
     expect(src).toContain('AnimatedModal');
+    expect(src).toContain('placement="top"');
+  });
+
+  it('sign-out modal uses fullscreen portal overlay above page content', () => {
+    const modal = fs.readFileSync(
+      path.resolve(process.cwd(), 'components/ui/AnimatedModal.jsx'),
+      'utf8',
+    );
+    expect(modal).toContain('createPortal');
+    expect(modal).toContain('z-[9999]');
+    expect(modal).toContain('bg-black/40 backdrop-blur-sm');
+    expect(modal).toContain('items-start justify-center');
+    expect(modal).toContain('pt-24');
   });
 
   it('logout is invoked from confirm handler not sign out click', () => {
@@ -54,11 +67,10 @@ describe('Logout confirmation and PortalLoader', () => {
       'utf8',
     );
     expect(signOut).toContain('await logout()');
-    const confirmIdx = signOut.indexOf('handleConfirmLogout');
-    const openIdx = signOut.indexOf('setLogoutOpen(true)');
-    expect(confirmIdx).toBeGreaterThan(-1);
-    expect(openIdx).toBeGreaterThan(-1);
-    expect(openIdx).toBeLessThan(confirmIdx);
+    expect(signOut).toContain('handleConfirmLogout');
+    expect(signOut).toContain('onConfirm={handleConfirmLogout}');
+    expect(signOut).toMatch(/onClick=\{\(\) => setLogoutOpen\(true\)\}/);
+    expect(signOut).not.toMatch(/onClick=\{handleConfirmLogout\}/);
   });
 
   it('Arabic auth confirmation labels exist', () => {

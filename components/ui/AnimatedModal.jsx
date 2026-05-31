@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMotionSafe } from './useMotionSafe';
 
@@ -10,10 +12,26 @@ const SIZE_CLASSES = {
   xl: 'max-w-4xl',
 };
 
-export default function AnimatedModal({ isOpen, onClose, title, children, size = 'md' }) {
+/**
+ * @param {'center' | 'top'} placement — `top` aligns dialog below header (sign-out, alerts).
+ */
+export default function AnimatedModal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = 'md',
+  placement = 'center',
+}) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const backdropProps = useMotionSafe({
     initial: { opacity: 0 },
-    animate: { opacity: 0.5 },
+    animate: { opacity: 1 },
     exit: { opacity: 0 },
     transition: { duration: 0.2 },
   });
@@ -25,14 +43,22 @@ export default function AnimatedModal({ isOpen, onClose, title, children, size =
     transition: { duration: 0.2, ease: 'easeOut' },
   });
 
-  return (
+  const positionClass =
+    placement === 'top'
+      ? 'items-start justify-center px-4 pt-24'
+      : 'items-center justify-center p-4';
+
+  const modal = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+        <div
+          className={`fixed inset-0 z-[9999] flex ${positionClass}`}
+          dir="inherit"
+        >
           <motion.button
             type="button"
             aria-label="Close modal"
-            className="absolute inset-0 bg-background/70 backdrop-blur-md"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={onClose}
             {...backdropProps}
           />
@@ -40,18 +66,14 @@ export default function AnimatedModal({ isOpen, onClose, title, children, size =
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
-            className={`relative z-10 w-full rounded-t-3xl border border-border bg-card p-6 shadow-2xl shadow-black/20 sm:rounded-3xl ${SIZE_CLASSES[size]} sm:max-h-[90vh] sm:overflow-y-auto`}
+            className={`relative z-10 w-full rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-black/25 ${SIZE_CLASSES[size]} max-h-[calc(100vh-6rem)] overflow-y-auto`}
             {...panelProps}
           >
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between gap-3">
               <h2 id="modal-title" className="text-lg font-bold text-foreground">
                 {title}
               </h2>
-              <button
-                type="button"
-                onClick={onClose}
-                className="btn-ghost"
-              >
+              <button type="button" onClick={onClose} className="btn-ghost shrink-0">
                 ✕
               </button>
             </div>
@@ -61,4 +83,7 @@ export default function AnimatedModal({ isOpen, onClose, title, children, size =
       )}
     </AnimatePresence>
   );
+
+  if (!mounted) return null;
+  return createPortal(modal, document.body);
 }

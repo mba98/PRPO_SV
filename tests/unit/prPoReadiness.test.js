@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildReadyForPoPrFilter,
+  prHasCompleteSapPurchaseRequest,
   prHasOpenPoSlots,
   prHasPortalPurchaseOrder,
   prIsEligibleForReadyForPoList,
@@ -77,5 +79,25 @@ describe('prPoReadiness', () => {
   it('fully ordered PR is not eligible', () => {
     const pr = { ...basePr, status: 'Fully Ordered' };
     expect(prIsEligibleForReadyForPoList(pr, [])).toBe(false);
+  });
+
+  it('Partially Ordered PR is not eligible for ready-for-PO list', () => {
+    const pr = { ...basePr, status: 'Partially Ordered' };
+    expect(prIsEligibleForReadyForPoList(pr, [])).toBe(false);
+  });
+
+  it('requires both sapPRDocEntry and sapPRDocNum', () => {
+    expect(prHasCompleteSapPurchaseRequest(basePr)).toBe(true);
+    expect(prIsEligibleForReadyForPoList({ ...basePr, sapPRDocNum: null }, [])).toBe(false);
+    expect(prIsEligibleForReadyForPoList({ ...basePr, sapPRDocEntry: null }, [])).toBe(false);
+    expect(prIsEligibleForReadyForPoList({ ...basePr, sapPRDocNum: '' }, [])).toBe(false);
+  });
+
+  it('buildReadyForPoPrFilter matches API base criteria', () => {
+    expect(buildReadyForPoPrFilter()).toEqual({
+      status: 'Created in SAP',
+      sapPRDocEntry: { $exists: true, $ne: null },
+      sapPRDocNum: { $exists: true, $ne: null, $nin: [null, ''] },
+    });
   });
 });

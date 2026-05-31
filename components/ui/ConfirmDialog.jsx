@@ -30,7 +30,13 @@ export default function ConfirmDialog({
   }
 
   return (
-    <AnimatedModal isOpen={isOpen} onClose={handleClose} title={title} size="sm">
+    <AnimatedModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={title}
+      size="sm"
+      placement="top"
+    >
       <p className="text-sm leading-relaxed text-muted-foreground">{message}</p>
       <div className="mt-6 flex flex-wrap justify-end gap-2">
         <Button type="button" variant="secondary" onClick={handleClose} disabled={loading}>
