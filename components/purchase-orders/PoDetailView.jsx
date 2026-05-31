@@ -70,7 +70,9 @@ export default function PoDetailView({ id }) {
           {attachmentWarning}
         </p>
       )}
-      {po.workflowSteps?.length > 0 && <WorkflowStepper steps={po.workflowSteps} />}
+      {po.workflowSteps?.length > 0 && (
+        <WorkflowStepper steps={po.workflowSteps} documentType="PO" />
+      )}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>

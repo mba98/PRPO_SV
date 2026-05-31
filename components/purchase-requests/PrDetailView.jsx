@@ -71,7 +71,9 @@ export default function PrDetailView({ id }) {
           {attachmentWarning}
         </p>
       )}
-      {pr.workflowSteps?.length > 0 && <WorkflowStepper steps={pr.workflowSteps} />}
+      {pr.workflowSteps?.length > 0 && (
+        <WorkflowStepper steps={pr.workflowSteps} documentType="PR" />
+      )}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>

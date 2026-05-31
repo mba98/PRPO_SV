@@ -466,6 +466,83 @@
     @apply border-t border-border bg-card transition-colors hover:bg-muted;
   }
 
+  .workflow-stepper {
+    @apply overflow-x-auto rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5;
+  }
+
+  .workflow-stepper-list {
+    @apply flex list-none flex-col gap-0 p-0 md:flex-row md:items-start md:gap-1;
+  }
+
+  .workflow-stepper-list--rtl {
+    @apply md:flex-row-reverse;
+  }
+
+  .workflow-step-item {
+    @apply flex flex-col md:flex-1 md:min-w-[8.5rem] md:flex-row md:items-center;
+  }
+
+  .workflow-step-card {
+    @apply flex min-w-[8.5rem] flex-1 gap-3 rounded-2xl border border-border bg-card p-3;
+  }
+
+  .workflow-step-circle {
+    @apply relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold;
+  }
+
+  .workflow-step-circle--completed {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .workflow-step-circle--current {
+    @apply border-2 border-primary text-primary;
+    background-color: color-mix(in srgb, var(--primary) 10%, var(--card));
+  }
+
+  .workflow-step-circle--pending {
+    @apply border border-border bg-muted text-muted-foreground;
+  }
+
+  .workflow-step-circle--rejected,
+  .workflow-step-circle--sap_failed {
+    @apply border text-destructive;
+    border-color: color-mix(in srgb, var(--destructive) 30%, var(--border));
+    background-color: color-mix(in srgb, var(--destructive) 10%, var(--card));
+  }
+
+  .workflow-step-circle--sap_creating {
+    @apply border-2 border-amber-500 text-amber-700 dark:text-amber-300;
+    background-color: color-mix(in srgb, rgb(245 158 11) 12%, var(--card));
+  }
+
+  .workflow-step-circle--sap_created {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .workflow-connector-line {
+    @apply bg-muted;
+  }
+
+  .workflow-connector-line--active {
+    background: linear-gradient(
+      90deg,
+      var(--primary),
+      color-mix(in srgb, var(--primary) 30%, transparent)
+    );
+  }
+
+  .workflow-connector-line--active-vertical {
+    background: linear-gradient(
+      180deg,
+      var(--primary),
+      color-mix(in srgb, var(--primary) 30%, transparent)
+    );
+  }
+
+  .workflow-connector-chevron {
+    color: var(--primary);
+  }
+
   .form-label {
     @apply mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground;
   }
