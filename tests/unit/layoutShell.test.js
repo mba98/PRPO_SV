@@ -53,30 +53,29 @@ describe('Layout shell — logos, sidebar identity, quick actions', () => {
     expect(css).toContain('.quick-actions-popover');
     expect(css).toContain('left-1/2');
     expect(css).toContain('-translate-x-1/2');
-    expect(css).toContain('w-[220px]');
+    expect(css).toContain('w-[180px]');
     expect(css).not.toContain('min-w-[260px]');
   });
 
-  it('quick menu trigger uses compact h-9/h-10 sizing', () => {
+  it('quick menu trigger uses compact h-9 w-9 sizing', () => {
     const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
     expect(css).toContain('.quick-menu-toggle');
     expect(css).toContain('h-9 w-9');
-    expect(css).toContain('sm:h-10 sm:w-10');
-    expect(css).toContain('max-width: 20px');
+    expect(css).toContain('width: 16px');
   });
 
-  it('accent palette uses compact dimensions without circular swatches', () => {
-    const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
-    expect(css).toMatch(/\.accent-color-item\s*\{[^}]*width:\s*18px/s);
-    expect(css).toMatch(/\.accent-color-item\s*\{[^}]*height:\s*28px/s);
-    expect(css).toContain('transform: scale(1.18)');
-    expect(css).toContain('accent-palette-wrap');
+  it('accent palette uses 2-row grid with compact h-6 w-6 swatches', () => {
     const palette = fs.readFileSync(
       path.resolve(process.cwd(), 'components/ui/AccentPalette.jsx'),
       'utf8',
     );
-    expect(palette).toContain('accent-color-item');
-    expect(palette).not.toContain('rounded-full');
+    expect(palette).toContain('grid-cols-5');
+    expect(palette).toContain('h-6 w-6');
+    expect(palette).toContain('rounded-md');
+    expect(palette).not.toContain('accent-color-item');
+    expect(palette).not.toContain('accent-palette-row');
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
+    expect(css).not.toContain('.accent-color-item');
   });
 
   it('dashboard cards use solid bg-card without washed overlays', () => {

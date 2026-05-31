@@ -154,7 +154,7 @@
   }
 
   .quick-menu-toggle {
-    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary shadow-sm transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-100 sm:h-10 sm:w-10;
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary shadow-sm transition-all hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-100;
   }
 
   .quick-menu-toggle:hover {
@@ -164,9 +164,8 @@
   .quick-menu-bars {
     position: relative;
     display: flex;
-    height: 14px;
-    width: 18px;
-    max-width: 20px;
+    height: 12px;
+    width: 16px;
     flex-direction: column;
     justify-content: space-between;
   }
@@ -182,7 +181,7 @@
   }
 
   .quick-menu-toggle--open .quick-menu-bars span:nth-child(1) {
-    transform: translateY(6px) rotate(45deg);
+    transform: translateY(5px) rotate(45deg);
   }
 
   .quick-menu-toggle--open .quick-menu-bars span:nth-child(2) {
@@ -191,28 +190,28 @@
   }
 
   .quick-menu-toggle--open .quick-menu-bars span:nth-child(3) {
-    transform: translateY(-6px) rotate(-45deg);
+    transform: translateY(-5px) rotate(-45deg);
   }
 
   .quick-actions-popover {
-    @apply absolute left-1/2 top-full z-50 mt-2 w-[220px] max-w-[230px] -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-2xl;
+    @apply absolute left-1/2 top-full z-50 mt-2 w-[180px] max-w-[190px] -translate-x-1/2 rounded-2xl border border-border bg-card p-2.5 text-card-foreground shadow-xl;
   }
 
   .quick-actions-popover-title {
-    @apply mb-2 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground;
+    @apply text-center text-[9px] font-black uppercase tracking-widest text-muted-foreground;
   }
 
   .quick-actions-popover-body {
-    @apply flex flex-col;
+    @apply mt-1.5 flex flex-col;
   }
 
   .quick-actions-popover .topbar-icon-btn {
-    @apply h-9 min-w-9 rounded-xl text-xs font-black;
+    @apply h-8 w-8 min-w-8 rounded-xl text-xs font-black;
   }
 
   .quick-actions-popover .sun-moon-svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
   .quick-actions-row {
@@ -224,14 +223,7 @@
   }
 
   .quick-actions-label {
-    @apply text-[9px] font-black uppercase tracking-widest text-muted-foreground;
-  }
-
-  .accent-palette-wrap {
-    max-width: 100%;
-    overflow-x: hidden;
-    overflow-y: visible;
-    padding: 0.25rem 0;
+    @apply text-[8px] font-black uppercase tracking-widest text-muted-foreground;
   }
 
   .card {
@@ -256,115 +248,11 @@
   }
 
   .accent-popover-card {
-    @apply absolute end-0 top-full z-50 mt-2 rounded-3xl border border-border bg-card p-5 text-card-foreground shadow-2xl;
+    @apply absolute end-0 top-full z-50 mt-2 w-[180px] max-w-[190px] rounded-2xl border border-border bg-card p-2.5 text-card-foreground shadow-xl;
   }
 
   .accent-popover-heading {
-    @apply mb-4 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground;
-  }
-
-  .accent-palette-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    max-width: 100%;
-    padding: 0.25rem 0;
-    transform-style: preserve-3d;
-    transform: perspective(1000px);
-  }
-
-  .accent-color-item {
-    position: relative;
-    flex-shrink: 0;
-    width: 18px;
-    height: 28px;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    background: transparent;
-    transition: 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
-  }
-
-  .accent-color-item::after {
-    position: absolute;
-    content: '';
-    inset: 0;
-    width: 24px;
-    height: 28px;
-    background-color: var(--color);
-    border-radius: 6px;
-    transform: scale(1);
-    pointer-events: none;
-    transition: 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
-  }
-
-  .accent-color-item::before {
-    position: absolute;
-    content: attr(data-label);
-    left: 50%;
-    bottom: 36px;
-    font-size: 8px;
-    line-height: 12px;
-    transform: translateX(-50%);
-    padding: 2px 0.25rem;
-    background-color: var(--card);
-    color: var(--foreground);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-    transition: 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
-  }
-
-  .accent-color-item:hover {
-    transform: scale(1.18);
-    z-index: 20;
-  }
-
-  .accent-color-item:hover::before {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .accent-color-item:hover::after {
-    transform: scale(1.05);
-  }
-
-  .accent-color-item:hover + .accent-color-item {
-    transform: scale(1.08);
-    z-index: 10;
-  }
-
-  .accent-color-item:has(+ .accent-color-item:hover) {
-    transform: scale(1.08);
-    z-index: 10;
-  }
-
-  .quick-actions-popover .accent-color-item::before {
-    display: none;
-  }
-
-  .quick-actions-popover .accent-color-item:hover {
-    transform: scale(1.12);
-  }
-
-  .quick-actions-popover .accent-color-item:hover::after {
-    transform: scale(1.03);
-  }
-
-  .quick-actions-popover .accent-color-item:hover + .accent-color-item,
-  .quick-actions-popover .accent-color-item:has(+ .accent-color-item:hover) {
-    transform: scale(1.04);
-  }
-
-  .accent-color-item-selected::after {
-    outline: 2px solid var(--primary);
-    outline-offset: 1px;
-    transform: scale(1.04);
-    box-shadow: none;
+    @apply mb-1.5 text-center text-[9px] font-black uppercase tracking-widest text-muted-foreground;
   }
 
   .theme-transition-overlay {

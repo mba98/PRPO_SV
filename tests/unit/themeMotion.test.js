@@ -60,12 +60,14 @@ describe('Theme controls motion and Sun/Moon visibility', () => {
     expect(src).toContain('topbar-icon-btn');
   });
 
-  it('AccentPalette keeps rectangular accent-color-item blocks', () => {
+  it('AccentPalette uses compact grid swatches', () => {
     const src = fs.readFileSync(
       path.resolve(process.cwd(), 'components/ui/AccentPalette.jsx'),
       'utf8',
     );
-    expect(src).toContain('accent-color-item');
+    expect(src).toContain('grid-cols-5');
+    expect(src).toContain('h-6 w-6');
+    expect(src).not.toContain('accent-color-item');
     expect(src).not.toContain('accent-swatch');
   });
 

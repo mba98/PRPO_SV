@@ -57,8 +57,9 @@ describe('Phase 12C — light/dark, accent palette, login theme', () => {
       path.resolve(process.cwd(), 'components/ui/AccentPalette.jsx'),
       'utf8',
     );
-    expect(src).toContain("'--color'");
-    expect(src).toContain('accent-color-item');
+    expect(src).toContain('backgroundColor');
+    expect(src).toContain('grid-cols-5');
+    expect(src).toContain('h-6 w-6');
     expect(src).not.toContain('accent-swatch');
     expect(ACCENT_PALETTE.some((p) => p.hex === '#e11d48')).toBe(true);
   });

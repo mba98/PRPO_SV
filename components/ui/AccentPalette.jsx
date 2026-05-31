@@ -8,9 +8,9 @@ import { useI18n } from '@/lib/hooks/useI18n';
 
 function PaletteSwatches({ accent, locale, setAccent, onSelect }) {
   return (
-    <div className="accent-palette-row" role="listbox" aria-label="accent">
+    <div className="grid grid-cols-5 justify-center gap-1.5" role="listbox" aria-label="accent">
       {ACCENT_PALETTE.map((item) => {
-        const tooltipLabel = locale === 'en' ? item.labelEn : item.labelAr;
+        const label = locale === 'en' ? item.labelEn : item.labelAr;
         const selected = accent === item.id;
         return (
           <button
@@ -18,10 +18,13 @@ function PaletteSwatches({ accent, locale, setAccent, onSelect }) {
             type="button"
             role="option"
             aria-selected={selected}
-            data-label={tooltipLabel}
+            aria-label={label}
             title={item.hex}
-            className={`accent-color-item ${selected ? 'accent-color-item-selected' : ''}`}
-            style={{ '--color': item.hex }}
+            className={[
+              'h-6 w-6 rounded-md border border-border transition-transform hover:scale-110 active:scale-95',
+              selected ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : '',
+            ].join(' ')}
+            style={{ backgroundColor: item.hex }}
             onClick={() => {
               setAccent(item.id);
               onSelect?.();
@@ -64,7 +67,7 @@ export default function AccentPalette({ className = '', embedded = false }) {
 
   if (embedded) {
     return (
-      <div className={`accent-palette-wrap ${className}`.trim()}>
+      <div className={className}>
         <PaletteSwatches accent={accent} locale={locale} setAccent={setAccent} />
       </div>
     );
@@ -85,7 +88,7 @@ export default function AccentPalette({ className = '', embedded = false }) {
         transition={{ type: 'spring', stiffness: 400, damping: 22 }}
       >
         <motion.span
-          className="h-4 w-4 shrink-0 rounded-full border border-border shadow-sm"
+          className="h-4 w-4 shrink-0 rounded-md border border-border shadow-sm"
           style={{ backgroundColor: currentHex }}
           aria-hidden
           layout={!reduceMotion}
