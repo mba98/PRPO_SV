@@ -141,8 +141,80 @@
     background-color: color-mix(in srgb, var(--primary) 15%, var(--card));
   }
 
-  .topbar-signout-btn {
-    @apply min-h-11 rounded-2xl px-4 text-sm font-semibold;
+  .sidebar-signout-btn {
+    @apply w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition-all hover:text-destructive focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-100;
+  }
+
+  .sidebar-signout-btn:hover {
+    background-color: color-mix(in srgb, var(--destructive) 10%, var(--card));
+  }
+
+  .sidebar-role-badge {
+    background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  }
+
+  .quick-menu-toggle {
+    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-card shadow-sm transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-100;
+  }
+
+  .quick-menu-toggle:hover {
+    background-color: color-mix(in srgb, var(--primary) 10%, var(--card));
+  }
+
+  .quick-menu-bars {
+    position: relative;
+    display: flex;
+    height: 18px;
+    width: 24px;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .quick-menu-bars span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    border-radius: 9999px;
+    background: var(--primary);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: center;
+  }
+
+  .quick-menu-toggle--open .quick-menu-bars span:nth-child(1) {
+    transform: translateY(7.5px) rotate(45deg);
+  }
+
+  .quick-menu-toggle--open .quick-menu-bars span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  .quick-menu-toggle--open .quick-menu-bars span:nth-child(3) {
+    transform: translateY(-7.5px) rotate(-45deg);
+  }
+
+  .quick-actions-popover {
+    @apply absolute end-0 top-full z-50 mt-2 min-w-[260px] rounded-3xl border border-border bg-card p-4 text-card-foreground shadow-2xl backdrop-blur-md;
+  }
+
+  .quick-actions-popover-title {
+    @apply mb-3 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground;
+  }
+
+  .quick-actions-popover-body {
+    @apply flex flex-col gap-4;
+  }
+
+  .quick-actions-row {
+    @apply flex flex-col gap-2;
+  }
+
+  .quick-actions-row--center {
+    @apply items-center;
+  }
+
+  .quick-actions-label {
+    @apply text-[10px] font-bold uppercase tracking-widest text-muted-foreground;
   }
 
   .card {

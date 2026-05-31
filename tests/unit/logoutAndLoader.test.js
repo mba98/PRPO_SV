@@ -25,9 +25,9 @@ describe('Logout confirmation and PortalLoader', () => {
     expect(css).toContain('portal-loader-spin');
   });
 
-  it('TopBar opens ConfirmDialog before logout', () => {
+  it('SidebarSignOut opens ConfirmDialog before logout', () => {
     const src = fs.readFileSync(
-      path.resolve(process.cwd(), 'components/layout/TopBar.jsx'),
+      path.resolve(process.cwd(), 'components/layout/SidebarSignOut.jsx'),
       'utf8',
     );
     expect(src).toContain('ConfirmDialog');
@@ -49,13 +49,13 @@ describe('Logout confirmation and PortalLoader', () => {
   });
 
   it('logout is invoked from confirm handler not sign out click', () => {
-    const topBar = fs.readFileSync(
-      path.resolve(process.cwd(), 'components/layout/TopBar.jsx'),
+    const signOut = fs.readFileSync(
+      path.resolve(process.cwd(), 'components/layout/SidebarSignOut.jsx'),
       'utf8',
     );
-    expect(topBar).toContain('await logout()');
-    const confirmIdx = topBar.indexOf('handleConfirmLogout');
-    const openIdx = topBar.indexOf('setLogoutOpen(true)');
+    expect(signOut).toContain('await logout()');
+    const confirmIdx = signOut.indexOf('handleConfirmLogout');
+    const openIdx = signOut.indexOf('setLogoutOpen(true)');
     expect(confirmIdx).toBeGreaterThan(-1);
     expect(openIdx).toBeGreaterThan(-1);
     expect(openIdx).toBeLessThan(confirmIdx);
@@ -89,7 +89,7 @@ describe('Logout confirmation and PortalLoader', () => {
     expect(css).not.toContain('.portal-loader-card');
   });
 
-  it('AppProviders or layout exports ConfirmDialog via TopBar integration', () => {
+  it('AppProviders or layout exports ConfirmDialog via SidebarSignOut integration', () => {
     const src = fs.readFileSync(
       path.resolve(process.cwd(), 'components/ui/index.js'),
       'utf8',

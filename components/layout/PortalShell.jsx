@@ -36,7 +36,7 @@ export default function PortalShell({ user, children }) {
       </div>
       <MobileNav user={user} isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <TopBar user={user} onMenuClick={() => setMobileNavOpen(true)} />
+        <TopBar onMenuClick={() => setMobileNavOpen(true)} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8">
           <motion.div className="page-shell" animate={contentControls}>
             <AnimatedPageWrapper key={pathname}>{children}</AnimatedPageWrapper>

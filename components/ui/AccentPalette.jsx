@@ -6,7 +6,34 @@ import { ACCENT_PALETTE } from '@/lib/theme/themes';
 import { useThemeStore } from '@/stores/themeStore';
 import { useI18n } from '@/lib/hooks/useI18n';
 
-export default function AccentPalette({ className = '' }) {
+function PaletteSwatches({ accent, locale, setAccent, onSelect }) {
+  return (
+    <div className="accent-palette-row" role="listbox" aria-label="accent">
+      {ACCENT_PALETTE.map((item) => {
+        const tooltipLabel = locale === 'en' ? item.labelEn : item.labelAr;
+        const selected = accent === item.id;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            role="option"
+            aria-selected={selected}
+            data-label={tooltipLabel}
+            title={item.hex}
+            className={`accent-color-item ${selected ? 'accent-color-item-selected' : ''}`}
+            style={{ '--color': item.hex }}
+            onClick={() => {
+              setAccent(item.id);
+              onSelect?.();
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+export default function AccentPalette({ className = '', embedded = false }) {
   const { common, locale } = useI18n();
   const accent = useThemeStore((s) => s.accent);
   const setAccent = useThemeStore((s) => s.setAccent);
@@ -18,7 +45,7 @@ export default function AccentPalette({ className = '' }) {
   const currentHex = ACCENT_PALETTE.find((p) => p.id === accent)?.hex || '#3b82f6';
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (embedded || !open) return undefined;
     function onDocClick(e) {
       if (rootRef.current && !rootRef.current.contains(e.target)) {
         setOpen(false);
@@ -33,7 +60,15 @@ export default function AccentPalette({ className = '' }) {
       document.removeEventListener('mousedown', onDocClick);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, embedded]);
+
+  if (embedded) {
+    return (
+      <div className={className}>
+        <PaletteSwatches accent={accent} locale={locale} setAccent={setAccent} />
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} className={`relative ${className}`.trim()}>
@@ -62,28 +97,12 @@ export default function AccentPalette({ className = '' }) {
           <p id={titleId} className="accent-popover-heading">
             {common.accentPaletteTitle}
           </p>
-          <div className="accent-palette-row" role="listbox" aria-label={common.accentPaletteTitle}>
-            {ACCENT_PALETTE.map((item) => {
-              const tooltipLabel = locale === 'en' ? item.labelEn : item.labelAr;
-              const selected = accent === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  data-label={tooltipLabel}
-                  title={item.hex}
-                  className={`accent-color-item ${selected ? 'accent-color-item-selected' : ''}`}
-                  style={{ '--color': item.hex }}
-                  onClick={() => {
-                    setAccent(item.id);
-                    setOpen(false);
-                  }}
-                />
-              );
-            })}
-          </div>
+          <PaletteSwatches
+            accent={accent}
+            locale={locale}
+            setAccent={setAccent}
+            onSelect={() => setOpen(false)}
+          />
         </div>
       )}
     </div>
