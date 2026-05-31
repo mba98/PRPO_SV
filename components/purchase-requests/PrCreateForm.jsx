@@ -359,7 +359,7 @@ export default function PrCreateForm() {
                     valueCode={line.warehouseCode}
                     valueLabel={line.warehouseLabel}
                     placeholder={t.searchWarehouse}
-                    emptyMessage={t.noSuggestions}
+                    emptyMessage={t.noWarehousesFound}
                     loadingMessage={t.loading}
                     inputClassName={COMPACT_INPUT}
                     onSelect={(code, label) =>
