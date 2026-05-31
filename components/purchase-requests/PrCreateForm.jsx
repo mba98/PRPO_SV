@@ -8,14 +8,16 @@ import {
   uploadDocumentAttachments,
   formatAttachmentUploadWarning,
 } from '@/lib/attachmentUploadHelpers';
-import { ALLOWED_MIME_TYPES_CLIENT, MAX_FILE_SIZE_BYTES } from '@/lib/attachmentClientConstants';
 import { useAuthStore } from '@/stores/authStore';
+import { useI18n } from '@/lib/hooks/useI18n';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
+import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
+import { DateInput, FormField } from '@/components/ui';
 import CreateItemModal from './CreateItemModal';
 
-const DEFAULT_WAREHOUSE_CODE = 'RAN004';
+const COMPACT_INPUT = 'input-field-compact';
 
 const EMPTY_LINE = () => ({
   itemCode: '',
@@ -25,12 +27,11 @@ const EMPTY_LINE = () => ({
   uomCode: '',
   vendor: '',
   vendorLabel: '',
-  warehouseCode: DEFAULT_WAREHOUSE_CODE,
-  warehouseLabel: DEFAULT_WAREHOUSE_CODE,
+  warehouseCode: '',
+  warehouseLabel: '',
   quantity: 1,
   estimatedUnitPrice: '',
   estimatedTotal: '',
-  remarks: '',
 });
 
 function recalcTotal(line) {
@@ -39,8 +40,34 @@ function recalcTotal(line) {
   return q && p ? String(q * p) : line.estimatedTotal;
 }
 
+function validateForm(header, lines, labels) {
+  const fieldErrors = {};
+  if (!header.requiredDate) {
+    fieldErrors.requiredDate = labels.requiredDateRequired;
+  }
+  lines.forEach((line, idx) => {
+    if (!line.itemCode?.trim()) {
+      fieldErrors[`line${idx}.item`] = labels.itemRequired;
+    }
+    if (!line.warehouseCode?.trim()) {
+      fieldErrors[`line${idx}.warehouse`] = labels.warehouseRequired;
+    }
+    if (!line.quantity || Number(line.quantity) <= 0) {
+      fieldErrors[`line${idx}.quantity`] = labels.quantityRequired;
+    }
+    if (line.estimatedUnitPrice === '' || line.estimatedUnitPrice == null) {
+      fieldErrors[`line${idx}.unitPrice`] = labels.unitPriceRequired;
+    } else if (Number(line.estimatedUnitPrice) < 0) {
+      fieldErrors[`line${idx}.unitPrice`] = labels.unitPriceRequired;
+    }
+  });
+  return fieldErrors;
+}
+
 export default function PrCreateForm() {
   const router = useRouter();
+  const { pr, common } = useI18n();
+  const t = pr.create;
   const canCreateItem = useAuthStore((s) => s.hasPermission('items.create'));
 
   const [header, setHeader] = useState({
@@ -54,6 +81,7 @@ export default function PrCreateForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [itemModal, setItemModal] = useState(false);
   const [itemModalLine, setItemModalLine] = useState(0);
   const [noResultsLine, setNoResultsLine] = useState(null);
@@ -82,6 +110,13 @@ export default function PrCreateForm() {
         return next;
       }),
     );
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((key) => {
+        if (key.startsWith(`line${idx}.`)) delete next[key];
+      });
+      return next;
+    });
   }
 
   function addLine() {
@@ -94,9 +129,16 @@ export default function PrCreateForm() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setSaving(true);
     setError('');
     setWarning('');
+
+    const errors = validateForm(header, lines, t);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+    setSaving(true);
 
     const documentDate = header.documentDate || header.requiredDate;
     const dueDate = header.dueDate || header.requiredDate;
@@ -116,7 +158,6 @@ export default function PrCreateForm() {
         quantity: Number(l.quantity),
         estimatedUnitPrice: l.estimatedUnitPrice ? Number(l.estimatedUnitPrice) : undefined,
         estimatedTotal: l.estimatedTotal ? Number(l.estimatedTotal) : undefined,
-        remarks: l.remarks || undefined,
       })),
     };
 
@@ -126,7 +167,7 @@ export default function PrCreateForm() {
         body: JSON.stringify(payload),
       });
       if (!createJson.success) {
-        setError(createJson.message || 'Failed to create PR');
+        setError(createJson.message || common.errorLoad);
         if (createJson.errors?.length) {
           setError(createJson.errors.map((x) => x.message).join(', '));
         }
@@ -141,7 +182,7 @@ export default function PrCreateForm() {
       });
       if (!submitJson.success) {
         setWarning(
-          `PR ${createJson.data.portalPRNumber || prId} was created but could not be submitted: ${submitJson.message || 'Submit failed'}. Open the PR to retry.`,
+          `${createJson.data.portalPRNumber || prId}: ${submitJson.message || common.errorLoad}`,
         );
         router.push(`/purchase-requests/${prId}`);
         setSaving(false);
@@ -164,88 +205,124 @@ export default function PrCreateForm() {
 
       router.push(`/purchase-requests/${prId}`);
     } catch (err) {
-      setError(err.message || 'Failed to save purchase request');
+      setError(err.message || common.errorLoad);
     }
     setSaving(false);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+        <p
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {error}
         </p>
       )}
       {warning && (
-        <p className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">
+        <p
+          className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200"
+          role="status"
+        >
           {warning}
         </p>
       )}
 
-      <section className="card space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">Header</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block text-sm">
-            <span className="text-muted-foreground">Required date *</span>
-            <input
-              className="input-field mt-1"
-              type="date"
+      <section className="card space-y-3 p-4 sm:p-5">
+        <h2 className="text-base font-bold text-foreground">{t.header}</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <FormField
+            label={t.requiredDate}
+            required
+            error={fieldErrors.requiredDate}
+          >
+            <DateInput
+              className={COMPACT_INPUT}
               required
               value={header.requiredDate}
               onChange={(e) => updateHeader({ requiredDate: e.target.value })}
             />
-          </label>
-          <label className="block text-sm">
-            <span className="text-muted-foreground">Document date</span>
-            <input
-              className="input-field mt-1"
-              type="date"
+          </FormField>
+          <FormField label={t.documentDate}>
+            <DateInput
+              className={COMPACT_INPUT}
               value={header.documentDate}
               onChange={(e) => updateHeader({ documentDate: e.target.value })}
             />
-          </label>
-          <label className="block text-sm">
-            <span className="text-muted-foreground">Due date</span>
-            <input
-              className="input-field mt-1"
-              type="date"
+          </FormField>
+          <FormField label={t.dueDate}>
+            <DateInput
+              className={COMPACT_INPUT}
               value={header.dueDate}
               onChange={(e) => updateHeader({ dueDate: e.target.value })}
             />
-          </label>
-          <label className="block text-sm sm:col-span-2">
-            <span className="text-muted-foreground">Remarks</span>
-            <textarea
-              className="input-field mt-1"
-              rows={2}
-              value={header.remarks}
-              onChange={(e) => updateHeader({ remarks: e.target.value })}
-            />
-          </label>
+          </FormField>
         </div>
+        <FormField label={t.remarks}>
+          <textarea
+            className={`${COMPACT_INPUT} max-h-24 resize-y`}
+            rows={2}
+            placeholder={t.remarksPlaceholder}
+            value={header.remarks}
+            onChange={(e) => updateHeader({ remarks: e.target.value })}
+          />
+        </FormField>
       </section>
 
-      <section className="card space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Line items</h2>
-          <button type="button" className="btn-secondary text-sm" onClick={addLine}>
-            Add line
+      <section className="card space-y-3 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-bold text-foreground">{t.lineItems}</h2>
+          <button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={addLine}>
+            {t.addLine}
           </button>
         </div>
-        <div className="space-y-6 overflow-x-auto">
+
+        <div className="hidden lg:grid lg:grid-cols-[2rem_minmax(8rem,1.2fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_4.5rem_5.5rem_4rem_4.5rem_2.5rem] lg:gap-2 lg:px-1 lg:text-[10px] lg:font-bold lg:uppercase lg:tracking-widest lg:text-muted-foreground">
+          <span>#</span>
+          <span>{t.item}</span>
+          <span>{t.itemName}</span>
+          <span>{t.warehouse}</span>
+          <span>{t.vendor}</span>
+          <span>{t.quantity}</span>
+          <span>{t.unitPrice}</span>
+          <span>{t.uom}</span>
+          <span>{t.total}</span>
+          <span className="sr-only">{t.removeLine}</span>
+        </div>
+
+        <div className="space-y-2">
           {lines.map((line, idx) => (
-            <div key={idx} className="rounded-lg border border-border p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Line {idx + 1}</span>
-                <button type="button" className="text-sm text-red-600" onClick={() => removeLine(idx)}>
-                  Remove
+            <div
+              key={idx}
+              className="rounded-2xl border border-border bg-card p-3 text-sm shadow-sm"
+            >
+              <div className="mb-2 flex items-center justify-between lg:hidden">
+                <span className="font-semibold text-foreground">
+                  {t.lineNumber} {idx + 1}
+                </span>
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-destructive hover:underline"
+                  onClick={() => removeLine(idx)}
+                >
+                  {t.removeLine}
                 </button>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <label className="text-sm sm:col-span-2">
-                  <span className="text-muted-foreground">Item *</span>
+
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[2rem_minmax(8rem,1.2fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_4.5rem_5.5rem_4rem_4.5rem_2.5rem] lg:items-start lg:gap-2">
+                <span className="hidden pt-2 text-center text-xs font-bold text-muted-foreground lg:block">
+                  {idx + 1}
+                </span>
+
+                <FormField error={fieldErrors[`line${idx}.item`]} className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.item}</span>
                   <ItemSearchInput
                     value={line}
+                    inputClassName={COMPACT_INPUT}
+                    placeholder={t.searchItem}
+                    searchingLabel={t.searching}
+                    noResultsMessage={t.noSuggestions}
                     onSelect={(item) => {
                       updateLine(idx, item);
                       setNoResultsLine(null);
@@ -255,119 +332,129 @@ export default function PrCreateForm() {
                   {canCreateItem && noResultsLine === idx && (
                     <button
                       type="button"
-                      className="mt-1 text-sm text-primary hover:underline"
+                      className="mt-1 text-xs font-semibold text-primary hover:underline"
                       onClick={() => {
                         setItemModalLine(idx);
                         setItemModal(true);
                       }}
                     >
-                      Create new item
+                      {t.createNewItem}
                     </button>
                   )}
-                </label>
-                <label className="text-sm">
-                  <span className="text-muted-foreground">Item name</span>
+                </FormField>
+
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.itemName}</span>
                   <input
-                    className="input-field mt-1 bg-muted"
+                    className={`${COMPACT_INPUT} bg-muted`}
                     readOnly
                     value={line.itemName}
-                    placeholder="From SAP item"
+                    placeholder="—"
                   />
-                </label>
-                <label className="text-sm">
-                  <span className="text-muted-foreground">Warehouse *</span>
+                </FormField>
+
+                <FormField error={fieldErrors[`line${idx}.warehouse`]} className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.warehouse}</span>
                   <WarehouseSelect
                     valueCode={line.warehouseCode}
                     valueLabel={line.warehouseLabel}
+                    placeholder={t.searchWarehouse}
+                    emptyMessage={t.noSuggestions}
+                    loadingMessage={t.loading}
+                    inputClassName={COMPACT_INPUT}
                     onSelect={(code, label) =>
                       updateLine(idx, { warehouseCode: code, warehouseLabel: label })
                     }
                   />
-                </label>
-                <label className="text-sm">
-                  <span className="text-muted-foreground">Vendor</span>
+                </FormField>
+
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.vendor}</span>
                   <VendorSelect
                     valueCode={line.vendor}
                     valueLabel={line.vendorLabel}
+                    placeholder={t.searchVendor}
+                    emptyMessage={t.noSuggestions}
+                    loadingMessage={t.loading}
+                    inputClassName={COMPACT_INPUT}
                     onSelect={(code, label) => updateLine(idx, { vendor: code, vendorLabel: label })}
                   />
-                </label>
-                <label className="text-sm">
-                  <span className="text-muted-foreground">UoM code</span>
-                  <input
-                    className="input-field mt-1"
-                    value={line.uomCode}
-                    placeholder={line.uom || 'From SAP item'}
-                    onChange={(e) => updateLine(idx, { uomCode: e.target.value })}
-                  />
-                </label>
-                <label className="text-sm">
-                  <span className="text-muted-foreground">Quantity *</span>
+                </FormField>
+
+                <FormField error={fieldErrors[`line${idx}.quantity`]} className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.quantity}</span>
                   <input
                     type="number"
                     min="0.01"
                     step="any"
-                    className="input-field mt-1"
-                    required
+                    className={COMPACT_INPUT}
                     value={line.quantity}
                     onChange={(e) => updateLine(idx, { quantity: e.target.value })}
                   />
-                </label>
-                <label className="text-sm">
-                  <span className="text-muted-foreground">Unit price *</span>
+                </FormField>
+
+                <FormField error={fieldErrors[`line${idx}.unitPrice`]} className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.unitPrice}</span>
                   <input
                     type="number"
                     min="0"
                     step="any"
-                    className="input-field mt-1"
-                    required
+                    className={COMPACT_INPUT}
                     value={line.estimatedUnitPrice}
                     onChange={(e) => updateLine(idx, { estimatedUnitPrice: e.target.value })}
                   />
-                </label>
-                <label className="text-sm">
-                  <span className="text-muted-foreground">Total</span>
-                  <input className="input-field mt-1 bg-muted" readOnly value={line.estimatedTotal} />
-                </label>
-                <label className="text-sm sm:col-span-2 lg:col-span-3">
-                  <span className="text-muted-foreground">Remarks</span>
+                </FormField>
+
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.uom}</span>
                   <input
-                    className="input-field mt-1"
-                    value={line.remarks}
-                    onChange={(e) => updateLine(idx, { remarks: e.target.value })}
+                    className={COMPACT_INPUT}
+                    value={line.uomCode}
+                    placeholder={line.uom || '—'}
+                    onChange={(e) => updateLine(idx, { uomCode: e.target.value })}
                   />
-                </label>
+                </FormField>
+
+                <FormField className="lg:mt-0">
+                  <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.total}</span>
+                  <input className={`${COMPACT_INPUT} bg-muted`} readOnly value={line.estimatedTotal} />
+                </FormField>
+
+                <div className="hidden justify-center lg:flex lg:pt-1">
+                  <button
+                    type="button"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-destructive hover:bg-destructive/10"
+                    aria-label={t.removeLine}
+                    onClick={() => removeLine(idx)}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="card space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">Attachments</h2>
-        <input
-          type="file"
-          multiple
-          accept={ALLOWED_MIME_TYPES_CLIENT.join(',')}
-          className="text-sm"
-          onChange={(e) => setFiles(Array.from(e.target.files || []))}
+      <section className="card space-y-3 p-4 sm:p-5">
+        <h2 className="text-base font-bold text-foreground">{t.attachments}</h2>
+        <AttachmentDropzone
+          files={files}
+          onFilesChange={setFiles}
+          dropLabel={t.dropFiles}
+          dropHint={t.dropFilesHint}
+          removeFileLabel={t.removeFile}
+          fileTooLargeMessage={t.fileTooLarge}
+          fileTypeMessage={t.fileTypeNotAllowed}
         />
-        <p className="text-xs text-muted-foreground">PDF, images, Office files — max 25 MB each</p>
-        {files.length > 0 && (
-          <ul className="text-sm text-muted-foreground">
-            {files.map((f) => (
-              <li key={f.name}>{f.name}</li>
-            ))}
-          </ul>
-        )}
       </section>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-2">
         <button type="submit" className="btn-primary" disabled={saving}>
-          {saving ? 'Submitting…' : 'Submit for approval'}
+          {saving ? t.submitting : t.submitForApproval}
         </button>
         <Link href="/purchase-requests" className="btn-secondary">
-          Cancel
+          {t.cancel}
         </Link>
       </div>
 

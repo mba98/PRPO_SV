@@ -7,9 +7,11 @@ export default function CreatePurchaseRequestPage() {
   return (
     <div>
       <SectionPageHeader section="pr" titleKey="createTitle" descriptionKey="createDesc" />
-      <Suspense fallback={<AnimatedSkeletonLoader rows={10} />}>
-        <PrCreateForm />
-      </Suspense>
+      <div className="mt-4">
+        <Suspense fallback={<AnimatedSkeletonLoader rows={8} />}>
+          <PrCreateForm />
+        </Suspense>
+      </div>
     </div>
   );
 }

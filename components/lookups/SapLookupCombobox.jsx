@@ -5,6 +5,7 @@ import { apiFetch } from '@/lib/apiClient';
 
 /**
  * Debounced SAP/master lookup combobox (code + display label).
+ * Suggestions show only when focused and query length meets minChars (minimum 1).
  */
 export default function SapLookupCombobox({
   endpoint,
@@ -15,15 +16,18 @@ export default function SapLookupCombobox({
   getLabel,
   placeholder = 'Search…',
   disabled = false,
-  minChars = 0,
+  minChars = 1,
   emptyMessage = 'No results',
+  inputClassName = 'input-field',
+  loadingMessage = 'Loading…',
 }) {
   const [query, setQuery] = useState(valueLabel || valueCode || '');
   const [results, setResults] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const timer = useRef(null);
+  const queryMin = Math.max(minChars, 1);
 
   useEffect(() => {
     setQuery(valueLabel || valueCode || '');
@@ -33,11 +37,17 @@ export default function SapLookupCombobox({
     if (timer.current) clearTimeout(timer.current);
     if (disabled) return undefined;
 
-    const run = async () => {
+    const trimmed = query.trim();
+    if (trimmed.length < queryMin) {
+      setResults([]);
+      setLoading(false);
+      return undefined;
+    }
+
+    timer.current = setTimeout(async () => {
       setLoading(true);
       setError('');
-      const params = new URLSearchParams({ limit: '20' });
-      if (query.trim()) params.set('query', query.trim());
+      const params = new URLSearchParams({ limit: '20', query: trimmed });
       const { json } = await apiFetch(`${endpoint}?${params}`);
       if (json.success) {
         setResults(json.data || []);
@@ -46,24 +56,17 @@ export default function SapLookupCombobox({
         setError(json.message || 'Lookup failed');
       }
       setLoading(false);
-      setOpen(true);
-    };
+    }, 300);
 
-    if (minChars > 0 && query.trim().length < minChars) {
-      setResults([]);
-      return undefined;
-    }
-
-    timer.current = setTimeout(run, 300);
     return () => clearTimeout(timer.current);
-  }, [query, endpoint, disabled, minChars]);
+  }, [query, endpoint, disabled, queryMin]);
 
   function pick(option) {
     const code = getCode(option);
     const label = getLabel(option);
     onSelect(code, label, option);
     setQuery(label);
-    setOpen(false);
+    setFocused(false);
     setError('');
   }
 
@@ -73,11 +76,16 @@ export default function SapLookupCombobox({
     setResults([]);
   }
 
+  const showDropdown =
+    focused &&
+    query.trim().length >= queryMin &&
+    (loading || results.length > 0 || (!loading && !error));
+
   return (
     <div className="relative">
       <input
         type="text"
-        className="input-field"
+        className={inputClassName}
         value={query}
         disabled={disabled}
         placeholder={placeholder}
@@ -85,13 +93,15 @@ export default function SapLookupCombobox({
           setQuery(e.target.value);
           if (!e.target.value) clearSelection();
         }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 200)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setTimeout(() => setFocused(false), 200)}
       />
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-      {open && (loading || results.length > 0 || (query && !loading)) && (
-        <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-md border border-border bg-card shadow-lg">
-          {loading && <li className="px-3 py-2 text-xs text-muted-foreground">Loading…</li>}
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+      {showDropdown && (
+        <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-border bg-card shadow-lg">
+          {loading && (
+            <li className="px-3 py-2 text-xs text-muted-foreground">{loadingMessage}</li>
+          )}
           {!loading && results.length === 0 && (
             <li className="px-3 py-2 text-xs text-muted-foreground">{emptyMessage}</li>
           )}
@@ -102,7 +112,7 @@ export default function SapLookupCombobox({
                 <li key={code}>
                   <button
                     type="button"
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                    className="w-full px-3 py-2 text-start text-sm hover:bg-muted"
                     onMouseDown={() => pick(opt)}
                   >
                     {getLabel(opt)}

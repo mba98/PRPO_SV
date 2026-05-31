@@ -2,7 +2,17 @@
 
 import SapLookupCombobox from './SapLookupCombobox';
 
-export default function VendorSelect({ valueCode, valueLabel, onSelect, disabled }) {
+export default function VendorSelect({
+  valueCode,
+  valueLabel,
+  onSelect,
+  disabled,
+  placeholder = 'Search vendor',
+  emptyMessage = 'No results',
+  inputClassName = 'input-field',
+  loadingMessage = 'Loading…',
+  minChars = 1,
+}) {
   return (
     <SapLookupCombobox
       endpoint="/api/sap/vendors"
@@ -11,9 +21,12 @@ export default function VendorSelect({ valueCode, valueLabel, onSelect, disabled
       onSelect={(code, label) => onSelect(code, label)}
       getCode={(v) => v.cardCode}
       getLabel={(v) => `${v.cardCode} — ${v.cardName || ''}`}
-      placeholder="Search vendor"
+      placeholder={placeholder}
       disabled={disabled}
-      minChars={0}
+      minChars={minChars}
+      emptyMessage={emptyMessage}
+      inputClassName={inputClassName}
+      loadingMessage={loadingMessage}
     />
   );
 }

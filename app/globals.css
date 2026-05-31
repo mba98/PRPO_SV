@@ -82,6 +82,10 @@
     @apply min-h-10 w-full rounded-xl border border-border bg-card py-2.5 px-4 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
 
+  .input-field-compact {
+    @apply input-field min-h-9 py-2 text-sm;
+  }
+
   .input-field-password {
     @apply pe-12;
   }

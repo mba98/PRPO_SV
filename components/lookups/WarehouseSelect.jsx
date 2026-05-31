@@ -2,7 +2,17 @@
 
 import SapLookupCombobox from './SapLookupCombobox';
 
-export default function WarehouseSelect({ valueCode, valueLabel, onSelect, disabled }) {
+export default function WarehouseSelect({
+  valueCode,
+  valueLabel,
+  onSelect,
+  disabled,
+  placeholder = 'Search warehouse',
+  emptyMessage = 'No results',
+  inputClassName = 'input-field',
+  loadingMessage = 'Loading…',
+  minChars = 1,
+}) {
   return (
     <SapLookupCombobox
       endpoint="/api/sap/warehouses"
@@ -11,9 +21,12 @@ export default function WarehouseSelect({ valueCode, valueLabel, onSelect, disab
       onSelect={(code, label) => onSelect(code, label)}
       getCode={(w) => w.warehouseCode}
       getLabel={(w) => `${w.warehouseCode} — ${w.warehouseName || ''}`}
-      placeholder="Search warehouse"
+      placeholder={placeholder}
       disabled={disabled}
-      minChars={0}
+      minChars={minChars}
+      emptyMessage={emptyMessage}
+      inputClassName={inputClassName}
+      loadingMessage={loadingMessage}
     />
   );
 }
