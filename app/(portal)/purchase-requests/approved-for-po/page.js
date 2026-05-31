@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import ApprovedForPoManager from '@/components/purchase-requests/ApprovedForPoManager';
-import { AnimatedSkeletonLoader } from '@/components/ui';
+import { PortalLoader } from '@/components/ui';
 
 export default function ApprovedForPoPage() {
   return (
@@ -11,7 +11,7 @@ export default function ApprovedForPoPage() {
         titleKey="approvedForPoTitle"
         descriptionKey="approvedForPoDesc"
       />
-      <Suspense fallback={<AnimatedSkeletonLoader rows={6} />}>
+      <Suspense fallback={<PortalLoader fullScreen />}>
         <ApprovedForPoManager />
       </Suspense>
     </div>

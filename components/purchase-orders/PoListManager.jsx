@@ -7,7 +7,7 @@ import { apiFetch } from '@/lib/apiClient';
 import { navigateWithQuery } from '@/lib/listUrl';
 import { useAuthStore } from '@/stores/authStore';
 import {
-  AnimatedSkeletonLoader,
+  PortalLoader,
   AnimatedStatusBadge,
   AnimatedTableContainer,
   AnimatedTabs,
@@ -205,7 +205,7 @@ export default function PoListManager() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {loading ? (
-        <AnimatedSkeletonLoader rows={6} />
+        <PortalLoader />
       ) : (
         <>
           <AnimatedTableContainer>

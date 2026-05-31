@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge, AnimatedTableContainer, Button } from '@/components/ui';
+import { PortalLoader, AnimatedStatusBadge, AnimatedTableContainer, Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 
 export default function ReadyForApriPage() {
@@ -55,7 +55,7 @@ export default function ReadyForApriPage() {
       <SectionPageHeader section="po" titleKey="readyForApriTitle" descriptionKey="readyForApriDesc" />
       {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
       {loading ? (
-        <AnimatedSkeletonLoader rows={5} />
+        <PortalLoader />
       ) : (
         <AnimatedTableContainer>
           <table className="data-table">

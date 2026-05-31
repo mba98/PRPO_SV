@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
-import { AnimatedModal, AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import { AnimatedModal, PortalLoader, AnimatedStatusBadge } from '@/components/ui';
 import ListPagination from '@/components/lists/ListPagination';
 import SettingsTable from './SettingsTable';
 
@@ -253,7 +253,7 @@ export default function UsersManager() {
       )}
 
       {loading ? (
-        <AnimatedSkeletonLoader variant="table" rows={6} />
+        <PortalLoader />
       ) : (
         <>
           <SettingsTable

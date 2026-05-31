@@ -6,7 +6,7 @@ import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import {
   AnimatedDashboardCard,
-  AnimatedSkeletonLoader,
+  PortalLoader,
   AnimatedStatusBadge,
 } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
@@ -159,7 +159,9 @@ export default function DashboardView() {
       <section>
         <h2 className="mb-4 text-lg font-bold text-foreground">{dashI18n.title}</h2>
         {loading ? (
-          <AnimatedSkeletonLoader rows={3} />
+          <div className="col-span-full">
+            <PortalLoader />
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {cards.map((card) => (
@@ -170,7 +172,7 @@ export default function DashboardView() {
       </section>
 
       {loading ? (
-        <AnimatedSkeletonLoader variant="table" rows={4} />
+        <PortalLoader />
       ) : (
         <div className="grid gap-6 xl:grid-cols-2">
           {canViewPr && (

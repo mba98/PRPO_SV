@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge, AnimatedTabs } from '@/components/ui';
+import { PortalLoader, AnimatedStatusBadge, AnimatedTabs } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 import WorkflowStepper from '@/components/workflow/WorkflowStepper';
 import PoEditForm from '@/components/purchase-orders/PoEditForm';
@@ -46,7 +46,7 @@ export default function PoDetailView({ id }) {
     else setError(json.message || 'Retry failed');
   }
 
-  if (loading) return <AnimatedSkeletonLoader rows={8} />;
+  if (loading) return <PortalLoader fullScreen />;
   if (!po) return <p className="text-red-600">{error || detail.notFound}</p>;
 
   const canApprove = po.canApproveCurrentStep === true;

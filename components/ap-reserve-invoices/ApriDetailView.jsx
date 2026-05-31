@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import { PortalLoader, AnimatedStatusBadge } from '@/components/ui';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
@@ -38,7 +38,7 @@ export default function ApriDetailView({ id }) {
     else setError(json.message || 'Retry failed');
   }
 
-  if (loading) return <AnimatedSkeletonLoader rows={8} />;
+  if (loading) return <PortalLoader fullScreen />;
   if (!apri) return <p className="text-red-600">{error || 'Not found'}</p>;
 
   const canRetry =

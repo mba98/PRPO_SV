@@ -23,6 +23,8 @@ export { default as AnimatedTabs } from './AnimatedTabs';
 export { default as AnimatedTableContainer } from './AnimatedTableContainer';
 export { default as AnimatedFilterPanel } from './AnimatedFilterPanel';
 export { default as FilterBar } from './FilterBar';
+export { default as ConfirmDialog } from './ConfirmDialog';
+export { default as PortalLoader } from './PortalLoader';
 export { default as Button } from './Button';
 export { default as IconButton } from './IconButton';
 export { default as Card } from './Card';

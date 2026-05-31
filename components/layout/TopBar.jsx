@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import AccentPalette from '@/components/ui/AccentPalette';
@@ -7,17 +8,26 @@ import SunMoonToggle from '@/components/ui/SunMoonToggle';
 import LanguageSelector from '@/components/ui/LanguageSelector';
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useI18n } from '@/lib/hooks/useI18n';
 
 export default function TopBar({ user, onMenuClick }) {
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
-  const { common } = useI18n();
+  const { common, auth } = useI18n();
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
-  async function handleLogout() {
-    await logout();
-    router.push('/login');
-    router.refresh();
+  async function handleConfirmLogout() {
+    setLogoutLoading(true);
+    try {
+      await logout();
+      router.push('/login');
+      router.refresh();
+    } finally {
+      setLogoutLoading(false);
+      setLogoutOpen(false);
+    }
   }
 
   return (
@@ -42,10 +52,26 @@ export default function TopBar({ user, onMenuClick }) {
         <AccentPalette />
         <SunMoonToggle />
         <LanguageSelector />
-        <Button variant="secondary" className="topbar-signout-btn" onClick={handleLogout}>
+        <Button
+          variant="secondary"
+          className="topbar-signout-btn"
+          onClick={() => setLogoutOpen(true)}
+        >
           {common.signOut}
         </Button>
       </div>
+
+      <ConfirmDialog
+        isOpen={logoutOpen}
+        onClose={() => setLogoutOpen(false)}
+        onConfirm={handleConfirmLogout}
+        title={auth.confirmSignOutTitle}
+        message={auth.confirmSignOutMessage}
+        confirmLabel={common.signOut}
+        cancelLabel={common.cancel}
+        confirmVariant="danger"
+        loading={logoutLoading}
+      />
     </header>
   );
 }

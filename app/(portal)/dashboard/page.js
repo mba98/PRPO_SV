@@ -1,13 +1,13 @@
 import { Suspense } from 'react';
 import SectionPageHeader from '@/components/layout/SectionPageHeader';
 import DashboardView from '@/components/dashboard/DashboardView';
-import { AnimatedSkeletonLoader } from '@/components/ui';
+import { PortalLoader } from '@/components/ui';
 
 export default function DashboardPage() {
   return (
     <div>
       <SectionPageHeader section="dashboard" />
-      <Suspense fallback={<AnimatedSkeletonLoader rows={8} />}>
+      <Suspense fallback={<PortalLoader fullScreen />}>
         <DashboardView />
       </Suspense>
     </div>

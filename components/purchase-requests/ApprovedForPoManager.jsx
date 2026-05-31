@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
-import { AnimatedSkeletonLoader, AnimatedStatusBadge } from '@/components/ui';
+import { PortalLoader, AnimatedStatusBadge } from '@/components/ui';
 
 export default function ApprovedForPoManager() {
   const [items, setItems] = useState([]);
@@ -84,7 +84,7 @@ export default function ApprovedForPoManager() {
       )}
 
       {loading ? (
-        <AnimatedSkeletonLoader rows={5} />
+        <PortalLoader />
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 overflow-x-auto rounded-lg border border-border bg-card">

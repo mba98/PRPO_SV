@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AnimatedSkeletonLoader } from '@/components/ui';
+import { PortalLoader } from '@/components/ui';
 
 function HealthStatusPill({ status }) {
   const isUp = status === 'up';
@@ -122,7 +122,7 @@ export default function HealthCheckPanel() {
           <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
         )}
 
-        {loading && <AnimatedSkeletonLoader variant="timeline" steps={5} />}
+        {loading && <PortalLoader />}
 
         {dependencies && !loading && (
           <div className="space-y-2">
