@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDocumentWorkflow,
   canApproveCurrentWorkflowStep,
+  buildApriWorkflow,
 } from '@/lib/workflowSteps';
 
 const STEPS = [
@@ -63,5 +64,27 @@ describe('PO approval step permissions', () => {
       includeCreated: true,
     });
     expect(canApproveCurrentWorkflowStep(workflow)).toBe(true);
+  });
+});
+
+describe('APRI workflow', () => {
+  it('builds Created and SAP APRI steps', () => {
+    const workflow = buildApriWorkflow({
+      status: 'Ready for AP Reserve Invoice',
+      sapAPDocEntry: null,
+    });
+    expect(workflow).toHaveLength(2);
+    expect(workflow[0].kind).toBe('created');
+    expect(workflow[0].state).toBe('current');
+    expect(workflow[1].kind).toBe('sap');
+    expect(workflow[1].state).toBe('pending');
+  });
+
+  it('marks SAP step created when sapAPDocEntry exists', () => {
+    const workflow = buildApriWorkflow({
+      status: 'Created in SAP',
+      sapAPDocEntry: 100,
+    });
+    expect(workflow[1].state).toBe('sap_created');
   });
 });

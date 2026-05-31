@@ -23,6 +23,10 @@ describe('WorkflowStepper UI', () => {
     path.resolve(process.cwd(), 'components/purchase-orders/PoDetailView.jsx'),
     'utf8',
   );
+  const apriDetail = fs.readFileSync(
+    path.resolve(process.cwd(), 'components/ap-reserve-invoices/ApriDetailView.jsx'),
+    'utf8',
+  );
 
   it('renders themed connector and primary CSS variables', () => {
     expect(stepper).toContain('workflow-connector-line--active');
@@ -92,9 +96,37 @@ describe('WorkflowStepper UI', () => {
 
   it('PR and PO detail pages use WorkflowStepper with documentType', () => {
     expect(prDetail).toContain('<WorkflowStepper');
+    expect(prDetail).toContain("from '@/components/workflow'");
     expect(prDetail).toContain('documentType="PR"');
     expect(poDetail).toContain('<WorkflowStepper');
     expect(poDetail).toContain('documentType="PO"');
+  });
+
+  it('PO detail does not render legacy stepper markup', () => {
+    expect(poDetail).not.toContain('workflow-stepper-list--rtl');
+    expect(poDetail).not.toContain('flex-row-reverse');
+    expect(poDetail).not.toMatch(/→\s*\{/);
+    expect(poDetail).not.toContain('AnimatedWorkflowStepper');
+  });
+
+  it('WorkflowStepper supports PO created step label via poCreated', () => {
+    expect(stepper).toContain("step.kind === 'created'");
+    expect(stepper).toContain('workflow.poCreated');
+  });
+
+  it('APRI detail uses WorkflowStepper when workflow exists', () => {
+    expect(apriDetail).toContain('<WorkflowStepper');
+    expect(apriDetail).toContain('documentType="APRI"');
+    expect(apriDetail).toContain('apri.workflowSteps');
+  });
+
+  it('localized current and completed labels exist', () => {
+    expect(getDictionary('en').workflow.current).toBe('Current');
+    expect(getDictionary('en').workflow.completed).toBe('Completed');
+    expect(getDictionary('ar').workflow.current).toBe('الحالية');
+    expect(getDictionary('ar').workflow.completed).toBe('مكتملة');
+    expect(getDictionary('en').workflow.poCreated).toBe('PO Created');
+    expect(getDictionary('ar').workflow.poCreated).toContain('PO');
   });
 });
 

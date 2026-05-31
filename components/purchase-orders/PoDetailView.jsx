@@ -7,7 +7,7 @@ import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { PortalLoader, AnimatedStatusBadge, AnimatedTabs } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
-import WorkflowStepper from '@/components/workflow/WorkflowStepper';
+import { WorkflowStepper } from '@/components/workflow';
 import PoEditForm from '@/components/purchase-orders/PoEditForm';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';

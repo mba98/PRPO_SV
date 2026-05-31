@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { PortalLoader, AnimatedStatusBadge } from '@/components/ui';
+import { WorkflowStepper } from '@/components/workflow';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
@@ -52,6 +53,10 @@ export default function ApriDetailView({ id }) {
 
   return (
     <div className="space-y-6">
+      {apri.workflowSteps?.length > 0 && (
+        <WorkflowStepper steps={apri.workflowSteps} documentType="APRI" />
+      )}
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">

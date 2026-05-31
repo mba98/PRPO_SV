@@ -25,6 +25,7 @@ export { default as AnimatedFilterPanel } from './AnimatedFilterPanel';
 export { default as FilterBar } from './FilterBar';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as PortalLoader } from './PortalLoader';
+export { WorkflowStepper } from '@/components/workflow';
 export { default as Button } from './Button';
 export { default as IconButton } from './IconButton';
 export { default as Card } from './Card';

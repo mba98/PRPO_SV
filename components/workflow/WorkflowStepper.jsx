@@ -13,6 +13,10 @@ const STEP_NAME_RULES = [
 ];
 
 function resolveStepTitle(step, workflow, documentType) {
+  if (step.kind === 'created') {
+    if (documentType === 'PO') return workflow.poCreated || workflow.created;
+    return workflow.created;
+  }
   if (step.kind === 'sap') {
     if (documentType === 'PO') return workflow.sapPoCreated;
     if (documentType === 'APRI') return workflow.sapApriCreated;
