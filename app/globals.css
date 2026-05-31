@@ -209,11 +209,6 @@
     @apply h-8 w-8 min-w-8 rounded-xl text-xs font-black;
   }
 
-  .quick-actions-popover .sun-moon-svg {
-    width: 16px;
-    height: 16px;
-  }
-
   .quick-actions-row {
     @apply flex flex-col gap-1;
   }
@@ -289,59 +284,149 @@
   }
 
   .sun-moon-toggle {
-    @apply relative overflow-hidden p-0;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 0.9rem;
+    border: 1px solid var(--border);
+    background: var(--card);
     color: var(--primary);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transition:
+      background 0.2s ease,
+      transform 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .sun-moon-toggle--sm {
+    height: 2.25rem;
+    width: 2.25rem;
+  }
+
+  .sun-moon-toggle--md {
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+
+  .sun-moon-toggle:hover {
+    background: color-mix(in srgb, var(--primary) 12%, var(--card));
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  }
+
+  .sun-moon-toggle:active {
+    transform: scale(0.95);
   }
 
   .sun-moon-toggle:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 30%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
   }
 
-  .sun-moon-toggle-inner {
-    @apply relative flex h-full w-full items-center justify-center;
+  .sun-moon-toggle svg {
+    width: 18px;
+    height: 18px;
     color: var(--primary);
+    transition: transform 0.4s ease;
+    transform: rotate(40deg);
   }
 
-  .sun-moon-svg {
-    width: 1.4rem;
-    height: 1.4rem;
-    color: var(--primary);
-    display: block;
+  .sun-moon-toggle svg .sunMoon {
+    transform-origin: center center;
+    transition: transform 0.4s ease;
+    transform: scale(1);
   }
 
-  .sun-moon-body {
-    fill: currentColor;
+  .sun-moon-toggle svg .sunRay {
+    transform-origin: center center;
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  .sun-moon-toggle svg .sun-moon-mask-circle {
+    transition: transform 0.64s cubic-bezier(0.41, 0.64, 0.32, 1.575);
+    transform: translate(0, 0);
+  }
+
+  .sun-moon-toggle-light svg {
+    transform: rotate(90deg);
+  }
+
+  .sun-moon-toggle-light svg .sun-moon-mask-circle {
+    transform: translate(16px, -3px);
+  }
+
+  .sun-moon-toggle-light svg .sunMoon {
+    transform: scale(0.55);
+  }
+
+  .sun-moon-toggle-light svg .sunRay {
+    animation: show-sun-ray 0.4s ease forwards;
     opacity: 1;
   }
 
-  .sun-moon-rays {
-    fill: currentColor;
-    opacity: 0.9;
-    transform-origin: 12px 12px;
-    transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  .sun-moon-toggle-light svg .sunRay2 {
+    animation-delay: 0.05s;
   }
 
-  .sun-moon-mask {
-    fill: var(--card);
-    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  .sun-moon-toggle-light svg .sunRay3 {
+    animation-delay: 0.1s;
   }
 
-  .sun-moon-toggle--light .sun-moon-mask {
-    transform: translateX(28px);
+  .sun-moon-toggle-light svg .sunRay4 {
+    animation-delay: 0.17s;
   }
 
-  .sun-moon-toggle--dark .sun-moon-rays {
+  .sun-moon-toggle-light svg .sunRay5 {
+    animation-delay: 0.25s;
+  }
+
+  .sun-moon-toggle-light svg .sunRay6 {
+    animation-delay: 0.29s;
+  }
+
+  .sun-moon-toggle-dark svg {
+    transform: rotate(40deg);
+  }
+
+  .sun-moon-toggle-dark svg .sunMoon {
+    transform: scale(1);
+  }
+
+  .sun-moon-toggle-dark svg .sunRay {
+    transform: scale(0);
     opacity: 0;
-    transform: scale(0.35) rotate(-90deg);
   }
 
-  .sun-moon-toggle--dark .sun-moon-body {
-    transform: translateX(-5px);
+  .sun-moon-toggle-dark svg .sun-moon-mask-circle {
+    transform: translate(0, 0);
   }
 
-  .sun-moon-toggle--dark .sun-moon-mask {
-    transform: translateX(12px);
+  @keyframes show-sun-ray {
+    from {
+      transform: scale(0);
+    }
+
+    to {
+      transform: scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sun-moon-toggle,
+    .sun-moon-toggle svg,
+    .sun-moon-toggle svg .sunMoon,
+    .sun-moon-toggle svg .sun-moon-mask-circle {
+      transition: none;
+    }
+
+    .sun-moon-toggle-light svg .sunRay {
+      animation: none;
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   .page-shell {

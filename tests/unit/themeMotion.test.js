@@ -12,8 +12,9 @@ describe('Theme controls motion and Sun/Moon visibility', () => {
     expect(src).toContain('fill="currentColor"');
     expect(src).toContain('aria-label');
     expect(src).toContain('switchToLightMode');
+    expect(src).toContain('sun-moon-toggle-light');
     expect(css).toContain('color: var(--primary)');
-    expect(css).toContain('.sun-moon-toggle--dark');
+    expect(css).toContain('.sun-moon-toggle-dark');
   });
 
   it('ThemeTransitionOverlay exists and respects reduced motion', () => {

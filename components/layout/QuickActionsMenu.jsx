@@ -59,7 +59,7 @@ export default function QuickActionsMenu() {
             </div>
             <div className="quick-actions-row quick-actions-row--center">
               <span className="quick-actions-label">{common.colorMode}</span>
-              <SunMoonToggle />
+              <SunMoonToggle size="sm" />
             </div>
             <div className="quick-actions-row quick-actions-row--center">
               <span className="quick-actions-label">{common.language}</span>

@@ -133,17 +133,16 @@ describe('Phase 12C — light/dark, accent palette, login theme', () => {
     expect(getDir('en')).toBe('ltr');
   });
 
-  it('TopBar uses AccentPalette, SunMoonToggle, and LanguageSelector', () => {
+  it('QuickActionsMenu hosts AccentPalette, SunMoonToggle, and LanguageSelector', () => {
     const src = fs.readFileSync(
-      path.resolve(process.cwd(), 'components/layout/TopBar.jsx'),
+      path.resolve(process.cwd(), 'components/layout/QuickActionsMenu.jsx'),
       'utf8',
     );
-    const jsx = src.slice(src.indexOf('return ('));
-    expect(jsx).toContain('<AccentPalette');
-    expect(jsx).toContain('<SunMoonToggle');
-    expect(jsx).toContain('<LanguageSelector');
-    expect(jsx.indexOf('<AccentPalette')).toBeLessThan(jsx.indexOf('<SunMoonToggle'));
-    expect(jsx.indexOf('<SunMoonToggle')).toBeLessThan(jsx.indexOf('<LanguageSelector'));
+    expect(src).toContain('<AccentPalette');
+    expect(src).toContain('<SunMoonToggle');
+    expect(src).toContain('<LanguageSelector');
+    expect(src.indexOf('<AccentPalette')).toBeLessThan(src.indexOf('<SunMoonToggle'));
+    expect(src.indexOf('<SunMoonToggle')).toBeLessThan(src.indexOf('<LanguageSelector'));
   });
 
   it('SettingsTable and DataTable avoid bg-white', () => {
