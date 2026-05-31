@@ -6,10 +6,12 @@ import { getEffectivePermissions } from '@/lib/effectivePermissions';
 import { getVisibleNavItems, getVisibleSettingsNav } from '@/lib/navigation';
 import { isNavItemActive, resolveActiveNavHref } from '@/lib/navActive';
 import { useI18n } from '@/lib/hooks/useI18n';
+import { useNavigationLoadingStore } from '@/stores/navigationLoadingStore';
 
 export default function SidebarNav({ user, onNavigate }) {
   const pathname = usePathname();
   const { nav, locale } = useI18n();
+  const startNavigation = useNavigationLoadingStore((s) => s.startNavigation);
   const permissions = getEffectivePermissions(user);
   const mainNav = getVisibleNavItems(permissions, locale);
   const settingsNav = getVisibleSettingsNav(permissions, locale);
@@ -23,6 +25,13 @@ export default function SidebarNav({ user, onNavigate }) {
       : 'text-muted-foreground hover:bg-muted hover:text-foreground';
   };
 
+  const handleNavClick = (href, activeHref) => {
+    if (!isNavItemActive(pathname, href, activeHref)) {
+      startNavigation();
+    }
+    onNavigate?.();
+  };
+
   return (
     <nav className="flex-1 overflow-y-auto px-3 py-4">
       <ul className="space-y-1">
@@ -30,7 +39,7 @@ export default function SidebarNav({ user, onNavigate }) {
           <li key={item.href}>
             <Link
               href={item.href}
-              onClick={onNavigate}
+              onClick={() => handleNavClick(item.href, activeMainHref)}
               className={`block min-h-10 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${linkClass(item.href, activeMainHref)}`}
             >
               {item.label}
@@ -48,7 +57,7 @@ export default function SidebarNav({ user, onNavigate }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  onClick={onNavigate}
+                  onClick={() => handleNavClick(item.href, activeSettingsHref)}
                   className={`block min-h-10 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${linkClass(item.href, activeSettingsHref)}`}
                 >
                   {item.label}

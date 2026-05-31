@@ -9,6 +9,7 @@ import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
 import { ALLOWED_MIME_TYPES_CLIENT, MAX_FILE_SIZE_BYTES } from '@/lib/attachmentClientConstants';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { formatDateTime } from '@/lib/formatDate';
+import { resolveAttachmentDisplayName } from '@/lib/attachmentDisplayName';
 
 function formatBytes(bytes) {
   if (bytes == null) return '—';
@@ -176,7 +177,11 @@ export default function AttachmentPanel({
             </div>
           ) : (
             <motion.ul {...listAnimation} className="space-y-2">
-              {items.map((file) => (
+              {items.map((file) => {
+                const displayName = resolveAttachmentDisplayName(file, {
+                  fallbackLabel: att.fallbackFileName,
+                });
+                return (
                 <li
                   key={file.id}
                   className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between"
@@ -186,9 +191,14 @@ export default function AttachmentPanel({
                       <FileDocIcon />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-foreground">{file.fileName}</p>
+                      <p
+                        dir="auto"
+                        className="break-words text-sm font-medium text-foreground"
+                      >
+                        {displayName}
+                      </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {(fileExtension(file.fileName) || file.fileType || '—').toUpperCase()} ·{' '}
+                        {(fileExtension(displayName) || file.fileType || '—').toUpperCase()} ·{' '}
                         {formatBytes(file.fileSize)}
                       </p>
                       {(file.uploadedBy || file.uploadedAt) && (
@@ -217,7 +227,8 @@ export default function AttachmentPanel({
                     {att.open}
                   </a>
                 </li>
-              ))}
+              );
+              })}
             </motion.ul>
           )}
         </>

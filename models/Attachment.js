@@ -9,6 +9,7 @@ const attachmentSchema = new mongoose.Schema(
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     uploadedAt: { type: Date, default: Date.now },
     fileName: String,
+    originalFileName: String,
     fileType: String,
     fileSize: Number,
     s3Key: { type: String, unique: true, sparse: true },

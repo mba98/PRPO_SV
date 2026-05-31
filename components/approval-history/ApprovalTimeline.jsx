@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { apiFetch } from '@/lib/apiClient';
 import { AnimatedEmptyState, PortalLoader } from '@/components/ui';
+import { useI18n } from '@/lib/hooks/useI18n';
 
 const ACTION_TONE = {
   Created: 'bg-muted0',
@@ -18,11 +19,31 @@ const ACTION_TONE = {
   'Comment Added': 'bg-brand-500',
 };
 
+const ACTION_I18N_KEY = {
+  Created: 'created',
+  Submitted: 'submitted',
+  Updated: 'updated',
+  Approved: 'approved',
+  Rejected: 'rejected',
+  'SAP Created': 'sapCreated',
+  'SAP Failed': 'sapFailed',
+  'Email Sent': 'emailSent',
+  'Attachment Uploaded': 'attachmentUploaded',
+  'Comment Added': 'commentAdded',
+};
+
 function dotClass(action) {
   return ACTION_TONE[action] || 'bg-muted-foreground';
 }
 
+function historyActionLabel(action, historyDict) {
+  const key = ACTION_I18N_KEY[action];
+  if (key && historyDict[key]) return historyDict[key];
+  return action;
+}
+
 export default function ApprovalTimeline({ documentType, documentId }) {
+  const { history: historyI18n, isRtl } = useI18n();
   const shouldReduceMotion = useReducedMotion();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,8 +90,8 @@ export default function ApprovalTimeline({ documentType, documentId }) {
   if (items.length === 0) {
     return (
       <AnimatedEmptyState
-        title="No history yet"
-        description="Actions on this document will appear here as a timeline."
+        title={historyI18n.emptyTitle}
+        description={historyI18n.emptyDescription}
       />
     );
   }
@@ -79,9 +100,17 @@ export default function ApprovalTimeline({ documentType, documentId }) {
     ? {}
     : { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.2 } };
 
+  const linePos = isRtl ? 'right-[18px]' : 'left-[18px]';
+  const dotPos = isRtl ? 'right-[12px]' : 'left-[12px]';
+  const itemPad = isRtl ? 'pr-10 text-start' : 'pl-10 text-start';
+
   return (
     <motion.section {...containerAnim} className="card">
-      <ol className="relative border-l border-border pl-6">
+      <ol className="relative">
+        <span
+          aria-hidden
+          className={`absolute top-0 bottom-0 w-px bg-border ${linePos}`}
+        />
         {items.map((h, idx) => {
           const itemAnim = shouldReduceMotion
             ? {}
@@ -91,14 +120,14 @@ export default function ApprovalTimeline({ documentType, documentId }) {
                 transition: { duration: 0.18, delay: idx * 0.03 },
               };
           return (
-            <motion.li key={h.id} {...itemAnim} className="mb-6 ml-2">
+            <motion.li key={h.id} {...itemAnim} className={`relative mb-6 last:mb-0 ${itemPad}`}>
               <span
-                className={`absolute -left-[9px] mt-1.5 h-4 w-4 rounded-full border-2 border-white ring-2 ring-slate-100 ${dotClass(
+                className={`absolute ${dotPos} mt-1.5 h-4 w-4 rounded-full border-2 border-background ring-4 ring-background ${dotClass(
                   h.action,
                 )}`}
               />
               <p className="text-sm font-medium text-foreground">
-                {h.action}
+                {historyActionLabel(h.action, historyI18n)}
                 {h.stepName ? ` — ${h.stepName}` : ''}
               </p>
               <p className="text-xs text-muted-foreground">
@@ -107,22 +136,20 @@ export default function ApprovalTimeline({ documentType, documentId }) {
                 {h.actionDate ? ` · ${new Date(h.actionDate).toLocaleString()}` : ''}
               </p>
               {h.comment && (
-                <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
-                  {h.comment}
+                <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{h.comment}</p>
+              )}
+              {(h.previousStatus || h.newStatus) && h.previousStatus !== h.newStatus && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {h.previousStatus || '—'} → {h.newStatus || '—'}
                 </p>
               )}
-              {(h.previousStatus || h.newStatus) &&
-                h.previousStatus !== h.newStatus && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {h.previousStatus || '—'} → {h.newStatus || '—'}
-                  </p>
-                )}
               {h.attachments?.length > 0 && (
                 <ul className="mt-2 flex flex-wrap gap-2">
                   {h.attachments.map((a) => (
                     <li
                       key={a.id}
                       className="rounded bg-muted px-2 py-0.5 text-xs text-foreground"
+                      dir="auto"
                     >
                       {a.fileName}
                     </li>

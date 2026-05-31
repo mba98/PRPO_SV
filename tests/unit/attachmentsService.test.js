@@ -40,6 +40,8 @@ import {
   completeUpload,
   listAttachments,
   safeFileName,
+  safeStorageFileName,
+  normalizeDisplayFileName,
   newUlid,
   isAllowedMime,
   normalizeDocumentId,
@@ -67,6 +69,18 @@ describe('attachmentsService helpers', () => {
     it('caps length at 200 chars', () => {
       const long = 'a'.repeat(300) + '.pdf';
       expect(safeFileName(long).length).toBeLessThanOrEqual(200);
+    });
+
+    it('strips Arabic for storage but safeStorageFileName keeps extension via ulid fallback', () => {
+      expect(safeFileName('صورة الفاتورة.png')).toBe('file');
+      const storage = safeStorageFileName('صورة الفاتورة.png', '01HXXXYZZZZZZZZZZZZZZZZZZ');
+      expect(storage).toMatch(/^attachment-01HXXXYZZZZZZZZZZZZZZZZZZ\.png$/);
+    });
+  });
+
+  describe('normalizeDisplayFileName', () => {
+    it('preserves Arabic characters for display metadata', () => {
+      expect(normalizeDisplayFileName('صورة الفاتورة.png')).toBe('صورة الفاتورة.png');
     });
   });
 
@@ -219,6 +233,7 @@ describe('completeUpload', () => {
         documentId: new mongoose.Types.ObjectId(PR_ID),
         s3Key,
         fileName: 'doc.pdf',
+        originalFileName: 'doc.pdf',
         fileSize: 1024,
         uploadedBy: 'user1',
       }),
@@ -233,6 +248,28 @@ describe('completeUpload', () => {
     );
     expect(result.downloadUrl).toBe('https://s3.example.com/get-url');
     expect(result.s3Key).toBe(s3Key);
+  });
+
+  it('preserves Arabic originalFileName in metadata (not safeFileName)', async () => {
+    const arabicName = 'صورة الفاتورة.png';
+    const s3Key = `PR/${PR_ID}/01HXXXY-attachment-01HXXXY.png`;
+    await completeUpload(USER, {
+      documentType: 'PR',
+      documentId: PR_ID,
+      s3Key,
+      fileName: arabicName,
+      originalFileName: arabicName,
+      fileType: 'image/png',
+      fileSize: 2048,
+    });
+    expect(mocks.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileName: arabicName,
+        originalFileName: arabicName,
+      }),
+    );
+    expect(mocks.create.mock.calls[0][0].fileName).not.toBe('file');
+    expect(mocks.create.mock.calls[0][0].fileName).not.toBe('.png');
   });
 
   it('rejects an s3Key that does not match the document scope', async () => {
