@@ -132,15 +132,6 @@ export default function ApriDetailView({ id }) {
             )}
           </section>
 
-          {apri.sapResponse && (
-            <section className="card">
-              <h2 className="mb-2 text-lg font-semibold">SAP response</h2>
-              <pre className="max-h-64 overflow-auto rounded bg-muted p-3 text-xs text-foreground">
-                {JSON.stringify(apri.sapResponse, null, 2)}
-              </pre>
-            </section>
-          )}
-
           <section className="card overflow-x-auto">
             <h2 className="mb-4 text-lg font-semibold">Line items</h2>
             <table className="min-w-full text-sm">
