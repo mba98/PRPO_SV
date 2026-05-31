@@ -18,6 +18,12 @@ const STATUS_STYLES = {
     'bg-violet-100 text-violet-800 dark:bg-violet-500/25 dark:text-violet-300',
   Completed:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
+  'Partially Ordered':
+    'bg-sky-100 text-sky-800 dark:bg-sky-500/25 dark:text-sky-300',
+  'Fully Ordered':
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
+  Open: 'bg-blue-100 text-blue-800 dark:bg-blue-500/25 dark:text-blue-300',
+  Closed: 'bg-muted text-muted-foreground',
 };
 
 function getStatusClass(status) {

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { dashboard as dashI18n } from '@/lib/i18n';
+import { useI18n } from '@/lib/hooks/useI18n';
 import { useMotionSafe } from './useMotionSafe';
 
 const toneClasses = {
@@ -20,6 +20,7 @@ export default function AnimatedDashboardCard({
   tone = 'default',
   loading = false,
 }) {
+  const { dashboard: dashI18n } = useI18n();
   const motionProps = useMotionSafe({
     initial: { opacity: 0, y: 8 },
     animate: { opacity: 1, y: 0 },
@@ -36,7 +37,7 @@ export default function AnimatedDashboardCard({
         {loading ? '—' : value ?? 0}
       </p>
       {href && (
-        <p className="mt-3 text-xs font-semibold text-primary">{dashI18n.viewList} ←</p>
+        <p className="mt-3 text-xs font-semibold text-primary">{dashI18n.viewList}</p>
       )}
     </motion.div>
   );

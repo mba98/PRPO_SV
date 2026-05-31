@@ -54,7 +54,7 @@ function RecentTable({ title, rows, columns, emptyMessage }) {
 }
 
 export default function DashboardView() {
-  const { common, dashboard: dashI18n, pr, po, apri, locale } = useI18n();
+  const { common, dashboard: dashI18n, locale } = useI18n();
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const canViewLogs = hasAnyPermission(['view.all', 'admin.settings']);
   const canViewPr = hasAnyPermission(['pr.create', 'pr.approve.whs', 'pr.approve.pm', 'view.all']);
@@ -178,7 +178,7 @@ export default function DashboardView() {
             <RecentTable
               title={dashI18n.recentPrs}
               rows={recent?.purchaseRequests}
-              emptyMessage={pr.noPrs}
+              emptyMessage={dashI18n.noRecentRecords}
               columns={[
                 {
                   key: 'num',
@@ -210,7 +210,7 @@ export default function DashboardView() {
             <RecentTable
               title={dashI18n.recentPos}
               rows={recent?.purchaseOrders}
-              emptyMessage={po.noPos}
+              emptyMessage={dashI18n.noRecentRecords}
               columns={[
                 {
                   key: 'num',
@@ -241,7 +241,7 @@ export default function DashboardView() {
             <RecentTable
               title={dashI18n.recentApri}
               rows={recent?.apReserveInvoices}
-              emptyMessage={apri.noApri}
+              emptyMessage={dashI18n.noRecentRecords}
               columns={[
                 {
                   key: 'num',
@@ -267,7 +267,7 @@ export default function DashboardView() {
             <RecentTable
               title={dashI18n.recentSapFailures}
               rows={recent?.sapFailures}
-              emptyMessage={common.noData}
+              emptyMessage={dashI18n.noRecentRecords}
               columns={[
                 { key: 'type', label: common.status, render: (r) => r.documentType },
                 { key: 'action', label: common.actions, render: (r) => r.action },
