@@ -102,7 +102,7 @@ export default function PrListManager() {
       setError(json.message || common.errorLoad);
     }
     setLoading(false);
-  }, [buildQueryParams]);
+  }, [buildQueryParams, common.errorLoad]);
 
   useEffect(() => {
     load();

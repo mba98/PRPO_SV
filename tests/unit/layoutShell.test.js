@@ -60,7 +60,7 @@ describe('Layout shell — logos, sidebar identity, quick actions', () => {
   it('quick menu trigger uses compact h-9 w-9 sizing', () => {
     const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
     expect(css).toContain('.quick-menu-toggle');
-    expect(css).toContain('h-9 w-9');
+    expect(css).toMatch(/w-9 h-9|h-9 w-9/);
     expect(css).toContain('width: 16px');
   });
 

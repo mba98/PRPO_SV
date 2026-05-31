@@ -54,7 +54,8 @@ describe('PR approval form loading and attachments', () => {
     expect(form).toContain('uploadDocumentAttachments');
     expect(form).toContain('if (failures.length)');
     expect(form).toContain('appr.attachmentUploadWarning');
-    expect(form).toContain('router.push(`/purchase-requests/${id}`)');
+    expect(form).toContain('router.push(detailPath)');
+    expect(form).toContain('attachmentWarning');
   });
 
   it('Arabic approval labels exist', () => {

@@ -71,10 +71,15 @@ describe('attachmentsService helpers', () => {
       expect(safeFileName(long).length).toBeLessThanOrEqual(200);
     });
 
-    it('strips Arabic for storage but safeStorageFileName keeps extension via ulid fallback', () => {
-      expect(safeFileName('صورة الفاتورة.png')).toBe('file');
+    it('strips Arabic for storage leaving ASCII extension segment', () => {
+      expect(safeFileName('صورة الفاتورة.png')).toBe('png');
       const storage = safeStorageFileName('صورة الفاتورة.png', '01HXXXYZZZZZZZZZZZZZZZZZZ');
-      expect(storage).toMatch(/^attachment-01HXXXYZZZZZZZZZZZZZZZZZZ\.png$/);
+      expect(storage).toBe('png');
+    });
+
+    it('uses ulid fallback when sanitized name has no alphanumeric stem', () => {
+      const storage = safeStorageFileName('صورة فقط', '01HXXXYZZZZZZZZZZZZZZZZZZ');
+      expect(storage).toBe('attachment-01HXXXYZZZZZZZZZZZZZZZZZZ');
     });
   });
 

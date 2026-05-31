@@ -71,7 +71,6 @@ const purchaseRequestSchema = new mongoose.Schema(
   schemaOptions,
 );
 
-purchaseRequestSchema.index({ portalPRNumber: 1 }, { unique: true, sparse: true });
 purchaseRequestSchema.index({ status: 1, currentApprovalStep: 1 });
 purchaseRequestSchema.index({ requester: 1, createdAt: -1 });
 purchaseRequestSchema.index({ sapPRDocEntry: 1 });

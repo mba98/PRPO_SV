@@ -33,7 +33,7 @@ export default function PrDetailView({ id }) {
     if (prJson.success) setPr(prJson.data);
     else setError(prJson.message || common.errorLoad);
     setLoading(false);
-  }, [id]);
+  }, [id, common.errorLoad]);
 
   useEffect(() => {
     load();
@@ -116,19 +116,19 @@ export default function PrDetailView({ id }) {
 
           <section className="card grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              ['Requester', pr.requesterName || pr.requesterEmail],
-              ['SAP requester code', pr.requesterSapRequesterCode || '—'],
+              [detail.requester, pr.requesterName || pr.requesterEmail],
+              [detail.requesterSapCode, pr.requesterSapRequesterCode || '—'],
               [
-                'Required date',
+                detail.requiredDate,
                 pr.requiredDate ? new Date(pr.requiredDate).toLocaleDateString() : '—',
               ],
               [
-                'Document date',
+                detail.documentDate,
                 pr.documentDate ? new Date(pr.documentDate).toLocaleDateString() : '—',
               ],
-              ['Due date', pr.dueDate ? new Date(pr.dueDate).toLocaleDateString() : '—'],
-              ['SAP PR DocNum', pr.sapPRDocNum || '—'],
-              ['SAP PR DocEntry', pr.sapPRDocEntry || '—'],
+              [detail.dueDate, pr.dueDate ? new Date(pr.dueDate).toLocaleDateString() : '—'],
+              [detail.sapPrDocNum, pr.sapPRDocNum || '—'],
+              [detail.sapPrDocEntry, pr.sapPRDocEntry || '—'],
             ].map(([label, val]) => (
               <div key={label}>
                 <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
@@ -137,13 +137,13 @@ export default function PrDetailView({ id }) {
             ))}
             {pr.remarks && (
               <div className="sm:col-span-2 lg:col-span-3">
-                <p className="text-xs font-medium uppercase text-muted-foreground">Remarks</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">{detail.remarks}</p>
                 <p className="mt-1 text-sm text-foreground">{pr.remarks}</p>
               </div>
             )}
             {pr.status === 'Failed to Create in SAP' && (
               <div className="sm:col-span-2 lg:col-span-3 rounded-md border border-rose-200 border border-destructive/30 bg-destructive/10 px-4 py-3">
-                <p className="text-xs font-medium uppercase text-destructive">SAP creation failed</p>
+                <p className="text-xs font-medium uppercase text-destructive">{detail.sapFailed}</p>
                 {pr.sapErrorMessage && (
                   <p className="mt-1 text-sm text-destructive">{pr.sapErrorMessage}</p>
                 )}
@@ -154,12 +154,12 @@ export default function PrDetailView({ id }) {
                 )}
                 {pr.requesterMissingSapCode && (
                   <p className="mt-2 text-sm text-destructive">
-                    Original requester is missing SAP requester code.
+                    {detail.requesterMissingSap}
                   </p>
                 )}
                 {showRetryDeniedNote && (
                   <p className="mt-2 text-sm text-muted-foreground">
-                    SAP retry is available to Admin users only.
+                    {detail.sapRetryAdmin}
                   </p>
                 )}
               </div>
@@ -167,17 +167,17 @@ export default function PrDetailView({ id }) {
           </section>
 
           <section className="card overflow-x-auto">
-            <h2 className="mb-4 text-lg font-semibold">Line items</h2>
+            <h2 className="mb-4 text-lg font-semibold">{detail.lineItems}</h2>
             <table className="min-w-full text-sm">
               <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="pb-2 pr-4">Item</th>
-                  <th className="pb-2 pr-4">Warehouse</th>
-                  <th className="pb-2 pr-4">Qty</th>
-                  <th className="pb-2 pr-4">UoM code</th>
-                  <th className="pb-2 pr-4">Unit price</th>
-                  <th className="pb-2 pr-4">Total</th>
-                  <th className="pb-2">Vendor</th>
+                  <th className="pb-2 pr-4">{detail.item}</th>
+                  <th className="pb-2 pr-4">{detail.warehouse}</th>
+                  <th className="pb-2 pr-4">{detail.qty}</th>
+                  <th className="pb-2 pr-4">{detail.uomCode}</th>
+                  <th className="pb-2 pr-4">{detail.unitPrice}</th>
+                  <th className="pb-2 pr-4">{detail.total}</th>
+                  <th className="pb-2">{detail.vendor}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

@@ -24,7 +24,9 @@ describe('Theme controls motion and Sun/Moon visibility', () => {
     );
     expect(src).toContain('theme-transition-overlay');
     expect(src).toContain('useReducedMotion');
-    expect(src).toContain('pointer-events');
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
+    expect(css).toContain('.theme-transition-overlay');
+    expect(css).toContain('pointer-events: none');
   });
 
   it('setAccent triggers UI transition in themeStore', () => {

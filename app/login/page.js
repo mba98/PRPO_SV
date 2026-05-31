@@ -1,4 +1,11 @@
 import { Suspense } from 'react';
+import { cookies } from 'next/headers';
+import {
+  verifyToken,
+  getCurrentUser,
+  sanitizeUser,
+  getSessionCookieName,
+} from '@/lib/auth';
 import LoginForm from './LoginForm';
 
 function LoginFallback() {
@@ -16,10 +23,33 @@ function LoginFallback() {
   );
 }
 
-export default function LoginPage() {
+async function loadSessionUser() {
+  const token = cookies().get(getSessionCookieName())?.value;
+  if (!token) {
+    return null;
+  }
+  try {
+    const session = await verifyToken(token);
+    const user = await getCurrentUser(session);
+    if (!user) {
+      return null;
+    }
+    const safe = sanitizeUser(user);
+    return {
+      id: safe.id,
+      name: safe.name,
+      username: safe.username,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export default async function LoginPage() {
+  const sessionUser = await loadSessionUser();
   return (
     <Suspense fallback={<LoginFallback />}>
-      <LoginForm />
+      <LoginForm sessionUser={sessionUser} />
     </Suspense>
   );
 }

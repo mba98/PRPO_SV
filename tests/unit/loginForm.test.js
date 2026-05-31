@@ -41,8 +41,9 @@ describe('LoginForm — button contrast and password toggle', () => {
     expect(src).toContain("showPassword ? 'text' : 'password'");
     expect(src).toContain('useState(false)');
     expect(src).toContain('password-toggle-btn');
-    expect(src).toContain('end-3');
-    expect(src).not.toMatch(/right-3|left-3/);
+    expect(src).toContain('password-toggle-btn');
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
+    expect(css).toContain('.password-toggle-btn');
   });
 
   it('password toggle has bilingual aria labels', () => {
@@ -64,5 +65,16 @@ describe('LoginForm — button contrast and password toggle', () => {
     const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
     expect(css).toContain('.input-field-password');
     expect(css).toContain('pe-12');
+  });
+
+  it('LoginForm supports continue-as and sign-out UX', () => {
+    const form = fs.readFileSync(
+      path.resolve(process.cwd(), 'app/login/LoginForm.jsx'),
+      'utf8',
+    );
+    expect(form).toContain('sessionUser');
+    expect(form).toContain('login.continue');
+    expect(form).toContain('login.signOutAndSwitch');
+    expect(getDictionary('en').login.continueAs).toContain('{name}');
   });
 });

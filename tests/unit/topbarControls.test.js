@@ -48,6 +48,6 @@ describe('TopBar controls — moved to Quick Actions menu', () => {
       'utf8',
     );
     expect(LOCALE_STORAGE_KEY).toBe('procurement-locale');
-    expect(store).toContain(LOCALE_STORAGE_KEY);
+    expect(store).toContain('LOCALE_STORAGE_KEY');
   });
 });

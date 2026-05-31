@@ -22,7 +22,7 @@ export default function SettingsPageGuard({ children }) {
     if (!loading && user && !allowed) {
       document.title = common.accessDenied;
     }
-  }, [loading, user, allowed]);
+  }, [loading, user, allowed, common.accessDenied]);
 
   if (loading || !user) {
     return <AnimatedSkeletonLoader variant="table" rows={4} />;

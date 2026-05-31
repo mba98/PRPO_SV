@@ -26,7 +26,7 @@ export default function ReadyForApriPage() {
     if (json.success) setItems(json.data);
     else setError(json.message || common.errorLoad);
     setLoading(false);
-  }, []);
+  }, [common.errorLoad]);
 
   useEffect(() => {
     load();

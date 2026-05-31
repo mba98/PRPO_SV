@@ -34,7 +34,7 @@ export default function PoDetailView({ id }) {
     if (json.success) setPo(json.data);
     else setError(json.message || common.errorLoad);
     setLoading(false);
-  }, [id]);
+  }, [id, common.errorLoad]);
 
   useEffect(() => {
     load();
@@ -43,7 +43,7 @@ export default function PoDetailView({ id }) {
   async function retrySap() {
     const { json } = await apiFetch(`/api/purchase-orders/${id}/retry-sap`, { method: 'POST' });
     if (json.success) load();
-    else setError(json.message || 'Retry failed');
+    else setError(json.message || common.errorLoad);
   }
 
   if (loading) return <PortalLoader fullScreen />;
@@ -130,12 +130,12 @@ export default function PoDetailView({ id }) {
         <>
           <section className="card grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              ['Vendor', po.vendor],
-              ['Department', po.department],
-              ['Exchange rate', po.docRate != null ? po.docRate : null],
-              ['Related PR', po.relatedPRNumber],
-              ['SAP PR', po.relatedSAPPRDocNum],
-              ['SAP PO', po.sapPODocNum],
+              [detail.vendor, po.vendor],
+              [detail.department, po.department],
+              [detail.exchangeRate, po.docRate != null ? po.docRate : null],
+              [detail.relatedPr, po.relatedPRNumber],
+              [detail.sapPr, po.relatedSAPPRDocNum],
+              [detail.sapPo, po.sapPODocNum],
             ].map(([label, val]) => (
               <div key={label}>
                 <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
@@ -144,39 +144,39 @@ export default function PoDetailView({ id }) {
             ))}
             {po.relatedPRId && (
               <div>
-                <p className="text-xs font-medium uppercase text-muted-foreground">PR link</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">{detail.prLink}</p>
                 <Link
                   href={`/purchase-requests/${po.relatedPRId}`}
                   className="mt-1 text-sm text-primary hover:underline"
                 >
-                  View purchase request
+                  {detail.viewPr}
                 </Link>
               </div>
             )}
             {po.sapErrorMessage && (
               <div className="sm:col-span-2">
-                <p className="text-xs font-medium uppercase text-destructive">SAP error</p>
+                <p className="text-xs font-medium uppercase text-destructive">{detail.sapError}</p>
                 <p className="mt-1 text-sm text-destructive">{po.sapErrorMessage}</p>
               </div>
             )}
             {po.sapWarnings && (
               <div className="sm:col-span-2">
-                <p className="text-xs font-medium uppercase text-amber-600">SAP warnings</p>
+                <p className="text-xs font-medium uppercase text-amber-600">{detail.sapWarnings}</p>
                 <p className="mt-1 text-sm text-amber-800">{po.sapWarnings}</p>
               </div>
             )}
           </section>
           <section className="card overflow-x-auto">
-            <h2 className="mb-4 text-lg font-semibold">Line items</h2>
+            <h2 className="mb-4 text-lg font-semibold">{detail.lineItems}</h2>
             <table className="min-w-full text-sm">
               <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="pb-2 pr-4">Item</th>
-                  <th className="pb-2 pr-4">Qty</th>
-                  <th className="pb-2 pr-4">Unit price</th>
-                  <th className="pb-2 pr-4">UoM code</th>
-                  <th className="pb-2 pr-4">Warehouse</th>
-                  <th className="pb-2">Total</th>
+                  <th className="pb-2 pr-4">{detail.item}</th>
+                  <th className="pb-2 pr-4">{detail.qty}</th>
+                  <th className="pb-2 pr-4">{detail.unitPrice}</th>
+                  <th className="pb-2 pr-4">{detail.uomCode}</th>
+                  <th className="pb-2 pr-4">{detail.warehouse}</th>
+                  <th className="pb-2">{detail.total}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

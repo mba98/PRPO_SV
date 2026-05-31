@@ -3,6 +3,7 @@ const nextConfig = {
   transpilePackages: ['framer-motion'],
   experimental: {
     serverComponentsExternalPackages: ['odbc', 'bcrypt'],
+    instrumentationHook: true,
   },
 };
 

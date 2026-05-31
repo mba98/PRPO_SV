@@ -19,6 +19,5 @@ const attachmentSchema = new mongoose.Schema(
 );
 
 attachmentSchema.index({ documentType: 1, documentId: 1 });
-attachmentSchema.index({ s3Key: 1 }, { unique: true, sparse: true });
 
 export default mongoose.models.Attachment || mongoose.model('Attachment', attachmentSchema);

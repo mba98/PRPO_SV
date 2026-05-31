@@ -30,7 +30,7 @@ describe('ApprovalTimeline RTL and i18n', () => {
   it('localizes history actions via history i18n keys', () => {
     expect(source).toContain('historyActionLabel');
     expect(source).toContain('ACTION_I18N_KEY');
-    expect(en).toContain('history.created');
+    expect(en).toContain("created: 'Created'");
     expect(ar).toContain('تم الإنشاء');
     expect(ar).toContain('تم رفع مرفق');
   });

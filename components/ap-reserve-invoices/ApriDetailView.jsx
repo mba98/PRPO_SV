@@ -9,8 +9,10 @@ import { WorkflowStepper } from '@/components/workflow';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
+import { useI18n } from '@/lib/hooks/useI18n';
 
 export default function ApriDetailView({ id }) {
+  const { common, detail, apri: apriI18n } = useI18n();
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const [apri, setApri] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,9 +24,9 @@ export default function ApriDetailView({ id }) {
     setLoading(true);
     const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}`);
     if (json.success) setApri(json.data);
-    else setError(json.message || 'Failed to load');
+    else setError(json.message || common.errorLoad);
     setLoading(false);
-  }, [id]);
+  }, [id, common.errorLoad]);
 
   useEffect(() => {
     load();
@@ -36,17 +38,23 @@ export default function ApriDetailView({ id }) {
     const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}/retry-sap`, { method: 'POST' });
     setRetrying(false);
     if (json.success) load();
-    else setError(json.message || 'Retry failed');
+    else setError(json.message || common.errorLoad);
   }
 
   if (loading) return <PortalLoader fullScreen />;
-  if (!apri) return <p className="text-red-600">{error || 'Not found'}</p>;
+  if (!apri) return <p className="text-red-600">{error || detail.notFound}</p>;
 
   const canRetry =
     apri.status === 'Failed to Create in SAP' &&
     (hasPermission('view.all') || hasPermission('admin.settings'));
 
-  const tabs = ['details', 'attachments', 'comments', 'history', 'emails'];
+  const tabs = [
+    { id: 'details', label: common.details },
+    { id: 'attachments', label: common.attachments },
+    { id: 'comments', label: common.comments },
+    { id: 'history', label: common.approvalHistory },
+    { id: 'emails', label: common.emails },
+  ];
 
   const canUploadAttachments =
     hasPermission('apinvoice.create') || hasPermission('view.all');
@@ -61,7 +69,7 @@ export default function ApriDetailView({ id }) {
         <div>
           <p className="text-sm text-muted-foreground">
             <Link href="/ap-reserve-invoices" className="text-primary hover:underline">
-              A/P Reserve Invoices
+              {apriI18n.title}
             </Link>
             {' / '}
             {apri.portalAPNumber}
@@ -73,7 +81,7 @@ export default function ApriDetailView({ id }) {
         </div>
         {canRetry && (
           <button type="button" className="btn-secondary" onClick={retrySap} disabled={retrying}>
-            {retrying ? 'Retrying…' : 'Retry SAP'}
+            {retrying ? detail.retrying : detail.retrySap}
           </button>
         )}
       </div>
@@ -83,16 +91,16 @@ export default function ApriDetailView({ id }) {
       <div className="flex gap-2 border-b border-border">
         {tabs.map((t) => (
           <button
-            key={t}
+            key={t.id}
             type="button"
-            onClick={() => setActiveTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize ${
-              activeTab === t
+            onClick={() => setActiveTab(t.id)}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === t.id
                 ? 'border-b-2 border-brand-600 text-primary'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {t}
+            {t.label}
           </button>
         ))}
       </div>
@@ -101,12 +109,12 @@ export default function ApriDetailView({ id }) {
         <>
           <section className="card grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              ['Vendor', apri.vendor],
-              ['Related PO', apri.relatedPONumber],
-              ['SAP PO DocEntry', apri.relatedSAPPODocEntry],
-              ['SAP PO DocNum', apri.relatedSAPPODocNum],
-              ['SAP AP DocNum', apri.sapAPDocNum],
-              ['SAP AP DocEntry', apri.sapAPDocEntry],
+              [detail.vendor, apri.vendor],
+              [detail.relatedPo, apri.relatedPONumber],
+              [detail.sapPoDocEntry, apri.relatedSAPPODocEntry],
+              [detail.sapPoDocNum, apri.relatedSAPPODocNum],
+              [detail.sapApDocNum, apri.sapAPDocNum],
+              [detail.sapApDocEntry, apri.sapAPDocEntry],
             ].map(([label, val]) => (
               <div key={label}>
                 <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
@@ -115,32 +123,32 @@ export default function ApriDetailView({ id }) {
             ))}
             {apri.relatedPO?.id && (
               <div>
-                <p className="text-xs font-medium uppercase text-muted-foreground">PO link</p>
+                <p className="text-xs font-medium uppercase text-muted-foreground">{detail.poLink}</p>
                 <Link
                   href={`/purchase-orders/${apri.relatedPO.id}`}
                   className="mt-1 text-sm text-primary hover:underline"
                 >
-                  View purchase order
+                  {detail.viewPo}
                 </Link>
               </div>
             )}
             {apri.sapErrorMessage && (
               <div className="sm:col-span-2">
-                <p className="text-xs font-medium uppercase text-destructive">SAP error</p>
+                <p className="text-xs font-medium uppercase text-destructive">{detail.sapError}</p>
                 <p className="mt-1 text-sm text-destructive">{apri.sapErrorMessage}</p>
               </div>
             )}
           </section>
 
           <section className="card overflow-x-auto">
-            <h2 className="mb-4 text-lg font-semibold">Line items</h2>
+            <h2 className="mb-4 text-lg font-semibold">{detail.lineItems}</h2>
             <table className="min-w-full text-sm">
               <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="pb-2 pr-4">Item</th>
-                  <th className="pb-2 pr-4">PO line</th>
-                  <th className="pb-2 pr-4">Qty</th>
-                  <th className="pb-2">Total</th>
+                  <th className="pb-2 pr-4">{detail.item}</th>
+                  <th className="pb-2 pr-4">{detail.poLine}</th>
+                  <th className="pb-2 pr-4">{detail.qty}</th>
+                  <th className="pb-2">{detail.total}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -180,15 +188,15 @@ export default function ApriDetailView({ id }) {
       {activeTab === 'emails' && (
         <section className="card overflow-x-auto">
           {(apri.emailLogs || []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">No email logs</p>
+            <p className="text-sm text-muted-foreground">{detail.noEmailLogs}</p>
           ) : (
             <table className="min-w-full text-sm">
               <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="pb-2 pr-4">To</th>
-                  <th className="pb-2 pr-4">Subject</th>
-                  <th className="pb-2 pr-4">Status</th>
-                  <th className="pb-2">Sent</th>
+                  <th className="pb-2 pr-4">{detail.emailTo}</th>
+                  <th className="pb-2 pr-4">{detail.emailSubject}</th>
+                  <th className="pb-2 pr-4">{detail.emailStatus}</th>
+                  <th className="pb-2">{detail.emailSent}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
