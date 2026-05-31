@@ -80,10 +80,6 @@ function connectorActive(prevState) {
   );
 }
 
-function connectorSourceStep(visualSteps, visualIndex, isRtl) {
-  return isRtl ? visualSteps[visualIndex + 1] : visualSteps[visualIndex];
-}
-
 function CheckIcon() {
   return (
     <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden fill="currentColor">
@@ -230,12 +226,12 @@ export default function WorkflowStepper({ steps = [], documentType = 'PR' }) {
     key: `${step.kind}-${step.stepOrder}`,
   }));
 
-  const visualSteps = isRtl ? [...computedSteps].reverse() : computedSteps;
+  const flowDir = isRtl ? 'rtl' : 'ltr';
 
   return (
-    <nav aria-label={wf.progressLabel} className="workflow-stepper">
-      <div className="workflow-stepper-row hidden md:flex" dir="ltr">
-        {visualSteps.map((step, visualIndex) => (
+    <nav aria-label={wf.progressLabel} className="workflow-stepper" dir={flowDir}>
+      <div className="workflow-stepper-row hidden md:flex" dir={flowDir}>
+        {computedSteps.map((step, visualIndex) => (
           <Fragment key={step.key}>
             <WorkflowStepCard
               step={step}
@@ -245,11 +241,9 @@ export default function WorkflowStepper({ steps = [], documentType = 'PR' }) {
               reduceMotion={reduceMotion}
               animationDelay={step.logicalIndex * 0.05}
             />
-            {visualIndex < visualSteps.length - 1 && (
+            {visualIndex < computedSteps.length - 1 && (
               <WorkflowConnector
-                active={connectorActive(
-                  connectorSourceStep(visualSteps, visualIndex, isRtl).state,
-                )}
+                active={connectorActive(computedSteps[visualIndex].state)}
                 isRtl={isRtl}
                 reduceMotion={reduceMotion}
               />
@@ -258,7 +252,7 @@ export default function WorkflowStepper({ steps = [], documentType = 'PR' }) {
         ))}
       </div>
 
-      <ol className="workflow-stepper-mobile list-none space-y-0 p-0 md:hidden">
+      <ol className="workflow-stepper-mobile list-none space-y-0 p-0 md:hidden" dir={flowDir}>
         {computedSteps.map((step) => (
           <li key={step.key} className="workflow-step-mobile-item">
             <WorkflowStepCard
@@ -272,7 +266,7 @@ export default function WorkflowStepper({ steps = [], documentType = 'PR' }) {
             {step.logicalIndex < computedSteps.length - 1 && (
               <WorkflowConnector
                 active={connectorActive(step.state)}
-                isRtl={false}
+                isRtl={isRtl}
                 reduceMotion={reduceMotion}
               />
             )}

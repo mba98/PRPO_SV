@@ -42,18 +42,22 @@ describe('WorkflowStepper UI', () => {
     expect(stepper).toContain('useI18n');
   });
 
-  it('English LTR keeps logical step order for desktop row', () => {
-    expect(stepper).toContain('const visualSteps = isRtl ? [...computedSteps].reverse() : computedSteps');
+  it('English LTR keeps logical step order with dir=ltr on desktop row', () => {
+    expect(stepper).toContain('const flowDir = isRtl ? \'rtl\' : \'ltr\'');
+    expect(stepper).toContain('computedSteps.map');
+    expect(stepper).not.toContain('[...computedSteps].reverse()');
     expect(stepper).toContain('warehouseApproval');
     expect(stepper).toContain('projectManagerApproval');
     expect(stepper).toContain('sapCreated');
   });
 
-  it('Arabic RTL reverses computed visual steps without mutating source steps', () => {
+  it('Arabic RTL uses dir=rtl so first logical step renders on the right', () => {
     expect(stepper).toContain('const computedSteps = steps.map');
-    expect(stepper).toContain('[...computedSteps].reverse()');
+    expect(stepper).toContain('dir={flowDir}');
+    expect(stepper).not.toContain('dir="ltr"');
     expect(stepper).not.toContain('workflow-stepper-list--rtl');
     expect(css).not.toContain('flex-row-reverse');
+    expect(css).toContain("[dir='rtl'] .workflow-connector-line--active");
   });
 
   it('uses ArrowLeft for RTL and ArrowRight for LTR connectors', () => {
@@ -70,9 +74,8 @@ describe('WorkflowStepper UI', () => {
     expect(stepper).not.toContain('workflow-stepper-list--rtl');
   });
 
-  it('connector active state uses logical source step when RTL reversed', () => {
-    expect(stepper).toContain('connectorSourceStep');
-    expect(stepper).toContain('visualSteps[visualIndex + 1]');
+  it('connector active state uses the preceding logical step in flow order', () => {
+    expect(stepper).toContain('connectorActive(computedSteps[visualIndex].state)');
   });
 
   it('has vertical mobile and horizontal desktop layout', () => {

@@ -58,9 +58,10 @@ describe('PO workflow stepper layout', () => {
   );
   const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
 
-  it('reverses visual steps for RTL after computing states', () => {
+  it('uses dir=rtl for Arabic without reversing computed steps', () => {
     expect(stepper).toContain('const computedSteps = steps.map');
-    expect(stepper).toContain('const visualSteps = isRtl ? [...computedSteps].reverse() : computedSteps');
+    expect(stepper).toContain('const flowDir = isRtl ? \'rtl\' : \'ltr\'');
+    expect(stepper).not.toContain('[...computedSteps].reverse()');
   });
 
   it('uses compact step cards and themed connectors', () => {

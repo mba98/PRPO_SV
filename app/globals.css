@@ -549,6 +549,14 @@
     );
   }
 
+  [dir='rtl'] .workflow-connector-line--active {
+    background: linear-gradient(
+      270deg,
+      var(--primary),
+      color-mix(in srgb, var(--primary) 30%, transparent)
+    );
+  }
+
   .workflow-connector-line--active-vertical {
     background: linear-gradient(
       180deg,
