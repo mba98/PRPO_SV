@@ -9,6 +9,19 @@ const VARIANTS = {
     'inline-flex min-h-10 items-center justify-center rounded-xl bg-muted px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted/80',
 };
 
+const SPINNER_BORDER = {
+  primary: 'border-primary-foreground',
+  danger: 'border-destructive-foreground',
+  secondary: 'border-foreground',
+  ghost: 'border-foreground',
+  muted: 'border-foreground',
+};
+
+const LABEL_CLASS = {
+  primary: 'text-primary-foreground',
+  danger: 'text-destructive-foreground',
+};
+
 export default function Button({
   variant = 'primary',
   type = 'button',
@@ -19,20 +32,23 @@ export default function Button({
   ...props
 }) {
   const base = VARIANTS[variant] || VARIANTS.primary;
+  const spinnerBorder = SPINNER_BORDER[variant] || SPINNER_BORDER.primary;
+  const labelClass = LABEL_CLASS[variant] || '';
+
   return (
     <button
       type={type}
       disabled={disabled || loading}
-      className={`${base} ${className}`.trim()}
+      className={`${base} inline-flex items-center justify-center gap-2 ${className}`.trim()}
       {...props}
     >
       {loading ? (
         <span
-          className="inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"
+          className={`inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-t-transparent ${spinnerBorder}`}
           aria-hidden
         />
       ) : null}
-      <span className={variant === 'primary' ? 'text-primary-foreground' : ''}>{children}</span>
+      <span className={labelClass}>{children}</span>
     </button>
   );
 }

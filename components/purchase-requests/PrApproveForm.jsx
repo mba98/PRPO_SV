@@ -4,20 +4,19 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
-import {
-  uploadDocumentAttachments,
-  formatAttachmentUploadWarning,
-} from '@/lib/attachmentUploadHelpers';
-import { ALLOWED_MIME_TYPES_CLIENT } from '@/lib/attachmentClientConstants';
-import { AnimatedSkeletonLoader } from '@/components/ui';
+import { uploadDocumentAttachments } from '@/lib/attachmentUploadHelpers';
+import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
+import { Button, FormField, PortalLoader } from '@/components/ui';
+import { useI18n } from '@/lib/hooks/useI18n';
 
 export default function PrApproveForm({ id }) {
   const router = useRouter();
+  const { approval: appr, attachments: att, pr: prI18n, common, approve: approveNs, detail } = useI18n();
   const [pr, setPr] = useState(null);
   const [comment, setComment] = useState('');
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState(null);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
 
@@ -25,27 +24,33 @@ export default function PrApproveForm({ id }) {
     (async () => {
       const { json } = await apiFetch(`/api/purchase-requests/${id}`);
       if (json.success) setPr(json.data);
-      else setError(json.message || 'Failed to load');
+      else setError(json.message || common.errorLoad);
       setLoading(false);
     })();
-  }, [id]);
+  }, [id, common.errorLoad]);
 
-  async function handleApprove() {
+  async function handleAction(action) {
+    if (submittingAction) return;
     if (!pr?.canApproveCurrentStep) {
-      setError('You do not have permission to approve at the current step.');
+      setError(appr.cannotAct);
       return;
     }
-    setSaving(true);
+
+    setSubmittingAction(action);
     setError('');
     setWarning('');
+
+    const endpoint = action === 'approve' ? 'approve' : 'reject';
+
     try {
-      const { json } = await apiFetch(`/api/purchase-requests/${id}/approve`, {
+      const { json } = await apiFetch(`/api/purchase-requests/${id}/${endpoint}`, {
         method: 'POST',
         body: JSON.stringify({ comment, __v: pr.__v }),
       });
+
       if (!json.success) {
-        setError(json.message || 'Approve failed');
-        setSaving(false);
+        setError(json.message || appr.submitError);
+        setSubmittingAction(null);
         return;
       }
 
@@ -57,124 +62,132 @@ export default function PrApproveForm({ id }) {
           approvalStep: String(pr.currentApprovalStep),
         });
         if (failures.length) {
-          const warn = formatAttachmentUploadWarning(failures, 'PR');
-          router.push(`/purchase-requests/${id}?attachmentWarning=${encodeURIComponent(warn)}`);
-          setSaving(false);
+          router.push(
+            `/purchase-requests/${id}?attachmentWarning=${encodeURIComponent(appr.attachmentUploadWarning)}`,
+          );
           return;
         }
       }
 
       router.push(`/purchase-requests/${id}`);
     } catch (err) {
-      setError(err.message || 'Approve failed');
+      setError(err.message || appr.submitError);
+      setSubmittingAction(null);
     }
-    setSaving(false);
   }
 
-  async function handleReject() {
-    if (!pr?.canApproveCurrentStep) {
-      setError('You do not have permission to reject at the current step.');
-      return;
-    }
-    setSaving(true);
-    setError('');
-    setWarning('');
-    try {
-      const { json } = await apiFetch(`/api/purchase-requests/${id}/reject`, {
-        method: 'POST',
-        body: JSON.stringify({ comment, __v: pr.__v }),
-      });
-      if (!json.success) {
-        setError(json.message || 'Reject failed');
-        setSaving(false);
-        return;
-      }
-
-      if (files.length) {
-        const { failures } = await uploadDocumentAttachments({
-          documentType: 'PR',
-          documentId: id,
-          files,
-          approvalStep: String(pr.currentApprovalStep),
-        });
-        if (failures.length) {
-          const warn = formatAttachmentUploadWarning(failures, 'PR');
-          router.push(`/purchase-requests/${id}?attachmentWarning=${encodeURIComponent(warn)}`);
-          setSaving(false);
-          return;
-        }
-      }
-
-      router.push(`/purchase-requests/${id}`);
-    } catch (err) {
-      setError(err.message || 'Reject failed');
-    }
-    setSaving(false);
+  if (loading) {
+    return (
+      <div className="flex min-h-[200px] items-center justify-center">
+        <PortalLoader />
+      </div>
+    );
   }
 
-  if (loading) return <AnimatedSkeletonLoader rows={4} />;
-  if (!pr) return <p className="text-red-600">{error || 'Not found'}</p>;
+  if (!pr) {
+    return <p className="text-sm text-destructive">{error || detail.notFound}</p>;
+  }
 
   const canAct = pr.canApproveCurrentStep === true;
   const currentStep = pr.workflowSteps?.find((s) => s.state === 'current');
   const waitingLabel = currentStep?.stepName
-    ? `Waiting for ${currentStep.stepName} Approval`
-    : 'Waiting for approval';
+    ? `${appr.waitingFor}: ${currentStep.stepName}`
+    : appr.waitingFor;
+
+  const dropHint = `${att.dragApprovalHint} — ${att.dragHint}`;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4">
       <p className="text-sm text-muted-foreground">
         <Link href={`/purchase-requests/${id}`} className="text-primary hover:underline">
           {pr.portalPRNumber}
         </Link>
       </p>
-      <h1 className="text-2xl font-semibold">Approve or reject</h1>
+      <h1 className="text-xl font-semibold text-foreground sm:text-2xl">
+        {approveNs.prTitle || appr.title}
+      </h1>
       <p className="text-sm text-muted-foreground">
-        Status: <strong>{pr.status}</strong> · Step {pr.currentApprovalStep}
+        {common.status}: <strong>{pr.status}</strong> · {pr.currentApprovalStep}
       </p>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {warning && <p className="text-sm text-amber-700">{warning}</p>}
+      {error && (
+        <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      {warning && (
+        <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">
+          {warning}
+        </p>
+      )}
 
       {!canAct ? (
-        <div className="card">
+        <div className="rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5 sm:p-5">
           <p className="text-sm text-foreground">{waitingLabel}</p>
-          <Link href={`/purchase-requests/${id}`} className="btn-secondary mt-4 inline-block">
-            Back to PR
+          <Link href={`/purchase-requests/${id}`} className="btn-secondary mt-4 inline-flex">
+            {appr.backToPr}
           </Link>
         </div>
       ) : (
-        <div className="card space-y-4">
-          <label className="block text-sm">
-            <span className="text-muted-foreground">Comment</span>
+        <div className="space-y-4 rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5 sm:p-5">
+          <FormField label={appr.comment} htmlFor="pr-approve-comment">
             <textarea
-              className="input-field mt-1 min-h-[100px]"
+              id="pr-approve-comment"
+              className="input min-h-[96px] w-full"
               value={comment}
+              placeholder={appr.commentPlaceholder}
               onChange={(e) => setComment(e.target.value)}
+              disabled={!!submittingAction}
             />
-          </label>
-          <label className="block text-sm">
-            <span className="text-muted-foreground">Attachments (optional)</span>
-            <input
-              type="file"
-              multiple
-              accept={ALLOWED_MIME_TYPES_CLIENT.join(',')}
-              className="mt-1 text-sm"
-              onChange={(e) => setFiles(Array.from(e.target.files || []))}
+          </FormField>
+
+          <div className="space-y-2">
+            <p className="form-label">{appr.attachments}</p>
+            <p className="text-xs text-muted-foreground">{appr.attachmentsOptional}</p>
+            <AttachmentDropzone
+              mode="staged"
+              files={files}
+              onFilesChange={setFiles}
+              dropLabel={att.dragTitle}
+              dropHint={dropHint}
+              removeFileLabel={att.removeFile}
+              fileTooLargeMessage={prI18n.create.fileTooLarge}
+              fileTypeMessage={prI18n.create.fileTypeNotAllowed}
+              disabled={!!submittingAction}
             />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Files are uploaded after your approval action completes.
-            </p>
-          </label>
-          <div className="flex gap-3">
-            <button type="button" className="btn-primary" disabled={saving} onClick={handleApprove}>
-              Approve
-            </button>
-            <button type="button" className="btn-secondary" disabled={saving} onClick={handleReject}>
-              Reject
-            </button>
-            <Link href={`/purchase-requests/${id}`} className="btn-secondary">
-              Cancel
+            <p className="text-xs text-muted-foreground">{appr.filesUploadAfterAction}</p>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap">
+            <Button
+              type="button"
+              variant="primary"
+              className="w-full sm:w-auto"
+              loading={submittingAction === 'approve'}
+              disabled={!!submittingAction}
+              onClick={() => handleAction('approve')}
+            >
+              {submittingAction === 'approve' ? appr.approving : appr.approve}
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              className="w-full sm:w-auto"
+              loading={submittingAction === 'reject'}
+              disabled={!!submittingAction}
+              onClick={() => handleAction('reject')}
+            >
+              {submittingAction === 'reject' ? appr.rejecting : appr.reject}
+            </Button>
+            <Link
+              href={`/purchase-requests/${id}`}
+              className={`btn-secondary inline-flex w-full items-center justify-center sm:w-auto ${
+                submittingAction ? 'pointer-events-none opacity-50' : ''
+              }`}
+              aria-disabled={!!submittingAction}
+              tabIndex={submittingAction ? -1 : undefined}
+            >
+              {appr.cancel}
             </Link>
           </div>
         </div>
