@@ -234,16 +234,60 @@
   }
 
   .login-page {
-    @apply flex relative justify-center items-center px-4 py-12 min-h-screen bg-background text-foreground;
+    @apply relative flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12 text-foreground;
+  }
+
+  .login-page-stack {
+    @apply flex w-full max-w-md flex-col items-center;
   }
 
   .login-card {
-    @apply p-6 w-full max-w-md rounded-3xl border shadow-xl border-border bg-card text-card-foreground sm:p-8;
+    @apply w-full rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-xl sm:p-8;
     animation: login-fade-in 0.35s ease-out forwards;
   }
 
   .login-card-header {
-    @apply pb-6 mb-8 text-center border-b border-border;
+    @apply mb-8 border-b border-border pb-6 text-center;
+  }
+
+  .login-card-eyebrow {
+    @apply mb-3 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-primary;
+  }
+
+  .login-card-logo-wrap {
+    @apply mx-auto w-full max-w-[180px];
+  }
+
+  .login-card-logo {
+    @apply mx-auto block h-auto w-full max-w-[180px];
+  }
+
+  .login-card-logo--light {
+    @apply dark:hidden;
+  }
+
+  .login-card-logo--dark {
+    @apply hidden dark:block;
+  }
+
+  .login-card-subtitle {
+    @apply mt-4 text-sm text-muted-foreground;
+  }
+
+  .login-page-below {
+    @apply mt-6 w-full text-center;
+  }
+
+  .login-footer {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .login-footer-link {
+    @apply font-semibold text-primary underline-offset-2 hover:underline;
+  }
+
+  .login-version {
+    @apply mt-2 text-xs text-muted-foreground;
   }
 
   .accent-popover-card {

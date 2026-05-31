@@ -67,6 +67,30 @@ describe('LoginForm — button contrast and password toggle', () => {
     expect(css).toContain('pe-12');
   });
 
+  it('LoginForm shows portal label, mode logos, footer, and version', () => {
+    const form = fs.readFileSync(
+      path.resolve(process.cwd(), 'app/login/LoginForm.jsx'),
+      'utf8',
+    );
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
+    expect(form).toContain('login-card-eyebrow');
+    expect(form).toContain('{common.appName}');
+    expect(form).toContain('svnewlogo-light1.png');
+    expect(form).toContain('svnewlogo-dark1.png');
+    expect(form).toContain('login-card-logo--light');
+    expect(form).toContain('login-card-logo--dark');
+    expect(form).toContain('login-page-stack');
+    expect(form).toContain('login-page-below');
+    expect(form).toContain('login.version');
+    expect(css).toContain('.login-page');
+    expect(css).toMatch(/flex-col/);
+    const en = getDictionary('en');
+    expect(en.login.version).toBe('v.1.0.0');
+    expect(form).toContain('https://www.spc-it.com.iq/');
+    expect(form).toContain('noopener noreferrer');
+    expect(form).not.toMatch(/<h1[^>]*>\s*\{common\.appName\}/);
+  });
+
   it('LoginForm supports continue-as and sign-out UX', () => {
     const form = fs.readFileSync(
       path.resolve(process.cwd(), 'app/login/LoginForm.jsx'),
