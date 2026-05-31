@@ -154,7 +154,7 @@
   }
 
   .quick-menu-toggle {
-    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-card shadow-sm transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-100;
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary shadow-sm transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-100 sm:h-10 sm:w-10;
   }
 
   .quick-menu-toggle:hover {
@@ -164,15 +164,16 @@
   .quick-menu-bars {
     position: relative;
     display: flex;
-    height: 18px;
-    width: 24px;
+    height: 14px;
+    width: 18px;
+    max-width: 20px;
     flex-direction: column;
     justify-content: space-between;
   }
 
   .quick-menu-bars span {
     display: block;
-    height: 3px;
+    height: 2px;
     width: 100%;
     border-radius: 9999px;
     background: var(--primary);
@@ -181,7 +182,7 @@
   }
 
   .quick-menu-toggle--open .quick-menu-bars span:nth-child(1) {
-    transform: translateY(7.5px) rotate(45deg);
+    transform: translateY(6px) rotate(45deg);
   }
 
   .quick-menu-toggle--open .quick-menu-bars span:nth-child(2) {
@@ -190,11 +191,11 @@
   }
 
   .quick-menu-toggle--open .quick-menu-bars span:nth-child(3) {
-    transform: translateY(-7.5px) rotate(-45deg);
+    transform: translateY(-6px) rotate(-45deg);
   }
 
   .quick-actions-popover {
-    @apply absolute left-1/2 top-full z-50 mt-2 w-[220px] max-w-[240px] -translate-x-1/2 rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-xl backdrop-blur-md;
+    @apply absolute left-1/2 top-full z-50 mt-2 w-[220px] max-w-[230px] -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-2xl;
   }
 
   .quick-actions-popover-title {
@@ -202,15 +203,20 @@
   }
 
   .quick-actions-popover-body {
-    @apply flex flex-col gap-2;
+    @apply flex flex-col;
   }
 
   .quick-actions-popover .topbar-icon-btn {
-    @apply h-9 w-9 rounded-xl sm:h-10 sm:w-10;
+    @apply h-9 min-w-9 rounded-xl text-xs font-black;
+  }
+
+  .quick-actions-popover .sun-moon-svg {
+    width: 18px;
+    height: 18px;
   }
 
   .quick-actions-row {
-    @apply flex flex-col gap-1.5;
+    @apply flex flex-col gap-1;
   }
 
   .quick-actions-row--center {
@@ -218,15 +224,22 @@
   }
 
   .quick-actions-label {
-    @apply text-[10px] font-bold uppercase tracking-widest text-muted-foreground;
+    @apply text-[9px] font-black uppercase tracking-widest text-muted-foreground;
+  }
+
+  .accent-palette-wrap {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
+    padding: 0.25rem 0;
   }
 
   .card {
-    @apply rounded-3xl border border-border bg-card p-5 text-card-foreground shadow-xl sm:p-6;
+    @apply rounded-3xl border border-border bg-card p-5 text-card-foreground shadow-xl shadow-black/5 sm:p-6;
   }
 
   .card-elevated {
-    @apply rounded-3xl border border-border bg-card p-5 text-card-foreground shadow-2xl sm:p-6;
+    @apply rounded-3xl border border-border bg-card p-5 text-card-foreground shadow-xl shadow-black/5 sm:p-6;
   }
 
   .login-page {
@@ -252,44 +265,45 @@
 
   .accent-palette-row {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    max-width: 100%;
+    padding: 0.25rem 0;
     transform-style: preserve-3d;
     transform: perspective(1000px);
-    align-items: flex-end;
-    justify-content: center;
-    gap: 0;
-    padding-top: 0.5rem;
   }
 
   .accent-color-item {
     position: relative;
     flex-shrink: 0;
-    width: 24px;
-    height: 32px;
+    width: 18px;
+    height: 28px;
     border: none;
     outline: none;
     cursor: pointer;
     background: transparent;
-    transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    transition: 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
   }
 
   .accent-color-item::after {
     position: absolute;
     content: '';
     inset: 0;
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 28px;
     background-color: var(--color);
     border-radius: 6px;
     transform: scale(1);
     pointer-events: none;
-    transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    transition: 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
   }
 
   .accent-color-item::before {
     position: absolute;
     content: attr(data-label);
     left: 50%;
-    bottom: 44px;
+    bottom: 36px;
     font-size: 8px;
     line-height: 12px;
     transform: translateX(-50%);
@@ -302,12 +316,12 @@
     pointer-events: none;
     opacity: 0;
     visibility: hidden;
-    transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    transition: 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
   }
 
   .accent-color-item:hover {
-    transform: scale(1.25);
-    z-index: 50;
+    transform: scale(1.18);
+    z-index: 20;
   }
 
   .accent-color-item:hover::before {
@@ -316,34 +330,41 @@
   }
 
   .accent-color-item:hover::after {
-    transform: scale(1.2);
+    transform: scale(1.05);
   }
 
   .accent-color-item:hover + .accent-color-item {
-    transform: scale(1.12);
-    z-index: 40;
-  }
-
-  .accent-color-item:hover + .accent-color-item + .accent-color-item {
-    transform: scale(1.06);
-    z-index: 30;
+    transform: scale(1.08);
+    z-index: 10;
   }
 
   .accent-color-item:has(+ .accent-color-item:hover) {
-    transform: scale(1.12);
-    z-index: 40;
+    transform: scale(1.08);
+    z-index: 10;
   }
 
-  .accent-color-item:has(+ .accent-color-item + .accent-color-item:hover) {
-    transform: scale(1.06);
-    z-index: 30;
+  .quick-actions-popover .accent-color-item::before {
+    display: none;
+  }
+
+  .quick-actions-popover .accent-color-item:hover {
+    transform: scale(1.12);
+  }
+
+  .quick-actions-popover .accent-color-item:hover::after {
+    transform: scale(1.03);
+  }
+
+  .quick-actions-popover .accent-color-item:hover + .accent-color-item,
+  .quick-actions-popover .accent-color-item:has(+ .accent-color-item:hover) {
+    transform: scale(1.04);
   }
 
   .accent-color-item-selected::after {
     outline: 2px solid var(--primary);
-    outline-offset: 2px;
-    transform: scale(1.1);
-    box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 35%, transparent);
+    outline-offset: 1px;
+    transform: scale(1.04);
+    box-shadow: none;
   }
 
   .theme-transition-overlay {

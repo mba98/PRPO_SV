@@ -52,7 +52,7 @@ export default function QuickActionsMenu() {
           <p id={titleId} className="quick-actions-popover-title">
             {common.quickActions}
           </p>
-          <div className="quick-actions-popover-body">
+          <div className="quick-actions-popover-body space-y-3">
             <div className="quick-actions-row">
               <span className="quick-actions-label">{common.accentPaletteTitle}</span>
               <AccentPalette embedded />

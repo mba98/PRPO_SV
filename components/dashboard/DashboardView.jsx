@@ -29,7 +29,7 @@ function RecentTable({ title, rows, columns, emptyMessage }) {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {!rows?.length && (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-6 text-center text-muted-foreground">

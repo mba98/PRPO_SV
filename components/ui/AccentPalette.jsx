@@ -64,7 +64,7 @@ export default function AccentPalette({ className = '', embedded = false }) {
 
   if (embedded) {
     return (
-      <div className={className}>
+      <div className={`accent-palette-wrap ${className}`.trim()}>
         <PaletteSwatches accent={accent} locale={locale} setAccent={setAccent} />
       </div>
     );

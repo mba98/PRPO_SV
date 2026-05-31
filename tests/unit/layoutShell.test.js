@@ -57,13 +57,39 @@ describe('Layout shell — logos, sidebar identity, quick actions', () => {
     expect(css).not.toContain('min-w-[260px]');
   });
 
-  it('accent palette uses compact dimensions and hover scale', () => {
+  it('quick menu trigger uses compact h-9/h-10 sizing', () => {
     const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
-    expect(css).toMatch(/\.accent-color-item\s*\{[^}]*width:\s*24px/s);
-    expect(css).toMatch(/\.accent-color-item\s*\{[^}]*height:\s*32px/s);
-    expect(css).toContain('transform: scale(1.25)');
-    expect(css).toContain('transform: scale(1.12)');
-    expect(css).toContain('transform: scale(1.06)');
+    expect(css).toContain('.quick-menu-toggle');
+    expect(css).toContain('h-9 w-9');
+    expect(css).toContain('sm:h-10 sm:w-10');
+    expect(css).toContain('max-width: 20px');
+  });
+
+  it('accent palette uses compact dimensions without circular swatches', () => {
+    const css = fs.readFileSync(path.resolve(process.cwd(), 'app/globals.css'), 'utf8');
+    expect(css).toMatch(/\.accent-color-item\s*\{[^}]*width:\s*18px/s);
+    expect(css).toMatch(/\.accent-color-item\s*\{[^}]*height:\s*28px/s);
+    expect(css).toContain('transform: scale(1.18)');
+    expect(css).toContain('accent-palette-wrap');
+    const palette = fs.readFileSync(
+      path.resolve(process.cwd(), 'components/ui/AccentPalette.jsx'),
+      'utf8',
+    );
+    expect(palette).toContain('accent-color-item');
+    expect(palette).not.toContain('rounded-full');
+  });
+
+  it('dashboard cards use solid bg-card without washed overlays', () => {
+    const card = fs.readFileSync(
+      path.resolve(process.cwd(), 'components/ui/AnimatedDashboardCard.jsx'),
+      'utf8',
+    );
+    expect(card).toContain('bg-card');
+    expect(card).toContain('shadow-xl shadow-black/5');
+    expect(card).toContain('text-foreground');
+    expect(card).not.toContain('bg-emerald-50');
+    expect(card).not.toContain('bg-destructive/10/50');
+    expect(card).not.toMatch(/bg-\w+-50\/50/);
   });
 
   it('Sidebar renders identity and sign out at bottom', () => {

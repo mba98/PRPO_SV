@@ -20,7 +20,7 @@ export default function ThemeTransitionOverlay() {
           key={transitionId}
           className={`theme-transition-overlay theme-transition-overlay--${reason || 'mode'}`}
           initial={{ opacity: 0 }}
-          animate={{ opacity: reduceMotion ? 0.14 : reason === 'accent' ? 0.42 : 0.28 }}
+          animate={{ opacity: reduceMotion ? 0.08 : reason === 'accent' ? 0.22 : 0.16 }}
           exit={{ opacity: 0 }}
           transition={{ duration, ease: 'easeOut' }}
           aria-hidden
