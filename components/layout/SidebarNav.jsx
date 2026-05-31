@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getEffectivePermissions } from '@/lib/effectivePermissions';
 import { getVisibleNavItems, getVisibleSettingsNav } from '@/lib/navigation';
+import { isNavItemActive, resolveActiveNavHref } from '@/lib/navActive';
 import { useI18n } from '@/lib/hooks/useI18n';
 
 export default function SidebarNav({ user, onNavigate }) {
@@ -12,9 +13,11 @@ export default function SidebarNav({ user, onNavigate }) {
   const permissions = getEffectivePermissions(user);
   const mainNav = getVisibleNavItems(permissions, locale);
   const settingsNav = getVisibleSettingsNav(permissions, locale);
+  const activeMainHref = resolveActiveNavHref(pathname, mainNav);
+  const activeSettingsHref = resolveActiveNavHref(pathname, settingsNav);
 
-  const linkClass = (href) => {
-    const active = pathname === href || pathname.startsWith(`${href}/`);
+  const linkClass = (href, activeHref) => {
+    const active = isNavItemActive(pathname, href, activeHref);
     return active
       ? 'bg-primary text-primary-foreground shadow-lg'
       : 'text-muted-foreground hover:bg-muted hover:text-foreground';
@@ -28,7 +31,7 @@ export default function SidebarNav({ user, onNavigate }) {
             <Link
               href={item.href}
               onClick={onNavigate}
-              className={`block min-h-10 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${linkClass(item.href)}`}
+              className={`block min-h-10 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${linkClass(item.href, activeMainHref)}`}
             >
               {item.label}
             </Link>
@@ -46,7 +49,7 @@ export default function SidebarNav({ user, onNavigate }) {
                 <Link
                   href={item.href}
                   onClick={onNavigate}
-                  className={`block min-h-10 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${linkClass(item.href)}`}
+                  className={`block min-h-10 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${linkClass(item.href, activeSettingsHref)}`}
                 >
                   {item.label}
                 </Link>

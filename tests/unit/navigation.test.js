@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getVisibleNavItems, getVisibleSettingsNav } from '@/lib/navigation';
 import { PORTAL_ROUTE_PATHS, SIDEBAR_ENTRY_PATHS } from '@/lib/appRoutes';
 import { getDictionary } from '@/lib/i18n';
+import { isNavItemActive, resolveActiveNavHref } from '@/lib/navActive';
 
 describe('navigation permissions', () => {
   const adminPerms = ['admin.settings', 'view.all', 'pr.create'];
@@ -97,6 +98,33 @@ describe('navigation permissions', () => {
     const nav = getVisibleNavItems(['po.create']);
     expect(nav.some((n) => n.href === '/purchase-requests/approved-for-po')).toBe(true);
     expect(nav.some((n) => n.href === '/purchase-orders')).toBe(true);
+  });
+
+  it('approved-for-po route activates only PRs Ready for PO nav item', () => {
+    const nav = getVisibleNavItems(['po.create', 'pr.create']);
+    const pathname = '/purchase-requests/approved-for-po';
+    const active = resolveActiveNavHref(pathname, nav);
+    expect(active).toBe('/purchase-requests/approved-for-po');
+    expect(isNavItemActive(pathname, '/purchase-requests/approved-for-po', active)).toBe(true);
+    expect(isNavItemActive(pathname, '/purchase-requests', active)).toBe(false);
+  });
+
+  it('purchase-requests list activates Purchase Requests only', () => {
+    const nav = getVisibleNavItems(['pr.create', 'po.create']);
+    const pathname = '/purchase-requests';
+    const active = resolveActiveNavHref(pathname, nav);
+    expect(active).toBe('/purchase-requests');
+    expect(isNavItemActive(pathname, '/purchase-requests', active)).toBe(true);
+    expect(isNavItemActive(pathname, '/purchase-requests/approved-for-po', active)).toBe(false);
+  });
+
+  it('PR detail activates Purchase Requests only', () => {
+    const nav = getVisibleNavItems(['pr.create', 'po.create']);
+    const pathname = '/purchase-requests/64b8c1a52f5b1b2c3d4e5f60';
+    const active = resolveActiveNavHref(pathname, nav);
+    expect(active).toBe('/purchase-requests');
+    expect(isNavItemActive(pathname, '/purchase-requests', active)).toBe(true);
+    expect(isNavItemActive(pathname, '/purchase-requests/approved-for-po', active)).toBe(false);
   });
 
   it('sidebar entries cover all list and settings routes', () => {

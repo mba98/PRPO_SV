@@ -82,6 +82,7 @@ function makePr() {
     toObject() {
       return { ...this, lines: this.lines };
     },
+    save: vi.fn().mockResolvedValue(true),
   };
 }
 
@@ -138,6 +139,10 @@ describe('portal PO from PR', () => {
       expect.objectContaining({ documentType: 'PO' }),
     );
     expect(mocks.logHistory).toHaveBeenCalled();
+    const pr = await mocks.findById.mock.results[0]?.value;
+    expect(pr.save).toHaveBeenCalled();
+    expect(pr.relatedPortalPONumber).toBe('PO-20260521-0001');
+    expect(pr.status).toBe('Partially Ordered');
   });
 
   it('rejects PRs not in Created in SAP status', async () => {
