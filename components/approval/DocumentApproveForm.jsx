@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { uploadDocumentAttachments } from '@/lib/attachmentUploadHelpers';
 import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
-import { Button, FormField, PortalLoader } from '@/components/ui';
+import { Button, FormField, PortalLoader, Textarea } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 
 const KIND_CONFIG = {
@@ -165,9 +165,8 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
       ) : (
         <div className="space-y-4 rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5 sm:p-5">
           <FormField label={appr.comment} htmlFor={config.commentId}>
-            <textarea
+            <Textarea
               id={config.commentId}
-              className="input min-h-[96px] w-full"
               value={comment}
               placeholder={appr.commentPlaceholder}
               onChange={(e) => setComment(e.target.value)}

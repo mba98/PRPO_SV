@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { apiFetch } from '@/lib/apiClient';
-import { AnimatedEmptyState, PortalLoader } from '@/components/ui';
+import { AnimatedEmptyState, PortalLoader, Textarea } from '@/components/ui';
 import { COMMENT_MAX_LENGTH } from '@/lib/validators/comment';
 
 export default function CommentsPanel({
@@ -97,14 +97,13 @@ export default function CommentsPanel({
           <label className="sr-only" htmlFor="new-comment">
             Add a comment
           </label>
-          <textarea
+          <Textarea
             id="new-comment"
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Add a comment…"
             rows={3}
             maxLength={COMMENT_MAX_LENGTH + 100}
-            className="input mt-1 w-full"
             disabled={submitting}
           />
           <div className="flex items-center justify-between">
