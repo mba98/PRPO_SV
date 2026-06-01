@@ -34,6 +34,12 @@ describe('PoEditForm compact layout', () => {
     expect(source).toContain('t.saving');
   });
 
+  it('defaults empty docRate to DEV_DEFAULT_PO_DOC_RATE in form state only', () => {
+    expect(source).toContain('DEV_DEFAULT_PO_DOC_RATE');
+    expect(source).toContain('resolveFormDocRate');
+    expect(source).toContain('docRate: resolveFormDocRate(po)');
+  });
+
   it('PO detail embeds PoEditForm and WorkflowStepper', () => {
     expect(poDetail).toContain('<PoEditForm');
     expect(poDetail).toContain('<WorkflowStepper');

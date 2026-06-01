@@ -591,6 +591,11 @@
       var(--primary),
       color-mix(in srgb, var(--primary) 30%, transparent)
     );
+    animation: workflowConnectorFill 0.45s ease-out both;
+  }
+
+  [dir='ltr'] .workflow-connector-line--active {
+    transform-origin: left center;
   }
 
   [dir='rtl'] .workflow-connector-line--active {
@@ -599,6 +604,7 @@
       var(--primary),
       color-mix(in srgb, var(--primary) 30%, transparent)
     );
+    transform-origin: right center;
   }
 
   .workflow-connector-line--active-vertical {
@@ -607,6 +613,39 @@
       var(--primary),
       color-mix(in srgb, var(--primary) 30%, transparent)
     );
+    animation: workflowConnectorFillVertical 0.45s ease-out both;
+    transform-origin: top center;
+  }
+
+  @keyframes workflowConnectorFill {
+    from {
+      transform: scaleX(0);
+      opacity: 0.65;
+    }
+    to {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes workflowConnectorFillVertical {
+    from {
+      transform: scaleY(0);
+      opacity: 0.65;
+    }
+    to {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .workflow-connector-line--active,
+    .workflow-connector-line--active-vertical {
+      animation: none;
+      transform: none;
+      opacity: 1;
+    }
   }
 
   .workflow-connector-chevron {

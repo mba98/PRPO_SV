@@ -7,8 +7,18 @@ import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import { Button, DateInput, FormField, Input } from '@/components/ui';
+import { DEV_DEFAULT_PO_DOC_RATE } from '@/lib/sap/sapPoConfig.js';
 
 const COMPACT_INPUT = 'input-field-compact';
+
+/** UI default when PO has no saved DocRate (does not change SAP create logic). */
+function resolveFormDocRate(po) {
+  const rate = po?.docRate;
+  if (rate != null && rate !== '') {
+    return String(rate);
+  }
+  return String(DEV_DEFAULT_PO_DOC_RATE);
+}
 
 const LINE_GRID =
   'lg:grid-cols-[minmax(5.5rem,0.85fr)_minmax(6rem,1.15fr)_4.25rem_5rem_4rem_5rem_4.5rem]';
@@ -40,7 +50,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
     documentDate: toDateInput(po.documentDate),
     requiredDate: toDateInput(po.requiredDate),
     dueDate: toDateInput(po.dueDate),
-    docRate: po.docRate != null ? String(po.docRate) : '',
+    docRate: resolveFormDocRate(po),
     remarks: po.remarks || '',
   });
   const [lines, setLines] = useState(

@@ -36,6 +36,17 @@ describe('WorkflowStepper UI', () => {
     expect(css).toContain('var(--primary)');
   });
 
+  it('active connector lines use one-time fill animation with reduced-motion fallback', () => {
+    expect(css).toContain('@keyframes workflowConnectorFill');
+    expect(css).toContain('workflowConnectorFill 0.45s');
+    expect(css).toContain("[dir='ltr'] .workflow-connector-line--active");
+    expect(css).toContain('transform-origin: left center');
+    expect(css).toContain("[dir='rtl'] .workflow-connector-line--active");
+    expect(css).toContain('transform-origin: right center');
+    expect(css).toContain('prefers-reduced-motion: reduce');
+    expect(css).toContain('@keyframes workflowConnectorFillVertical');
+  });
+
   it('uses Framer Motion with reduced motion guard', () => {
     expect(stepper).toContain('useReducedMotion');
     expect(stepper).toContain('useMotionSafe');
