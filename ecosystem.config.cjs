@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'procurement-portal',
       script: 'node_modules/next/dist/bin/next',
-      args: 'start -p 5420',
+      args: 'start -p 5420 -H 0.0.0.0',
       env: {
         NODE_ENV: 'production',
         PORT: '5420',
