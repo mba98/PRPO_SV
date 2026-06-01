@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
-import { PortalLoader, AnimatedStatusBadge, AnimatedTabs } from '@/components/ui';
+import { PortalLoader, AnimatedStatusBadge, AnimatedTabs, Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { WorkflowStepper } from '@/components/workflow';
 import CreatePoFromPrPanel from '@/components/purchase-requests/CreatePoFromPrPanel';
@@ -20,6 +20,7 @@ export default function PrDetailView({ id }) {
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const [pr, setPr] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [retryingSap, setRetryingSap] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
 
@@ -40,9 +41,21 @@ export default function PrDetailView({ id }) {
   }, [load]);
 
   async function retrySap() {
-    const { json } = await apiFetch(`/api/purchase-requests/${id}/retry-sap`, { method: 'POST' });
-    if (json.success) load();
-    else setError(json.message || common.errorLoad);
+    if (retryingSap) return;
+    setRetryingSap(true);
+    setError('');
+    try {
+      const { json } = await apiFetch(`/api/purchase-requests/${id}/retry-sap`, {
+        method: 'POST',
+      });
+      if (json.success) {
+        await load();
+      } else {
+        setError(json.message || common.errorLoad);
+      }
+    } finally {
+      setRetryingSap(false);
+    }
   }
 
   if (loading) return <PortalLoader fullScreen />;
@@ -69,6 +82,14 @@ export default function PrDetailView({ id }) {
       {attachmentWarning && (
         <p className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">
           {attachmentWarning}
+        </p>
+      )}
+      {error && (
+        <p
+          role="alert"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+          {error}
         </p>
       )}
       {pr.workflowSteps?.length > 0 && (
@@ -101,9 +122,16 @@ export default function PrDetailView({ id }) {
             </span>
           )}
           {canRetrySap && (
-            <button type="button" className="btn-secondary min-h-10" onClick={retrySap}>
-              {common.retrySap}
-            </button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="min-h-10"
+              loading={retryingSap}
+              disabled={retryingSap}
+              onClick={retrySap}
+            >
+              {retryingSap ? detail.retrying : common.retrySap}
+            </Button>
           )}
         </div>
       </div>

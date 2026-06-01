@@ -214,7 +214,6 @@ export default function ApprovedForPoManager() {
                       emptyMessage={c.noVendorsFound}
                       loadingMessage={c.loadingVendors}
                       failedMessage={c.failedLoadVendors}
-                      inputClassName="input w-full"
                       debounceMs={250}
                       listLimit={100}
                       onSelect={(code, label) => {

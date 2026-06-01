@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
 import SapLookupCombobox from './SapLookupCombobox';
+import {
+  SAP_LOOKUP_DROPDOWN_CLASS,
+  SAP_LOOKUP_DROPDOWN_MESSAGE_CLASS,
+  SAP_LOOKUP_INPUT_CLASS,
+  SAP_LOOKUP_OPTION_BUTTON_CLASS,
+} from './lookupInputStyles';
 
 let vendorListCache = null;
 
@@ -28,7 +34,7 @@ function VendorOptionRow({ vendor, selected, onPick }) {
       <button
         type="button"
         className={[
-          'w-full px-3 py-2.5 text-start transition-colors hover:bg-primary/10',
+          SAP_LOOKUP_OPTION_BUTTON_CLASS,
           selected ? 'bg-primary/5' : '',
         ].join(' ')}
         onMouseDown={(e) => {
@@ -57,7 +63,7 @@ function VendorLookupSelect({
   emptyMessage = 'No vendors found',
   loadingMessage = 'Loading vendors…',
   failedMessage = 'Failed to load vendors',
-  inputClassName = 'input w-full',
+  inputClassName = SAP_LOOKUP_INPUT_CLASS,
   debounceMs = 250,
   listLimit = 100,
 }) {
@@ -155,15 +161,12 @@ function VendorLookupSelect({
         </p>
       )}
       {showDropdown && (
-        <ul
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-2xl border border-border bg-card py-1 shadow-xl shadow-black/5"
-          role="listbox"
-        >
+        <ul className={SAP_LOOKUP_DROPDOWN_CLASS} role="listbox">
           {loading && (
-            <li className="px-3 py-2 text-xs text-muted-foreground">{loadingMessage}</li>
+            <li className={SAP_LOOKUP_DROPDOWN_MESSAGE_CLASS}>{loadingMessage}</li>
           )}
           {!loading && !error && results.length === 0 && (
-            <li className="px-3 py-2 text-xs text-muted-foreground">{emptyMessage}</li>
+            <li className={SAP_LOOKUP_DROPDOWN_MESSAGE_CLASS}>{emptyMessage}</li>
           )}
           {!loading &&
             !error &&
@@ -188,7 +191,7 @@ export default function VendorSelect({
   disabled,
   placeholder = 'Search vendor',
   emptyMessage = 'No results',
-  inputClassName = 'input-field',
+  inputClassName = SAP_LOOKUP_INPUT_CLASS,
   loadingMessage = 'Loading…',
   failedMessage = 'Failed to load vendors',
   minChars = 1,

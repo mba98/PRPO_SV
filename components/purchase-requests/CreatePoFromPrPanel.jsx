@@ -4,13 +4,19 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
+import VendorSelect from '@/components/lookups/VendorSelect';
+import { Button } from '@/components/ui';
+import { useI18n } from '@/lib/hooks/useI18n';
 
 /**
  * Create portal PO from an SAP-created PR (one vendor per PO).
  */
 export default function CreatePoFromPrPanel({ pr, compact = false }) {
   const router = useRouter();
+  const { po: poI18n } = useI18n();
+  const c = poI18n.create;
   const [vendor, setVendor] = useState('');
+  const [vendorLabel, setVendorLabel] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,13 +29,16 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
   );
 
   useEffect(() => {
-    setVendor(vendorOptions[0] || '');
+    const defaultVendor = vendorOptions[0] || '';
+    setVendor(defaultVendor);
+    setVendorLabel(defaultVendor);
   }, [pr.id, vendorOptionsKey, vendorOptions]);
 
   async function handleCreate() {
+    if (submitting) return;
     const vendorCode = vendor.trim();
     if (!vendorCode) {
-      setError('Select or enter a vendor code');
+      setError(c.vendorRequired);
       return;
     }
     setSubmitting(true);
@@ -65,8 +74,13 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
         finance approval.
       </p>
       {vendorOptions.length > 1 && (
-        <p className="text-xs text-amber-700">
+        <p className="text-xs text-amber-700 dark:text-amber-300">
           Multiple vendors on this PR — create one PO per vendor.
+        </p>
+      )}
+      {vendorOptions.length > 0 && vendorOptions.length <= 3 && (
+        <p className="text-xs text-muted-foreground">
+          Suggested: {vendorOptions.join(', ')}
         </p>
       )}
       {existingForVendor ? (
@@ -83,33 +97,40 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
       ) : (
         <>
           <label className="block text-sm">
-            <span className="text-muted-foreground">Vendor (SAP CardCode)</span>
-            <input
-              className="input-field mt-1"
-              value={vendor}
-              list={`vendor-suggestions-${pr.id}`}
-              placeholder="e.g. V10000"
-              onChange={(e) => setVendor(e.target.value)}
-            />
-            <datalist id={`vendor-suggestions-${pr.id}`}>
-              {vendorOptions.map((v) => (
-                <option key={v} value={v} />
-              ))}
-            </datalist>
+            <span className="form-label">{c.vendor}</span>
+            <div className="mt-1">
+              <VendorSelect
+                loadAllOnFocus
+                valueCode={vendor}
+                valueLabel={vendorLabel}
+                disabled={submitting}
+                placeholder={c.searchVendor}
+                emptyMessage={c.noVendorsFound}
+                loadingMessage={c.loadingVendors}
+                failedMessage={c.failedLoadVendors}
+                debounceMs={250}
+                listLimit={100}
+                onSelect={(code, label) => {
+                  setVendor(code);
+                  setVendorLabel(label || code);
+                }}
+              />
+            </div>
           </label>
           {error && (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-sm text-destructive" role="alert">
               {error}
             </p>
           )}
-          <button
+          <Button
             type="button"
-            className="btn-primary"
+            variant="primary"
+            loading={submitting}
             disabled={submitting || !vendor.trim()}
             onClick={handleCreate}
           >
-            {submitting ? 'Creating…' : 'Create PO'}
-          </button>
+            {submitting ? c.creatingPurchaseOrder : c.createPurchaseOrder}
+          </Button>
         </>
       )}
       {(pr.existingPOs || []).length > 0 && !existingForVendor && (
