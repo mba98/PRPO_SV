@@ -5,6 +5,7 @@ import {
   getSapErrorCode,
   sanitizeSapError,
   sanitizeSapErrorText,
+  toSapRequestError,
 } from '@/lib/sap/sapErrors.js';
 
 const SECRET_COOKIE = 'B1SESSION=abc123; ROUTEID=node1';
@@ -61,5 +62,16 @@ describe('sapErrors', () => {
     });
     expect(safe).toEqual(expect.objectContaining({ message: 'OK' }));
     expect(JSON.stringify(safe)).not.toContain('B1SESSION');
+  });
+
+  it('toSapRequestError builds Error from SAP response without TDZ', () => {
+    const err = toSapRequestError(
+      { status: 400 },
+      { error: { code: -5002, message: { value: 'Invalid warehouse' } } },
+    );
+    expect(err.message).toBe('Invalid warehouse');
+    expect(err.code).toBe('-5002');
+    expect(err.status).toBe(400);
+    expect(err.responseBody.error.message.value).toBe('Invalid warehouse');
   });
 });
