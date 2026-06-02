@@ -105,6 +105,18 @@ describe('poToSap mapper (standalone)', () => {
     expect(payload.DocumentLines[0].CostingCode).toBeUndefined();
   });
 
+  it('falls back to default DocRate in production when PO has no docRate', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const po = {
+      vendor: 'V1',
+      documentDate: new Date('2026-05-21'),
+      dueDate: new Date('2026-05-22'),
+      lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5 }],
+    };
+    const payload = mapPoToSapFromPortalRecord(po, {});
+    expect(payload.DocRate).toBe(1350);
+  });
+
   it('validateStandaloneSapPoPayload rejects zero quantity', () => {
     const payload = mapPoToSap({
       vendor: 'V1',

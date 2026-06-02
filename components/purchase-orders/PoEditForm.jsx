@@ -13,7 +13,7 @@ const COMPACT_INPUT = 'input-field-compact';
 
 /** UI default when PO has no saved DocRate (does not change SAP create logic). */
 function resolveFormDocRate(po) {
-  const rate = po?.docRate;
+  const rate = po?.docRate ?? po?.DocRate;
   if (rate != null && rate !== '') {
     return String(rate);
   }

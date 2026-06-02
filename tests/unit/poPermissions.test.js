@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canRetrySapPurchaseOrder,
   canShowCreatePoAction,
   canViewPurchaseOrdersNav,
   isPrEligibleForPoCreation,
@@ -43,5 +44,16 @@ describe('PO permissions and navigation', () => {
       true,
     );
     expect(isPrEligibleForPoCreation({ status: 'Approved', sapPRDocEntry: null })).toBe(false);
+  });
+
+  it('allows SAP retry for finance approver and admins only', () => {
+    const finance = { permissions: [], role: { permissions: ['po.approve.finance'] } };
+    const pm = { permissions: [], role: { permissions: ['po.approve.pm'] } };
+    const admin = { permissions: ['admin.settings'] };
+    const viewAll = { permissions: ['view.all'] };
+    expect(canRetrySapPurchaseOrder(finance)).toBe(true);
+    expect(canRetrySapPurchaseOrder(admin)).toBe(true);
+    expect(canRetrySapPurchaseOrder(viewAll)).toBe(true);
+    expect(canRetrySapPurchaseOrder(pm)).toBe(false);
   });
 });

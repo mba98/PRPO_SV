@@ -23,4 +23,4 @@ async function postHandler(_request, { params }, user) {
   }
 }
 
-export const POST = withAuth(postHandler, ['admin.settings', 'view.all']);
+export const POST = withAuth(postHandler, ['po.approve.finance', 'admin.settings', 'view.all']);

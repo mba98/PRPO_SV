@@ -17,4 +17,11 @@ describe('PoDetailView source', () => {
   it('shows waiting message for non-approvers', () => {
     expect(source).toContain('waitingForApproval');
   });
+
+  it('uses API-provided retry permission and loading state', () => {
+    expect(source).toContain('po.canRetrySap');
+    expect(source).toContain('retryingSap');
+    expect(source).toContain('loading={retryingSap}');
+    expect(source).toContain('if (retryingSap) return');
+  });
 });
