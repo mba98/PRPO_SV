@@ -190,8 +190,9 @@ describe('PO from PR', () => {
 });
 
 describe('PurchaseOrder model', () => {
-  it('schema includes docRate and line uomCode paths', () => {
+  it('schema includes docCurrency, docRate and line uomCode paths', () => {
     const paths = PurchaseOrder.schema.paths;
+    expect(paths.docCurrency).toBeDefined();
     expect(paths.docRate).toBeDefined();
     expect(PurchaseOrder.schema.path('lines.0.uomCode')).toBeDefined();
   });

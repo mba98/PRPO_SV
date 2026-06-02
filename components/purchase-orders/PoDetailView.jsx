@@ -154,7 +154,11 @@ export default function PoDetailView({ id }) {
             {[
               [detail.vendor, po.vendor],
               [detail.department, po.department],
-              [detail.exchangeRate, po.docRate != null ? po.docRate : null],
+              [detail.currency, po.docCurrency || null],
+              [
+                detail.exchangeRate,
+                po.docCurrency === 'IQD' ? null : po.docRate != null ? po.docRate : null,
+              ],
               [detail.relatedPr, po.relatedPRNumber],
               [detail.sapPr, po.relatedSAPPRDocNum],
               [detail.sapPo, po.sapPODocNum],

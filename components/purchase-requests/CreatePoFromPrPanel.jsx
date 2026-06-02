@@ -7,6 +7,13 @@ import { apiFetch } from '@/lib/apiClient';
 import VendorSelect from '@/components/lookups/VendorSelect';
 import { Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
+import {
+  applyCurrencyChangeToHeader,
+  applyVendorCurrencyToHeader,
+  isUsdPoCurrency,
+  PO_DOC_CURRENCIES,
+  resolveFormDocRateFromPo,
+} from '@/lib/poCurrency.js';
 
 /**
  * Create portal PO from an SAP-created PR (one vendor per PO).
@@ -15,8 +22,11 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
   const router = useRouter();
   const { po: poI18n } = useI18n();
   const c = poI18n.create;
+  const e = poI18n.edit;
   const [vendor, setVendor] = useState('');
   const [vendorLabel, setVendorLabel] = useState('');
+  const [docCurrency, setDocCurrency] = useState('USD');
+  const [docRate, setDocRate] = useState(() => resolveFormDocRateFromPo({}));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,7 +55,14 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
     setError('');
     const { json } = await apiFetch(`/api/purchase-orders/from-pr/${pr.id}`, {
       method: 'POST',
-      body: JSON.stringify({ vendor: vendorCode }),
+      body: JSON.stringify({
+        vendor: vendorCode,
+        docCurrency,
+        docRate:
+          docRate === '' || !isUsdPoCurrency(docCurrency)
+            ? null
+            : Number(docRate),
+      }),
     });
     if (json.success) {
       const poId = json.data.po?.id;
@@ -110,12 +127,46 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
                 failedMessage={c.failedLoadVendors}
                 debounceMs={250}
                 listLimit={100}
-                onSelect={(code, label) => {
+                onSelect={(code, label, vendorRow) => {
                   setVendor(code);
                   setVendorLabel(label || code);
+                  const next = applyVendorCurrencyToHeader(vendorRow, { docCurrency, docRate });
+                  setDocCurrency(next.docCurrency);
+                  setDocRate(next.docRate);
                 }}
               />
             </div>
+          </label>
+          <label className="block text-sm">
+            <span className="form-label">{e.docCurrency}</span>
+            <select
+              className="input-field mt-1 w-full"
+              value={docCurrency}
+              disabled={submitting}
+              onChange={(ev) => {
+                const next = applyCurrencyChangeToHeader(ev.target.value, { docCurrency, docRate });
+                setDocCurrency(next.docCurrency);
+                setDocRate(next.docRate);
+              }}
+            >
+              {PO_DOC_CURRENCIES.map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm">
+            <span className="form-label">{e.docRate}</span>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              className="input-field mt-1 w-full"
+              value={docRate}
+              disabled={submitting || !isUsdPoCurrency(docCurrency)}
+              onChange={(ev) => setDocRate(ev.target.value)}
+            />
           </label>
           {error && (
             <p className="text-sm text-destructive" role="alert">

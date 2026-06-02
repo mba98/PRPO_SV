@@ -11,6 +11,22 @@ describe('purchaseOrder validators', () => {
     expect(createPoFromPrSchema.safeParse({}).success).toBe(false);
   });
 
+  it('accepts docCurrency USD or IQD on create from PR', () => {
+    expect(
+      createPoFromPrSchema.safeParse({ vendor: 'V1', docCurrency: 'IQD', docRate: null }).success,
+    ).toBe(true);
+    expect(
+      createPoFromPrSchema.safeParse({ vendor: 'V1', docCurrency: 'USD', docRate: 1350 }).success,
+    ).toBe(true);
+    expect(createPoFromPrSchema.safeParse({ vendor: 'V1', docCurrency: 'EUR' }).success).toBe(
+      false,
+    );
+  });
+
+  it('accepts docCurrency on PO update', () => {
+    expect(updatePurchaseOrderSchema.safeParse({ docCurrency: 'IQD' }).success).toBe(true);
+  });
+
   it('allows optional comment on approve/reject', () => {
     expect(approveRejectPoSchema.safeParse({ comment: 'OK', __v: 0 }).success).toBe(true);
   });

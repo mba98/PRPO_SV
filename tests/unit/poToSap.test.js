@@ -117,6 +117,47 @@ describe('poToSap mapper (standalone)', () => {
     expect(payload.DocRate).toBe(1350);
   });
 
+  it('sends IQD without DocRate even if legacy docRate exists on PO', () => {
+    const po = {
+      vendor: 'V1',
+      docCurrency: 'IQD',
+      docRate: 1350,
+      documentDate: new Date('2026-05-21'),
+      dueDate: new Date('2026-05-22'),
+      lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5 }],
+    };
+    const payload = mapPoToSap(po);
+    expect(payload.DocCurrency).toBe('IQD');
+    expect(payload.DocRate).toBeUndefined();
+  });
+
+  it('sends USD with saved DocRate', () => {
+    const po = {
+      vendor: 'V1',
+      docCurrency: 'USD',
+      docRate: 1400,
+      documentDate: new Date('2026-05-21'),
+      dueDate: new Date('2026-05-22'),
+      lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5 }],
+    };
+    const payload = mapPoToSap(po);
+    expect(payload.DocCurrency).toBe('USD');
+    expect(payload.DocRate).toBe(1400);
+  });
+
+  it('preserves saved IQD currency without USD default DocRate', () => {
+    const po = {
+      vendor: 'V1',
+      docCurrency: 'IQD',
+      documentDate: new Date('2026-05-21'),
+      dueDate: new Date('2026-05-22'),
+      lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5 }],
+    };
+    const payload = mapPoToSapFromPortalRecord(po, {});
+    expect(payload.DocCurrency).toBe('IQD');
+    expect(payload.DocRate).toBeUndefined();
+  });
+
   it('validateStandaloneSapPoPayload rejects zero quantity', () => {
     const payload = mapPoToSap({
       vendor: 'V1',

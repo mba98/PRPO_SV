@@ -36,6 +36,11 @@ describe('sapLookups normalization', () => {
     });
   });
 
+  it('maps vendor currency from CardCurrency or DocCurrency', () => {
+    expect(mapVendorRow({ CardCode: 'V2', CardCurrency: 'IQD' }).currency).toBe('IQD');
+    expect(mapVendorRow({ CardCode: 'V3', DocCurrency: 'usd' }).currency).toBe('USD');
+  });
+
   it('maps warehouse row from Service Layer fields', () => {
     expect(mapWarehouseRow({ WarehouseCode: 'RAN001', WarehouseName: 'Main' })).toEqual({
       warehouseCode: 'RAN001',

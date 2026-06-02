@@ -34,10 +34,12 @@ describe('PoEditForm compact layout', () => {
     expect(source).toContain('t.saving');
   });
 
-  it('defaults empty docRate to DEV_DEFAULT_PO_DOC_RATE in form state only', () => {
-    expect(source).toContain('DEV_DEFAULT_PO_DOC_RATE');
-    expect(source).toContain('resolveFormDocRate');
-    expect(source).toContain('docRate: resolveFormDocRate(po)');
+  it('includes currency field and USD docRate defaults from poCurrency helpers', () => {
+    expect(source).toContain('resolveFormDocRateFromPo');
+    expect(source).toContain('resolveFormDocCurrencyFromPo');
+    expect(source).toContain('applyVendorCurrencyToHeader');
+    expect(source).toContain('t.docCurrency');
+    expect(source).toContain('isUsdPoCurrency(header.docCurrency)');
   });
 
   it('PO detail embeds PoEditForm and WorkflowStepper', () => {

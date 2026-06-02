@@ -127,6 +127,7 @@ describe('portal PO from PR', () => {
     expect(result.success).toBe(true);
     expect(mocks.poCreate).toHaveBeenCalled();
     const created = mocks.poCreate.mock.calls[0][0];
+    expect(created.docCurrency).toBe('USD');
     expect(created.status).toBe('Pending Project Manager Approval');
     expect(created.currentApprovalStep).toBe(1);
     expect(created.relatedSAPPRDocEntry).toBe(99);
@@ -143,6 +144,18 @@ describe('portal PO from PR', () => {
     expect(pr.save).toHaveBeenCalled();
     expect(pr.relatedPortalPONumber).toBe('PO-20260521-0001');
     expect(pr.status).toBe('Partially Ordered');
+  });
+
+  it('saves docCurrency and omits docRate for IQD on create from PR', async () => {
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
+      vendor: 'VENDOR1',
+      docCurrency: 'IQD',
+      docRate: 1350,
+    });
+    expect(result.success).toBe(true);
+    const created = mocks.poCreate.mock.calls[0][0];
+    expect(created.docCurrency).toBe('IQD');
+    expect(created.docRate).toBeUndefined();
   });
 
   it('rejects PRs not in Created in SAP status', async () => {

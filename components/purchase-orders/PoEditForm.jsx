@@ -7,18 +7,16 @@ import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import { Button, DateInput, FormField, Input } from '@/components/ui';
-import { DEV_DEFAULT_PO_DOC_RATE } from '@/lib/sap/sapPoConfig.js';
+import {
+  applyCurrencyChangeToHeader,
+  applyVendorCurrencyToHeader,
+  isUsdPoCurrency,
+  PO_DOC_CURRENCIES,
+  resolveFormDocCurrencyFromPo,
+  resolveFormDocRateFromPo,
+} from '@/lib/poCurrency.js';
 
 const COMPACT_INPUT = 'input-field-compact';
-
-/** UI default when PO has no saved DocRate (does not change SAP create logic). */
-function resolveFormDocRate(po) {
-  const rate = po?.docRate ?? po?.DocRate;
-  if (rate != null && rate !== '') {
-    return String(rate);
-  }
-  return String(DEV_DEFAULT_PO_DOC_RATE);
-}
 
 const LINE_GRID =
   'lg:grid-cols-[minmax(5.5rem,0.85fr)_minmax(6rem,1.15fr)_4.25rem_5rem_4rem_5rem_4.5rem]';
@@ -50,7 +48,8 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
     documentDate: toDateInput(po.documentDate),
     requiredDate: toDateInput(po.requiredDate),
     dueDate: toDateInput(po.dueDate),
-    docRate: resolveFormDocRate(po),
+    docCurrency: resolveFormDocCurrencyFromPo(po),
+    docRate: resolveFormDocRateFromPo(po),
     remarks: po.remarks || '',
   });
   const [lines, setLines] = useState(
@@ -95,6 +94,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
       documentDate: header.documentDate || undefined,
       requiredDate: header.requiredDate || undefined,
       dueDate: header.dueDate || undefined,
+      docCurrency: header.docCurrency,
       docRate: header.docRate === '' ? null : header.docRate ? Number(header.docRate) : undefined,
       lines: lines.map((l) => ({
         _id: l._id,
@@ -150,17 +150,37 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
                 loadingMessage={c.loadingVendors}
                 failedMessage={c.failedLoadVendors}
                 inputClassName={COMPACT_INPUT}
-                onSelect={(code, label) =>
+                onSelect={(code, label, vendor) =>
                   setHeader((h) => ({
                     ...h,
                     vendor: code,
                     vendorLabel: label || code,
+                    ...applyVendorCurrencyToHeader(vendor, h),
                   }))
                 }
               />
             ) : (
               <Input className={COMPACT_INPUT} readOnly value={header.vendor} />
             )}
+          </FormField>
+          <FormField label={t.docCurrency}>
+            <select
+              className={`${COMPACT_INPUT} w-full`}
+              value={header.docCurrency}
+              disabled={saving}
+              onChange={(e) =>
+                setHeader((h) => ({
+                  ...h,
+                  ...applyCurrencyChangeToHeader(e.target.value, h),
+                }))
+              }
+            >
+              {PO_DOC_CURRENCIES.map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
+              ))}
+            </select>
           </FormField>
           <FormField label={t.docRate}>
             <Input
@@ -169,6 +189,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
               step="any"
               className={COMPACT_INPUT}
               value={header.docRate}
+              disabled={saving || !isUsdPoCurrency(header.docCurrency)}
               onChange={(e) => setHeader((h) => ({ ...h, docRate: e.target.value }))}
             />
           </FormField>
