@@ -3,6 +3,7 @@ import {
   mapApReserveInvoiceToSap,
   buildApriLinesFromPo,
   resolvePoSapLineNum,
+  assertApriSapPayloadNumericFields,
   SAP_PO_BASE_TYPE,
 } from '@/lib/sap/mappers/apReserveInvoiceToSap';
 
@@ -108,6 +109,53 @@ describe('apReserveInvoiceToSap mapper', () => {
 
     expect(payload.DocCurrency).toBe('USD');
     expect(payload.DocRate).toBe(1350);
+  });
+
+  it('sends IQD APRI without DocRate (local currency)', () => {
+    const apri = makeApri({
+      docCurrency: 'IQD',
+      docRate: undefined,
+      lines: [{ relatedPOLineNum: 0, itemCode: 'ALK00004SV', quantity: 50 }],
+    });
+
+    const payload = mapApReserveInvoiceToSap(apri);
+
+    expect(payload).toEqual({
+      CardCode: 'V000005',
+      DocDate: '2026-05-23',
+      DocDueDate: '2026-05-23',
+      TaxDate: '2026-05-23',
+      DocCurrency: 'IQD',
+      ReserveInvoice: 'tYES',
+      Comments: 'AP Reserve Invoice based on PO 2600023',
+      DocumentLines: [
+        {
+          BaseType: SAP_PO_BASE_TYPE,
+          BaseEntry: 489,
+          BaseLine: 0,
+          Quantity: 50,
+        },
+      ],
+    });
+    expect(payload.DocRate).toBeUndefined();
+  });
+
+  it('omits DocRate for IQD even when legacy docRate 1350 is stored on APRI', () => {
+    const apri = makeApri({ docCurrency: 'IQD', docRate: 1350 });
+    const payload = mapApReserveInvoiceToSap(apri);
+    expect(payload.DocCurrency).toBe('IQD');
+    expect(payload.DocRate).toBeUndefined();
+  });
+
+  it('never places currency codes in numeric SAP fields', () => {
+    const payload = mapApReserveInvoiceToSap(makeApri({ docCurrency: 'IQD' }));
+    expect(() => assertApriSapPayloadNumericFields(payload)).not.toThrow();
+    expect(payload.DocRate).toBeUndefined();
+    payload.DocumentLines.forEach((line) => {
+      expect(typeof line.Quantity).toBe('number');
+      expect(line).not.toHaveProperty('Currency');
+      expect(line).not.toHaveProperty('Rate');
+    });
   });
 
   it('includes TaxDate matching documentDate when taxDate not provided', () => {
