@@ -10,12 +10,12 @@ describe('createRoleSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects unknown permissions', () => {
+  it('accepts custom permission keys', () => {
     const result = createRoleSchema.safeParse({
-      name: 'Bad Role',
-      permissions: ['invalid.permission'],
+      name: 'Custom Role',
+      permissions: ['contract.approve.legal'],
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it('requires at least one permission', () => {

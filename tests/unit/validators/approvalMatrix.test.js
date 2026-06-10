@@ -18,15 +18,18 @@ describe('createApprovalMatrixSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects invalid document type', () => {
+  it('accepts custom document type codes', () => {
     const result = createApprovalMatrixSchema.safeParse({
-      documentType: 'INV',
+      documentType: 'contract',
       stepOrder: 1,
       stepName: 'Step',
       requiredPermission: 'pr.approve.whs',
       approverRole: validRoleId,
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.documentType).toBe('CONTRACT');
+    }
   });
 
   it('rejects non-positive step order', () => {

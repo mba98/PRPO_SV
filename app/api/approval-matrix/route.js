@@ -26,14 +26,14 @@ async function getHandler(request) {
   }
 }
 
-async function postHandler(request) {
+async function postHandler(request, _context, user) {
   try {
     const body = await parseJsonBody(request);
     const parsed = createApprovalMatrixSchema.safeParse(body);
     if (!parsed.success) {
       return jsonValidation(parsed.error);
     }
-    const step = await createApprovalMatrixStep(parsed.data);
+    const step = await createApprovalMatrixStep(parsed.data, user);
     return jsonSuccess(step, undefined, 201);
   } catch (err) {
     return handleServiceError(err);

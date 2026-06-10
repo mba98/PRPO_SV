@@ -2,37 +2,48 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
-import { PERMISSION_GROUPS, PERMISSION_LABELS } from '@/lib/permissions';
 import { AnimatedModal, AnimatedSkeletonLoader } from '@/components/ui';
 import SettingsTable from './SettingsTable';
 
 export default function RolesManager() {
   const [roles, setRoles] = useState([]);
+  const [permissionGroups, setPermissionGroups] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [pageError, setPageError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [name, setName] = useState('');
   const [permissions, setPermissions] = useState([]);
+  const [modalError, setModalError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
+
+  const loadPermissionGroups = useCallback(async () => {
+    const { json } = await apiFetch('/api/permissions?grouped=true');
+    if (json.success) setPermissionGroups(json.data);
+  }, []);
 
   const loadRoles = useCallback(async () => {
     setLoading(true);
+    setPageError('');
     const { json, status } = await apiFetch('/api/roles?limit=100&sort=name&order=asc');
     if (json.success) setRoles(json.data);
-    else if (status === 403) setError('You do not have permission to manage roles.');
-    else setError(json.message || 'Failed to load roles');
+    else if (status === 403) setPageError('You do not have permission to manage roles.');
+    else setPageError(json.message || 'Failed to load roles');
     setLoading(false);
   }, []);
 
   useEffect(() => {
+    loadPermissionGroups();
     loadRoles();
-  }, [loadRoles]);
+  }, [loadPermissionGroups, loadRoles]);
 
   function openCreate() {
     setEditing(null);
     setName('');
     setPermissions([]);
+    setModalError('');
+    setFieldErrors({});
     setModalOpen(true);
   }
 
@@ -40,19 +51,31 @@ export default function RolesManager() {
     setEditing(role);
     setName(role.name);
     setPermissions([...role.permissions]);
+    setModalError('');
+    setFieldErrors({});
     setModalOpen(true);
   }
 
-  function togglePermission(perm) {
+  function togglePermission(permKey) {
     setPermissions((prev) =>
-      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm],
+      prev.includes(permKey) ? prev.filter((p) => p !== permKey) : [...prev, permKey],
     );
+  }
+
+  function mapApiErrors(errors = []) {
+    const next = {};
+    for (const e of errors) {
+      const key = e.path && e.path !== 'body' ? e.path : '_form';
+      next[key] = e.message;
+    }
+    return next;
   }
 
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
-    setError('');
+    setModalError('');
+    setFieldErrors({});
 
     const payload = { name, permissions };
     let result;
@@ -73,7 +96,10 @@ export default function RolesManager() {
       setModalOpen(false);
       await loadRoles();
     } else {
-      setError(result.json.message || 'Save failed');
+      setModalError(result.json.message || 'Save failed');
+      if (result.json.errors?.length) {
+        setFieldErrors(mapApiErrors(result.json.errors));
+      }
     }
     setSaving(false);
   }
@@ -84,7 +110,7 @@ export default function RolesManager() {
     if (json.success) {
       await loadRoles();
     } else {
-      setError(json.message || `Delete failed (${status})`);
+      setPageError(json.message || `Delete failed (${status})`);
     }
   }
 
@@ -124,18 +150,14 @@ export default function RolesManager() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={openCreate}
-          className="btn-primary"
-        >
+        <button type="button" onClick={openCreate} className="btn-primary">
           Add role
         </button>
       </div>
 
-      {error && (
+      {pageError && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
-          {error}
+          {pageError}
         </p>
       )}
 
@@ -156,6 +178,11 @@ export default function RolesManager() {
         size="lg"
       >
         <form onSubmit={handleSave} className="space-y-4">
+          {modalError && (
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
+              {modalError}
+            </p>
+          )}
           <div>
             <label className="mb-1 block text-sm font-medium text-foreground">Role name</label>
             <input
@@ -164,34 +191,40 @@ export default function RolesManager() {
               onChange={(e) => setName(e.target.value)}
               className="input-field"
             />
+            {fieldErrors.name && <p className="mt-1 text-xs text-destructive">{fieldErrors.name}</p>}
           </div>
           <div className="max-h-80 space-y-4 overflow-y-auto rounded-md border border-border p-3">
-            {PERMISSION_GROUPS.map((group) => (
-              <fieldset key={group.id}>
-                <legend className="mb-2 text-sm font-semibold text-foreground">{group.label}</legend>
-                <div className="space-y-2">
-                  {group.permissions.map((perm) => (
-                    <label key={perm} className="flex items-start gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={permissions.includes(perm)}
-                        onChange={() => togglePermission(perm)}
-                        className="mt-0.5"
-                      />
-                      <span>
-                        <span className="font-mono text-xs text-foreground">{perm}</span>
-                        {PERMISSION_LABELS[perm] && (
-                          <span className="block text-xs text-muted-foreground">
-                            {PERMISSION_LABELS[perm]}
-                          </span>
-                        )}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            ))}
+            {permissionGroups.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No permissions defined yet.</p>
+            ) : (
+              permissionGroups.map((group) => (
+                <fieldset key={group.id}>
+                  <legend className="mb-2 text-sm font-semibold text-foreground">{group.label}</legend>
+                  <div className="space-y-2">
+                    {(group.permissions || []).map((perm) => (
+                      <label key={perm.key || perm} className="flex items-start gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={permissions.includes(perm.key || perm)}
+                          onChange={() => togglePermission(perm.key || perm)}
+                          className="mt-0.5"
+                        />
+                        <span>
+                          <span className="font-mono text-xs text-foreground">{perm.key || perm}</span>
+                          {perm.label && (
+                            <span className="block text-xs text-muted-foreground">{perm.label}</span>
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ))
+            )}
           </div>
+          {fieldErrors.permissions && (
+            <p className="text-xs text-destructive">{fieldErrors.permissions}</p>
+          )}
           <div className="flex justify-end gap-2">
             <button
               type="button"

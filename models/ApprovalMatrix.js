@@ -3,9 +3,10 @@ import { schemaOptions } from './schemaOptions.js';
 
 const approvalMatrixSchema = new mongoose.Schema(
   {
-    documentType: { type: String, enum: ['PR', 'PO', 'APRI'], required: true },
+    documentType: { type: String, required: true, trim: true, uppercase: true },
     stepOrder: { type: Number, required: true },
     stepName: { type: String, required: true },
+    pendingStatus: { type: String, trim: true },
     requiredPermission: { type: String, required: true },
     approverRole: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },
     isActive: { type: Boolean, default: true },

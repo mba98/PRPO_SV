@@ -11,6 +11,8 @@ import { DEFAULT_EMAIL_GROUPS } from './emailGroups.js';
 import { buildAdminUser, getAdminSeedCredentials, hashPassword } from './admin.js';
 import { seedDefaultUsers } from './users.js';
 import { upsertSapPrSettings } from './settings.js';
+import { ensureDefaultPermissions } from '../lib/permissionsService.js';
+import { ensureDefaultDocumentTypes } from '../lib/documentTypesService.js';
 
 async function assertEmptyDatabase() {
   const [userCount, roleCount] = await Promise.all([
@@ -84,6 +86,12 @@ async function main() {
     await assertEmptyDatabase();
     const roleByName = await seedRoles();
     console.log(`Seeded ${DEFAULT_ROLES.length} roles`);
+
+    await ensureDefaultPermissions();
+    console.log('Seeded default permissions');
+
+    await ensureDefaultDocumentTypes();
+    console.log('Seeded default document types');
 
     await seedApprovalMatrix(roleByName);
     console.log(`Seeded ${DEFAULT_APPROVAL_MATRIX.length} approval matrix rows`);

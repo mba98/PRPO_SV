@@ -1,6 +1,9 @@
 import { withAuth } from '@/lib/auth';
 import { updateApprovalMatrixSchema } from '@/lib/validators/approvalMatrix';
-import { updateApprovalMatrixStep } from '@/lib/approvalMatrixService';
+import {
+  updateApprovalMatrixStep,
+  deleteApprovalMatrixStep,
+} from '@/lib/approvalMatrixService';
 import {
   jsonSuccess,
   jsonError,
@@ -10,7 +13,7 @@ import {
   handleServiceError,
 } from '@/lib/apiHelpers';
 
-async function putHandler(request, context) {
+async function putHandler(request, context, user) {
   try {
     const { id } = context.params;
     const body = await parseJsonBody(request);
@@ -19,7 +22,7 @@ async function putHandler(request, context) {
       return jsonValidation(parsed.error);
     }
 
-    const result = await updateApprovalMatrixStep(id, parsed.data);
+    const result = await updateApprovalMatrixStep(id, parsed.data, user);
     if (result.error === 'NOT_FOUND') {
       return jsonError('Approval step not found', 'NOT_FOUND', 404);
     }
@@ -32,4 +35,18 @@ async function putHandler(request, context) {
   }
 }
 
+async function deleteHandler(_request, context, user) {
+  try {
+    const { id } = context.params;
+    const result = await deleteApprovalMatrixStep(id, user);
+    if (result.error === 'NOT_FOUND') {
+      return jsonError('Approval step not found', 'NOT_FOUND', 404);
+    }
+    return jsonSuccess(result);
+  } catch (err) {
+    return handleServiceError(err);
+  }
+}
+
 export const PUT = withAuth(putHandler, ['admin.approval_matrix']);
+export const DELETE = withAuth(deleteHandler, ['admin.approval_matrix']);

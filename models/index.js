@@ -16,11 +16,17 @@ import EmailGroup from './EmailGroup.js';
 import SapIntegrationLog from './SapIntegrationLog.js';
 import SystemSettings from './SystemSettings.js';
 import ItemCreationLog from './ItemCreationLog.js';
+import Permission from './Permission.js';
+import DocumentType from './DocumentType.js';
+import ApprovalMatrixAudit from './ApprovalMatrixAudit.js';
 
 export {
   Role,
   User,
+  Permission,
+  DocumentType,
   ApprovalMatrix,
+  ApprovalMatrixAudit,
   ApprovalHistory,
   PurchaseRequest,
   PurchaseOrder,

@@ -25,11 +25,22 @@ export default function UsersManager() {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [pageError, setPageError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [modalError, setModalError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
+
+  function mapApiErrors(errors = []) {
+    const next = {};
+    for (const e of errors) {
+      const key = e.path && e.path !== 'body' ? e.path : '_form';
+      next[key] = e.message;
+    }
+    return next;
+  }
 
   const loadRoles = useCallback(async () => {
     const { json } = await apiFetch('/api/roles/picklist');
@@ -38,7 +49,7 @@ export default function UsersManager() {
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
-    setError('');
+    setPageError('');
     const params = new URLSearchParams({
       page: String(page),
       limit: '25',
@@ -53,9 +64,9 @@ export default function UsersManager() {
       setUsers(json.data);
       setPagination(json.pagination || { page: 1, limit: 25, total: 0, totalPages: 1 });
     } else if (httpStatus === 403) {
-      setError('You do not have permission to manage users.');
+      setPageError('You do not have permission to manage users.');
     } else {
-      setError(json.message || 'Failed to load users');
+      setPageError(json.message || 'Failed to load users');
     }
     setLoading(false);
   }, [page, q, status]);
@@ -71,6 +82,8 @@ export default function UsersManager() {
   function openCreate() {
     setEditing(null);
     setForm(EMPTY_FORM);
+    setModalError('');
+    setFieldErrors({});
     setModalOpen(true);
   }
 
@@ -86,13 +99,16 @@ export default function UsersManager() {
       sapRequesterCode: user.sapRequesterCode || '',
       isActive: user.isActive,
     });
+    setModalError('');
+    setFieldErrors({});
     setModalOpen(true);
   }
 
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
-    setError('');
+    setModalError('');
+    setFieldErrors({});
 
     const payload = {
       name: form.name,
@@ -114,7 +130,7 @@ export default function UsersManager() {
       });
     } else {
       if (!form.password) {
-        setError('Password is required for new users');
+        setFieldErrors({ password: 'Password is required for new users' });
         setSaving(false);
         return;
       }
@@ -128,9 +144,9 @@ export default function UsersManager() {
       setModalOpen(false);
       await loadUsers();
     } else {
-      setError(result.json.message || 'Save failed');
+      setModalError(result.json.message || 'Save failed');
       if (result.json.errors?.length) {
-        setError(result.json.errors.map((x) => x.message).join(', '));
+        setFieldErrors(mapApiErrors(result.json.errors));
       }
     }
     setSaving(false);
@@ -142,7 +158,7 @@ export default function UsersManager() {
     if (json.success) {
       await loadUsers();
     } else {
-      setError(json.message || 'Deactivate failed');
+      setPageError(json.message || 'Deactivate failed');
     }
   }
 
@@ -246,9 +262,9 @@ export default function UsersManager() {
         </button>
       </div>
 
-      {error && (
+      {pageError && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
-          {error}
+          {pageError}
         </p>
       )}
 
@@ -274,6 +290,14 @@ export default function UsersManager() {
         size="lg"
       >
         <form onSubmit={handleSave} className="space-y-4">
+          {modalError && (
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
+              {modalError}
+            </p>
+          )}
+          {fieldErrors._form && (
+            <p className="text-sm text-destructive">{fieldErrors._form}</p>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium text-foreground">Name</label>
@@ -283,6 +307,7 @@ export default function UsersManager() {
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="input-field"
               />
+              {fieldErrors.name && <p className="mt-1 text-xs text-destructive">{fieldErrors.name}</p>}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-foreground">Username</label>
@@ -292,6 +317,7 @@ export default function UsersManager() {
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
                 className="input-field"
               />
+              {fieldErrors.username && <p className="mt-1 text-xs text-destructive">{fieldErrors.username}</p>}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-foreground">Email</label>
@@ -302,6 +328,7 @@ export default function UsersManager() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="input-field"
               />
+              {fieldErrors.email && <p className="mt-1 text-xs text-destructive">{fieldErrors.email}</p>}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-foreground">Department</label>
@@ -335,6 +362,7 @@ export default function UsersManager() {
                   </option>
                 ))}
               </select>
+              {fieldErrors.role && <p className="mt-1 text-xs text-destructive">{fieldErrors.role}</p>}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-foreground">
@@ -348,6 +376,7 @@ export default function UsersManager() {
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 className="input-field"
               />
+              {fieldErrors.password && <p className="mt-1 text-xs text-destructive">{fieldErrors.password}</p>}
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm text-foreground">
