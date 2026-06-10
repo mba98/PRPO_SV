@@ -3,7 +3,7 @@ import { schemaOptions } from './schemaOptions.js';
 
 const approvalMatrixSchema = new mongoose.Schema(
   {
-    documentType: { type: String, enum: ['PR', 'PO'], required: true },
+    documentType: { type: String, enum: ['PR', 'PO', 'APRI'], required: true },
     stepOrder: { type: Number, required: true },
     stepName: { type: String, required: true },
     requiredPermission: { type: String, required: true },

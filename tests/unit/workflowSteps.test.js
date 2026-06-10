@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDocumentWorkflow,
   canApproveCurrentWorkflowStep,
-  buildApriWorkflow,
 } from '@/lib/workflowSteps';
 
 const STEPS = [
@@ -35,14 +34,15 @@ describe('workflowSteps', () => {
 
 const PO_STEPS = [
   { stepOrder: 1, stepName: 'Project Manager Approval', requiredPermission: 'po.approve.pm' },
-  { stepOrder: 2, stepName: 'Finance Approval', requiredPermission: 'po.approve.finance' },
+  { stepOrder: 2, stepName: 'Operation Manager Approval', requiredPermission: 'po.approve.om' },
+  { stepOrder: 3, stepName: 'Finance Approval', requiredPermission: 'po.approve.finance' },
 ];
 
 describe('PO approval step permissions', () => {
   it('PM user cannot approve when PO is on Finance step', () => {
     const doc = {
       status: 'Pending Finance Approval',
-      currentApprovalStep: 2,
+      currentApprovalStep: 3,
     };
     const pmUser = { permissions: [], role: { permissions: ['po.approve.pm'] } };
     const workflow = buildDocumentWorkflow(PO_STEPS, doc, 'PO', pmUser, {
@@ -57,7 +57,7 @@ describe('PO approval step permissions', () => {
   it('Finance user can approve when PO is on Finance step', () => {
     const doc = {
       status: 'Pending Finance Approval',
-      currentApprovalStep: 2,
+      currentApprovalStep: 3,
     };
     const financeUser = { permissions: [], role: { permissions: ['po.approve.finance'] } };
     const workflow = buildDocumentWorkflow(PO_STEPS, doc, 'PO', financeUser, {
@@ -67,24 +67,38 @@ describe('PO approval step permissions', () => {
   });
 });
 
+const APRI_STEPS = [
+  { stepOrder: 1, stepName: 'Warehouse Approval', requiredPermission: 'pr.approve.whs' },
+];
+
 describe('APRI workflow', () => {
-  it('builds Created and SAP APRI steps', () => {
-    const workflow = buildApriWorkflow({
-      status: 'Ready for AP Reserve Invoice',
+  it('builds Created, warehouse approval, and SAP APRI steps', () => {
+    const doc = {
+      status: 'Pending Warehouse Approval',
+      currentApprovalStep: 1,
       sapAPDocEntry: null,
+    };
+    const whsUser = { permissions: [], role: { permissions: ['pr.approve.whs'] } };
+    const workflow = buildDocumentWorkflow(APRI_STEPS, doc, 'APRI', whsUser, {
+      includeCreated: true,
     });
-    expect(workflow).toHaveLength(2);
     expect(workflow[0].kind).toBe('created');
-    expect(workflow[0].state).toBe('current');
-    expect(workflow[1].kind).toBe('sap');
-    expect(workflow[1].state).toBe('pending');
+    expect(workflow[1].state).toBe('current');
+    expect(workflow[1].canApprove).toBe(true);
+    expect(workflow[workflow.length - 1].kind).toBe('sap');
+    expect(workflow[workflow.length - 1].state).toBe('pending');
   });
 
   it('marks SAP step created when sapAPDocEntry exists', () => {
-    const workflow = buildApriWorkflow({
+    const doc = {
       status: 'Created in SAP',
+      currentApprovalStep: 1,
       sapAPDocEntry: 100,
+    };
+    const workflow = buildDocumentWorkflow(APRI_STEPS, doc, 'APRI', { permissions: ['view.all'] }, {
+      includeCreated: true,
     });
-    expect(workflow[1].state).toBe('sap_created');
+    const sapStep = workflow.find((s) => s.kind === 'sap');
+    expect(sapStep.state).toBe('sap_created');
   });
 });

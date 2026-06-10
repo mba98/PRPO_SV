@@ -28,6 +28,15 @@ const KIND_CONFIG = {
     backLabel: 'backToPo',
     commentId: 'po-approve-comment',
   },
+  APRI: {
+    apiBase: '/api/ap-reserve-invoices',
+    documentType: 'APRI',
+    detailPath: (id) => `/ap-reserve-invoices/${id}`,
+    numberField: 'portalAPNumber',
+    titleFromApprove: 'apriTitle',
+    backLabel: 'backToApri',
+    commentId: 'apri-approve-comment',
+  },
 };
 
 export default function DocumentApproveForm({ id, kind = 'PR' }) {

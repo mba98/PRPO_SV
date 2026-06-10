@@ -144,12 +144,19 @@ describe('PO edit permissions', () => {
     expect(canEditPurchaseOrder({ permissions: ['view.all'] }, po)).toBe(true);
     expect(canEditPurchaseOrder({ permissions: ['admin.settings'] }, po)).toBe(true);
   });
+
+  it('allows editing rejected PO for procurement resubmit', () => {
+    const po = { status: 'Rejected', sapPODocEntry: null };
+    const user = { permissions: [], role: { permissions: ['po.create'] } };
+    expect(canEditPurchaseOrder(user, po)).toBe(true);
+  });
 });
 
 describe('PO workflow stepper', () => {
   const PO_STEPS = [
     { stepOrder: 1, stepName: 'PM Approval', requiredPermission: 'po.approve.pm' },
-    { stepOrder: 2, stepName: 'Finance Approval', requiredPermission: 'po.approve.finance' },
+    { stepOrder: 2, stepName: 'OM Approval', requiredPermission: 'po.approve.om' },
+    { stepOrder: 3, stepName: 'Finance Approval', requiredPermission: 'po.approve.finance' },
   ];
 
   it('builds Created + matrix + SAP steps dynamically', () => {

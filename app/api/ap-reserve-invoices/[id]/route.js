@@ -1,6 +1,13 @@
 import { withAuth } from '@/lib/auth';
-import { getApReserveInvoiceById } from '@/lib/apReserveInvoicesService';
-import { jsonSuccess, handleServiceError, jsonError } from '@/lib/apiHelpers';
+import { getApReserveInvoiceById, updateApriQuantities } from '@/lib/apReserveInvoicesService';
+import { updateApriSchema } from '@/lib/validators/apReserveInvoice';
+import {
+  jsonSuccess,
+  handleServiceError,
+  jsonError,
+  jsonValidation,
+  parseJsonBody,
+} from '@/lib/apiHelpers';
 
 async function getHandler(_request, { params }, user) {
   try {
@@ -12,4 +19,17 @@ async function getHandler(_request, { params }, user) {
   }
 }
 
-export const GET = withAuth(getHandler, ['apinvoice.create', 'view.all']);
+async function putHandler(request, { params }, user) {
+  try {
+    const body = (await parseJsonBody(request)) || {};
+    const parsed = updateApriSchema.safeParse(body);
+    if (!parsed.success) return jsonValidation(parsed.error);
+    const apri = await updateApriQuantities(params.id, parsed.data, user);
+    return jsonSuccess(apri);
+  } catch (err) {
+    return handleServiceError(err);
+  }
+}
+
+export const GET = withAuth(getHandler, ['apinvoice.create', 'view.all', 'pr.approve.whs']);
+export const PUT = withAuth(putHandler, ['apinvoice.create', 'view.all']);

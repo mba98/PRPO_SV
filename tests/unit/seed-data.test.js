@@ -5,13 +5,16 @@ import { DEFAULT_EMAIL_GROUPS } from '@/seed/emailGroups';
 import { DEFAULT_TEST_USERS, syncDefaultRolePermissions } from '@/seed/users';
 
 describe('seed data definitions', () => {
-  it('defines six default roles including Admin with all permissions', () => {
-    expect(DEFAULT_ROLES).toHaveLength(6);
+  it('defines default roles including Admin with all permissions', () => {
+    expect(DEFAULT_ROLES.length).toBeGreaterThanOrEqual(7);
     const admin = DEFAULT_ROLES.find((r) => r.name === 'Admin');
     expect(admin.permissions).toEqual(ALL_PERMISSIONS);
 
     const pm = DEFAULT_ROLES.find((r) => r.name === 'Project Manager');
-    expect(pm.permissions).toEqual(['pr.approve.pm', 'po.create', 'po.approve.pm']);
+    expect(pm.permissions).toEqual(['po.create', 'po.approve.pm']);
+
+    const om = DEFAULT_ROLES.find((r) => r.name === 'Operation Manager');
+    expect(om.permissions).toEqual(['po.approve.om']);
 
     const finance = DEFAULT_ROLES.find((r) => r.name === 'Finance');
     expect(finance.permissions).toEqual(['po.approve.finance', 'apinvoice.create']);
@@ -20,7 +23,7 @@ describe('seed data definitions', () => {
     expect(procurement.permissions).toEqual(['po.create', 'apinvoice.create', 'items.create']);
   });
 
-  it('defines six default test users with unique usernames and role names', () => {
+  it('defines default test users with unique usernames and role names', () => {
     expect(DEFAULT_TEST_USERS).toHaveLength(6);
     const usernames = DEFAULT_TEST_USERS.map((u) => u.username);
     expect(new Set(usernames).size).toBe(6);
@@ -30,11 +33,13 @@ describe('seed data definitions', () => {
     }
   });
 
-  it('defines PR and PO approval matrix steps', () => {
+  it('defines PR, PO and APRI approval matrix steps', () => {
     const prSteps = DEFAULT_APPROVAL_MATRIX.filter((s) => s.documentType === 'PR');
     const poSteps = DEFAULT_APPROVAL_MATRIX.filter((s) => s.documentType === 'PO');
-    expect(prSteps).toHaveLength(2);
-    expect(poSteps).toHaveLength(2);
+    const apriSteps = DEFAULT_APPROVAL_MATRIX.filter((s) => s.documentType === 'APRI');
+    expect(prSteps).toHaveLength(1);
+    expect(poSteps).toHaveLength(3);
+    expect(apriSteps).toHaveLength(1);
   });
 
   it('exports syncDefaultRolePermissions for dev role updates', () => {

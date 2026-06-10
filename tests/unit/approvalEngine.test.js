@@ -54,12 +54,21 @@ describe('approvalEngine', () => {
     expect(getCurrentStep(STEPS, 0)).toBeNull();
   });
 
-  it('supports PO document type statuses', () => {
+  it('supports PO document type statuses with operation manager step', () => {
     const poSteps = [
       { stepOrder: 1, requiredPermission: 'po.approve.pm' },
-      { stepOrder: 2, requiredPermission: 'po.approve.finance' },
+      { stepOrder: 2, requiredPermission: 'po.approve.om' },
+      { stepOrder: 3, requiredPermission: 'po.approve.finance' },
     ];
     expect(getInitialSubmitState(poSteps, 'PO').status).toBe('Pending Project Manager Approval');
-    expect(getStateAfterApproval(poSteps, 1, 'PO').status).toBe('Pending Finance Approval');
+    expect(getStateAfterApproval(poSteps, 1, 'PO').status).toBe('Pending Operation Manager Approval');
+    expect(getStateAfterApproval(poSteps, 2, 'PO').status).toBe('Pending Finance Approval');
+    expect(getStateAfterApproval(poSteps, 3, 'PO').isFinal).toBe(true);
+  });
+
+  it('supports APRI warehouse approval status', () => {
+    const apriSteps = [{ stepOrder: 1, requiredPermission: 'pr.approve.whs' }];
+    expect(getInitialSubmitState(apriSteps, 'APRI').status).toBe('Pending Warehouse Approval');
+    expect(getStateAfterApproval(apriSteps, 1, 'APRI').isFinal).toBe(true);
   });
 });

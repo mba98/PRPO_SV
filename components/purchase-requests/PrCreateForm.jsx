@@ -13,6 +13,8 @@ import { useI18n } from '@/lib/hooks/useI18n';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
+import ProjectSelect from '@/components/lookups/ProjectSelect';
+import UomGroupSelect from '@/components/lookups/UomGroupSelect';
 import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
 import { DateInput, FormField } from '@/components/ui';
 import CreateItemModal from './CreateItemModal';
@@ -25,6 +27,8 @@ const EMPTY_LINE = () => ({
   itemGroupName: '',
   uom: '',
   uomCode: '',
+  ugpEntry: '',
+  ugpName: '',
   vendor: '',
   vendorLabel: '',
   warehouseCode: '',
@@ -74,6 +78,8 @@ export default function PrCreateForm() {
     requiredDate: '',
     documentDate: '',
     dueDate: '',
+    project: '',
+    projectLabel: '',
     remarks: '',
   });
   const [lines, setLines] = useState([EMPTY_LINE()]);
@@ -147,12 +153,15 @@ export default function PrCreateForm() {
       requiredDate: header.requiredDate,
       documentDate: documentDate || undefined,
       dueDate: dueDate || undefined,
+      project: header.project || undefined,
       remarks: header.remarks || undefined,
       lines: lines.map((l) => ({
         itemCode: l.itemCode,
         itemName: l.itemName || undefined,
-        uom: l.uom || undefined,
+        uom: l.uom || l.ugpName || undefined,
         uomCode: l.uomCode?.trim() || l.uom?.trim() || undefined,
+        ugpEntry: l.ugpEntry ? Number(l.ugpEntry) : undefined,
+        ugpName: l.ugpName || undefined,
         vendor: l.vendor || undefined,
         warehouseCode: l.warehouseCode || undefined,
         quantity: Number(l.quantity),
@@ -256,6 +265,19 @@ export default function PrCreateForm() {
               className={COMPACT_INPUT}
               value={header.dueDate}
               onChange={(e) => updateHeader({ dueDate: e.target.value })}
+            />
+          </FormField>
+          <FormField label={t.project} className="sm:col-span-2">
+            <ProjectSelect
+              valueCode={header.project}
+              valueLabel={header.projectLabel}
+              placeholder={t.searchProject}
+              emptyMessage={t.noProjectsFound}
+              loadingMessage={t.loading}
+              inputClassName={COMPACT_INPUT}
+              onSelect={(code, label) =>
+                updateHeader({ project: code, projectLabel: label || code })
+              }
             />
           </FormField>
         </div>
@@ -407,11 +429,18 @@ export default function PrCreateForm() {
 
                 <FormField className="lg:mt-0">
                   <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.uom}</span>
-                  <input
-                    className={COMPACT_INPUT}
-                    value={line.uomCode}
-                    placeholder={line.uom || '—'}
-                    onChange={(e) => updateLine(idx, { uomCode: e.target.value })}
+                  <UomGroupSelect
+                    valueEntry={line.ugpEntry}
+                    valueLabel={line.ugpName}
+                    placeholder={t.selectUom}
+                    inputClassName={COMPACT_INPUT}
+                    onSelect={(entry, name) =>
+                      updateLine(idx, {
+                        ugpEntry: entry,
+                        ugpName: name,
+                        uomCode: name || line.uomCode,
+                      })
+                    }
                   />
                 </FormField>
 

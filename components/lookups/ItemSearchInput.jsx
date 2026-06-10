@@ -59,6 +59,10 @@ export default function ItemSearchInput({
       itemName: item.itemName,
       uom: item.uom || item.purchaseUom || item.inventoryUom,
       uomCode,
+      ugpEntry: item.ugpEntry,
+      defaultWarehouse: item.defaultWarehouse,
+      warehouseCode: item.defaultWarehouse || undefined,
+      warehouseLabel: item.defaultWarehouse || undefined,
       itemGroupCode: item.itemGroupCode,
       itemGroupName: item.itemGroupName || item.itemGroup,
     });

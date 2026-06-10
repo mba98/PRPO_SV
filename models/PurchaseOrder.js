@@ -46,6 +46,7 @@ const purchaseOrderSchema = new mongoose.Schema(
       enum: [
         'Draft',
         'Pending Project Manager Approval',
+        'Pending Operation Manager Approval',
         'Pending Finance Approval',
         'Approved',
         'Rejected',

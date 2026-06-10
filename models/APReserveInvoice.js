@@ -34,10 +34,14 @@ const apReserveInvoiceSchema = new mongoose.Schema(
     docCurrency: String,
     docRate: Number,
     remarks: String,
+    currentApprovalStep: { type: Number, default: 0 },
     status: {
       type: String,
       enum: [
         'Ready for AP Reserve Invoice',
+        'Pending Warehouse Approval',
+        'Rejected',
+        'Approved',
         'Creating in SAP',
         'Created in SAP',
         'Failed to Create in SAP',

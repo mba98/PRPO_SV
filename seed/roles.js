@@ -17,7 +17,11 @@ export const DEFAULT_ROLES = [
   },
   {
     name: 'Project Manager',
-    permissions: ['pr.approve.pm', 'po.create', 'po.approve.pm'],
+    permissions: ['po.create', 'po.approve.pm'],
+  },
+  {
+    name: 'Operation Manager',
+    permissions: ['po.approve.om'],
   },
   {
     name: 'Finance',
