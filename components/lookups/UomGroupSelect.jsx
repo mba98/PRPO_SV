@@ -20,12 +20,15 @@ export default function UomGroupSelect({
     (async () => {
       setLoading(true);
       setError('');
-      const { json, status } = await apiFetch('/api/sap/uom-groups?limit=200');
+      const { json, status } = await apiFetch('/api/sap/uom-groups?limit=100');
       if (cancelled) return;
       if (json.success) {
         setGroups(json.data || []);
       } else {
-        const parts = [json.message || 'Failed to load UoM groups'];
+        const fieldMessages = json.errors?.map((e) => e.message).filter(Boolean);
+        const parts = [
+          fieldMessages?.length ? fieldMessages.join('; ') : json.message || 'Failed to load UoM groups',
+        ];
         if (json.error) parts.push(`(${json.error})`);
         if (status) parts.push(`[HTTP ${status}]`);
         setError(parts.filter(Boolean).join(' '));

@@ -28,10 +28,10 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
     if (!open) return;
     (async () => {
       const [ig, ug, ac, co] = await Promise.all([
-        apiFetch('/api/sap/item-groups?limit=200'),
-        apiFetch('/api/sap/uom-groups?limit=200'),
-        apiFetch('/api/sap/accounts?limit=200'),
-        apiFetch('/api/sap/companies?limit=200'),
+        apiFetch('/api/sap/item-groups?limit=100'),
+        apiFetch('/api/sap/uom-groups?limit=100'),
+        apiFetch('/api/sap/accounts?limit=100'),
+        apiFetch('/api/sap/companies?limit=100'),
       ]);
       if (ig.json.success) setItemGroups(ig.json.data || []);
       if (ug.json.success) setUomGroups(ug.json.data || []);

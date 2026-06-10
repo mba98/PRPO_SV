@@ -1,8 +1,9 @@
 import { withAuth } from '@/lib/auth';
 import { searchSapUomGroups } from '@/lib/sapHanaLookups.js';
-import { jsonSuccessCached } from '@/lib/apiHelpers';
+import { jsonSuccessCached, jsonValidation } from '@/lib/apiHelpers';
 import { parseSapLookupQuery } from '@/lib/validators/sapLookup';
 import { sapLookupFailureResponse } from '@/lib/sapLookupApi';
+import { ZodError } from 'zod';
 
 const PERMS = ['pr.create', 'items.create', 'view.all'];
 
@@ -13,6 +14,9 @@ async function getHandler(request) {
     const items = await searchSapUomGroups(query, limit);
     return jsonSuccessCached(items);
   } catch (err) {
+    if (err instanceof ZodError) {
+      return jsonValidation(err);
+    }
     const clientMessage = err?.message || 'Failed to load UoM groups';
     return sapLookupFailureResponse('sap/uom-groups', err, clientMessage);
   }
