@@ -1,9 +1,10 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
   searchSapItems,
   mapHanaItemRow,
   mapItemDetailRow,
   buildSapItemCreatePayload,
+  getSapItemSeries,
 } from '@/lib/sapItems';
 
 vi.mock('@/lib/sapHana.js', () => ({
@@ -21,6 +22,11 @@ import { searchItems } from '@/lib/sapHana.js';
 describe('sapItems search helper', () => {
   beforeEach(() => {
     searchItems.mockReset();
+    process.env.SAP_ITEM_SERIES = '129';
+  });
+
+  afterEach(() => {
+    delete process.env.SAP_ITEM_SERIES;
   });
 
   it('returns empty array for blank query', async () => {
@@ -64,10 +70,19 @@ describe('sapItems search helper', () => {
     expect(row.uom).toBe('PC');
   });
 
-  it('buildSapItemCreatePayload maps Service Layer fields and omits empty warehouse', () => {
+  it('getSapItemSeries reads SAP_ITEM_SERIES from env', () => {
+    process.env.SAP_ITEM_SERIES = '129';
+    expect(getSapItemSeries()).toBe(129);
+  });
+
+  it('getSapItemSeries throws when not configured', () => {
+    delete process.env.SAP_ITEM_SERIES;
+    expect(() => getSapItemSeries()).toThrow('SAP_ITEM_SERIES is not configured');
+  });
+
+  it('buildSapItemCreatePayload sends Series and omits ItemCode', () => {
     expect(
       buildSapItemCreatePayload({
-        ItemCode: '1250000134',
         ItemName: 'Widget',
         ItemGroup: '108',
         UgpEntry: 1,
@@ -77,7 +92,7 @@ describe('sapItems search helper', () => {
         DefaultWarehouse: '',
       }),
     ).toEqual({
-      ItemCode: '1250000134',
+      Series: 129,
       ItemName: 'Widget',
       ItemsGroupCode: 108,
       UoMGroupEntry: 1,
@@ -87,19 +102,16 @@ describe('sapItems search helper', () => {
     });
     expect(
       buildSapItemCreatePayload({
-        ItemCode: 'X',
         ItemName: 'X',
         DefaultWarehouse: 'WH01',
       }).DefaultWarehouse,
     ).toBe('WH01');
   });
 
-  it('buildSapItemCreatePayload requires ItemCode', () => {
-    expect(() =>
-      buildSapItemCreatePayload({
-        ItemName: 'Widget',
-      }),
-    ).toThrow(/ItemCode is required/);
+  it('buildSapItemCreatePayload does not include ItemCode', () => {
+    const payload = buildSapItemCreatePayload({ ItemName: 'Widget' });
+    expect(payload).not.toHaveProperty('ItemCode');
+    expect(payload.Series).toBe(129);
   });
 
   it('mapItemDetailRow maps price, UoM group, and warehouse', () => {
