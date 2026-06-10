@@ -87,7 +87,8 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
       setFieldErrors(next);
       setFormError(lines.join('\n'));
     } else {
-      setFormError(json.message || 'Failed to create item');
+      const sapMsg = json.sapError?.message;
+      setFormError(sapMsg || json.message || 'Failed to create item');
     }
     setSaving(false);
   }

@@ -5,6 +5,7 @@ import {
   getSapErrorCode,
   sanitizeSapError,
   sanitizeSapErrorText,
+  formatSapErrorForClient,
   toSapRequestError,
 } from '@/lib/sap/sapErrors.js';
 
@@ -62,6 +63,17 @@ describe('sapErrors', () => {
     });
     expect(safe).toEqual(expect.objectContaining({ message: 'OK' }));
     expect(JSON.stringify(safe)).not.toContain('B1SESSION');
+  });
+
+  it('formatSapErrorForClient exposes numeric SAP code and message', () => {
+    expect(
+      formatSapErrorForClient({
+        responseBody: { error: { code: -5002, message: { value: 'Item group is mandatory' } } },
+      }),
+    ).toEqual({
+      code: -5002,
+      message: 'Item group is mandatory',
+    });
   });
 
   it('toSapRequestError builds Error from SAP response without TDZ', () => {

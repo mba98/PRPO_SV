@@ -1,5 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { searchSapItems, mapHanaItemRow, mapItemDetailRow } from '@/lib/sapItems';
+import {
+  searchSapItems,
+  mapHanaItemRow,
+  mapItemDetailRow,
+  buildSapItemCreatePayload,
+} from '@/lib/sapItems';
 
 vi.mock('@/lib/sapHana.js', () => ({
   searchItems: vi.fn(),
@@ -57,6 +62,33 @@ describe('sapItems search helper', () => {
     });
     expect(row.itemCode).toBe('X');
     expect(row.uom).toBe('PC');
+  });
+
+  it('buildSapItemCreatePayload maps Service Layer fields and omits empty warehouse', () => {
+    expect(
+      buildSapItemCreatePayload({
+        ItemName: 'Widget',
+        ItemGroup: '108',
+        UgpEntry: 1,
+        U_Code: 'PN-1',
+        U_AcctCode: '4000',
+        U_Company: 'ACME',
+        DefaultWarehouse: '',
+      }),
+    ).toEqual({
+      ItemName: 'Widget',
+      ItemsGroupCode: 108,
+      UoMGroupEntry: 1,
+      U_Code: 'PN-1',
+      U_AcctCode: '4000',
+      U_Company: 'ACME',
+    });
+    expect(
+      buildSapItemCreatePayload({
+        ItemName: 'X',
+        DefaultWarehouse: 'WH01',
+      }).DefaultWarehouse,
+    ).toBe('WH01');
   });
 
   it('mapItemDetailRow maps price, UoM group, and warehouse', () => {
