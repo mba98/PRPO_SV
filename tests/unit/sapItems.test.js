@@ -67,6 +67,7 @@ describe('sapItems search helper', () => {
   it('buildSapItemCreatePayload maps Service Layer fields and omits empty warehouse', () => {
     expect(
       buildSapItemCreatePayload({
+        ItemCode: '1250000134',
         ItemName: 'Widget',
         ItemGroup: '108',
         UgpEntry: 1,
@@ -76,6 +77,7 @@ describe('sapItems search helper', () => {
         DefaultWarehouse: '',
       }),
     ).toEqual({
+      ItemCode: '1250000134',
       ItemName: 'Widget',
       ItemsGroupCode: 108,
       UoMGroupEntry: 1,
@@ -85,10 +87,19 @@ describe('sapItems search helper', () => {
     });
     expect(
       buildSapItemCreatePayload({
+        ItemCode: 'X',
         ItemName: 'X',
         DefaultWarehouse: 'WH01',
       }).DefaultWarehouse,
     ).toBe('WH01');
+  });
+
+  it('buildSapItemCreatePayload requires ItemCode', () => {
+    expect(() =>
+      buildSapItemCreatePayload({
+        ItemName: 'Widget',
+      }),
+    ).toThrow(/ItemCode is required/);
   });
 
   it('mapItemDetailRow maps price, UoM group, and warehouse', () => {

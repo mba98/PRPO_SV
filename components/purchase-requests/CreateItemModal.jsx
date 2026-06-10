@@ -9,7 +9,6 @@ const EMPTY = {
   ItemName: '',
   ItemGroup: '',
   UgpEntry: '',
-  DefaultWarehouse: '',
   U_Code: '',
   U_AcctCode: '',
   U_Company: '',
@@ -19,7 +18,6 @@ const FIELD_LABELS = {
   ItemName: 'Item Name',
   ItemGroup: 'Item Group',
   UgpEntry: 'UoM Group',
-  DefaultWarehouse: 'Default Warehouse',
   U_Code: 'Part Number',
   U_AcctCode: 'Account Code',
   U_Company: 'Company',
@@ -59,7 +57,6 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
       ItemName: form.ItemName,
       ItemGroup: form.ItemGroup || undefined,
       UgpEntry: form.UgpEntry !== '' && form.UgpEntry != null ? form.UgpEntry : undefined,
-      DefaultWarehouse: form.DefaultWarehouse || undefined,
       U_Code: form.U_Code || undefined,
       U_AcctCode: form.U_AcctCode || undefined,
       U_Company: form.U_Company || undefined,
@@ -76,8 +73,6 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
         itemName: form.ItemName,
         ugpEntry: form.UgpEntry !== '' && form.UgpEntry != null ? Number(form.UgpEntry) : undefined,
         ugpName: labels.uom?.split(' — ').slice(1).join(' — ') || '',
-        warehouseCode: form.DefaultWarehouse,
-        warehouseLabel: labels.warehouse || form.DefaultWarehouse,
       });
       setForm(EMPTY);
       setLabels({});
@@ -207,26 +202,6 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
           />
           {fieldErrors.U_Company && (
             <p className="mt-1 text-xs text-destructive">{fieldErrors.U_Company}</p>
-          )}
-        </label>
-
-        <label className="block text-sm">
-          <span className="text-muted-foreground">Default Warehouse</span>
-          <SearchableLookup
-            endpoint="/api/sap/warehouses"
-            value={form.DefaultWarehouse}
-            label={labels.warehouse}
-            onSelect={(value, display) => {
-              setForm((f) => ({ ...f, DefaultWarehouse: value }));
-              setLabels((l) => ({ ...l, warehouse: display }));
-            }}
-            placeholder="Search warehouse"
-            inputClassName="input-field mt-1"
-            loadAllOnFocus
-            minChars={0}
-          />
-          {fieldErrors.DefaultWarehouse && (
-            <p className="mt-1 text-xs text-destructive">{fieldErrors.DefaultWarehouse}</p>
           )}
         </label>
 
