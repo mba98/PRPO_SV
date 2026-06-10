@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
 import { AnimatedModal } from '@/components/ui';
+import SearchableLookup from '@/components/lookups/SearchableLookup';
 
 const EMPTY = {
-  ItemCode: '',
   ItemName: '',
   ItemGroup: '',
   UgpEntry: '',
@@ -15,66 +15,62 @@ const EMPTY = {
   U_Company: '',
 };
 
+function formatUom(row) {
+  if (!row) return '';
+  return row.label ? `${row.value} — ${row.label}` : String(row.value ?? '');
+}
+
 export default function CreateItemModal({ open, onClose, onCreated, relatedPRNumber }) {
   const [form, setForm] = useState(EMPTY);
-  const [itemGroups, setItemGroups] = useState([]);
-  const [uomGroups, setUomGroups] = useState([]);
-  const [accounts, setAccounts] = useState([]);
-  const [companies, setCompanies] = useState([]);
+  const [labels, setLabels] = useState({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!open) return;
-    (async () => {
-      const [ig, ug, ac, co] = await Promise.all([
-        apiFetch('/api/sap/item-groups?limit=100'),
-        apiFetch('/api/sap/uom-groups?limit=100'),
-        apiFetch('/api/sap/accounts?limit=100'),
-        apiFetch('/api/sap/companies?limit=100'),
-      ]);
-      if (ig.json.success) setItemGroups(ig.json.data || []);
-      if (ug.json.success) setUomGroups(ug.json.data || []);
-      if (ac.json.success) setAccounts(ac.json.data || []);
-      if (co.json.success) setCompanies(co.json.data || []);
-    })();
-  }, [open]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
     setError('');
+    const payload = {
+      ItemName: form.ItemName,
+      ItemGroup: form.ItemGroup || undefined,
+      UgpEntry: form.UgpEntry ? Number(form.UgpEntry) : undefined,
+      DefaultWarehouse: form.DefaultWarehouse || undefined,
+      U_Code: form.U_Code || undefined,
+      U_AcctCode: form.U_AcctCode || undefined,
+      U_Company: form.U_Company || undefined,
+      relatedPRNumber,
+    };
     const { json } = await apiFetch('/api/sap/items/create', {
       method: 'POST',
-      body: JSON.stringify({ ...form, relatedPRNumber }),
+      body: JSON.stringify(payload),
     });
     if (json.success) {
+      const createdCode = json.data?.ItemCode;
       onCreated({
-        itemCode: form.ItemCode,
+        itemCode: createdCode,
         itemName: form.ItemName,
         ugpEntry: form.UgpEntry ? Number(form.UgpEntry) : undefined,
+        ugpName: labels.uom?.split(' — ').slice(1).join(' — ') || '',
+        warehouseCode: form.DefaultWarehouse,
+        warehouseLabel: labels.warehouse || form.DefaultWarehouse,
       });
       setForm(EMPTY);
+      setLabels({});
       onClose();
     } else {
-      setError(json.message || 'Failed to create item');
+      const fieldMessages = json.errors?.map((x) => x.message).filter(Boolean);
+      setError(fieldMessages?.length ? fieldMessages.join('; ') : json.message || 'Failed to create item');
     }
     setSaving(false);
   }
 
+  if (!open) return null;
+
   return (
     <AnimatedModal isOpen={open} onClose={onClose} title="Create New Item">
       <form onSubmit={handleSubmit} className="space-y-3">
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <label className="block text-sm">
-          <span className="text-muted-foreground">Item Code</span>
-          <input
-            className="input-field mt-1"
-            value={form.ItemCode}
-            required
-            onChange={(e) => setForm((f) => ({ ...f, ItemCode: e.target.value }))}
-          />
-        </label>
+        {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+
         <label className="block text-sm">
           <span className="text-muted-foreground">Item Name</span>
           <input
@@ -84,36 +80,42 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             onChange={(e) => setForm((f) => ({ ...f, ItemName: e.target.value }))}
           />
         </label>
+
         <label className="block text-sm">
           <span className="text-muted-foreground">Item Group</span>
-          <select
-            className="input-field mt-1 w-full"
+          <SearchableLookup
+            endpoint="/api/sap/item-groups"
             value={form.ItemGroup}
-            onChange={(e) => setForm((f) => ({ ...f, ItemGroup: e.target.value }))}
-          >
-            <option value="">Select item group</option>
-            {itemGroups.map((g) => (
-              <option key={g.itmsGrpCod} value={g.itmsGrpCod}>
-                {g.itmsGrpNam}
-              </option>
-            ))}
-          </select>
+            label={labels.itemGroup}
+            onSelect={(value, display) => {
+              setForm((f) => ({ ...f, ItemGroup: value }));
+              setLabels((l) => ({ ...l, itemGroup: display }));
+            }}
+            placeholder="Search item group"
+            inputClassName="input-field mt-1"
+            loadAllOnFocus
+            minChars={0}
+          />
         </label>
+
         <label className="block text-sm">
           <span className="text-muted-foreground">UoM Group</span>
-          <select
-            className="input-field mt-1 w-full"
+          <SearchableLookup
+            endpoint="/api/sap/uom-groups"
             value={form.UgpEntry}
-            onChange={(e) => setForm((f) => ({ ...f, UgpEntry: e.target.value }))}
-          >
-            <option value="">Select UoM group</option>
-            {uomGroups.map((g) => (
-              <option key={g.value} value={g.value}>
-                {g.label || g.code || g.value}
-              </option>
-            ))}
-          </select>
+            label={labels.uom}
+            onSelect={(value, display) => {
+              setForm((f) => ({ ...f, UgpEntry: value }));
+              setLabels((l) => ({ ...l, uom: display }));
+            }}
+            placeholder="Search UoM group"
+            inputClassName="input-field mt-1"
+            formatOption={formatUom}
+            loadAllOnFocus
+            minChars={0}
+          />
         </label>
+
         <label className="block text-sm">
           <span className="text-muted-foreground">Part Number (U_Code)</span>
           <input
@@ -122,44 +124,58 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             onChange={(e) => setForm((f) => ({ ...f, U_Code: e.target.value }))}
           />
         </label>
+
         <label className="block text-sm">
           <span className="text-muted-foreground">Account Code (U_AcctCode)</span>
-          <select
-            className="input-field mt-1 w-full"
+          <SearchableLookup
+            endpoint="/api/sap/accounts"
             value={form.U_AcctCode}
-            onChange={(e) => setForm((f) => ({ ...f, U_AcctCode: e.target.value }))}
-          >
-            <option value="">Select account</option>
-            {accounts.map((a) => (
-              <option key={a.acctCode} value={a.acctCode}>
-                {a.acctName} ({a.acctCode})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm">
-          <span className="text-muted-foreground">Company (U_Company)</span>
-          <select
-            className="input-field mt-1 w-full"
-            value={form.U_Company}
-            onChange={(e) => setForm((f) => ({ ...f, U_Company: e.target.value }))}
-          >
-            <option value="">Select company</option>
-            {companies.map((c) => (
-              <option key={c.company} value={c.company}>
-                {c.company}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm">
-          <span className="text-muted-foreground">Default Warehouse</span>
-          <input
-            className="input-field mt-1"
-            value={form.DefaultWarehouse}
-            onChange={(e) => setForm((f) => ({ ...f, DefaultWarehouse: e.target.value }))}
+            label={labels.account}
+            onSelect={(value, display) => {
+              setForm((f) => ({ ...f, U_AcctCode: value }));
+              setLabels((l) => ({ ...l, account: display }));
+            }}
+            placeholder="Search account"
+            inputClassName="input-field mt-1"
+            loadAllOnFocus
+            minChars={0}
           />
         </label>
+
+        <label className="block text-sm">
+          <span className="text-muted-foreground">Company (U_Company)</span>
+          <SearchableLookup
+            endpoint="/api/sap/companies"
+            value={form.U_Company}
+            label={labels.company}
+            onSelect={(value, display) => {
+              setForm((f) => ({ ...f, U_Company: value }));
+              setLabels((l) => ({ ...l, company: display }));
+            }}
+            placeholder="Search company"
+            inputClassName="input-field mt-1"
+            loadAllOnFocus
+            minChars={0}
+          />
+        </label>
+
+        <label className="block text-sm">
+          <span className="text-muted-foreground">Default Warehouse</span>
+          <SearchableLookup
+            endpoint="/api/sap/warehouses"
+            value={form.DefaultWarehouse}
+            label={labels.warehouse}
+            onSelect={(value, display) => {
+              setForm((f) => ({ ...f, DefaultWarehouse: value }));
+              setLabels((l) => ({ ...l, warehouse: display }));
+            }}
+            placeholder="Search warehouse"
+            inputClassName="input-field mt-1"
+            loadAllOnFocus
+            minChars={0}
+          />
+        </label>
+
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose}>
             Cancel

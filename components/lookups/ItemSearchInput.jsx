@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
 
+function warehouseLabel(code, name) {
+  if (!code) return '';
+  return name ? `${code} — ${name}` : code;
+}
+
 export default function ItemSearchInput({
   value,
   onSelect,
@@ -37,14 +42,17 @@ export default function ItemSearchInput({
     timer.current = setTimeout(async () => {
       setLoading(true);
       setError('');
-      const { json } = await apiFetch(`/api/sap/items/search?query=${encodeURIComponent(trimmed)}`);
+      const { json, status } = await apiFetch(`/api/sap/items/search?query=${encodeURIComponent(trimmed)}`);
       if (json.success) {
         setResults(json.data || []);
         onSearchError?.((json.data || []).length === 0);
       } else {
         setResults([]);
-        const msg = json.message || 'Failed to search SAP items';
-        setError(msg);
+        const fieldMessages = json.errors?.map((e) => e.message).filter(Boolean);
+        const msg = fieldMessages?.length
+          ? fieldMessages.join('; ')
+          : json.message || 'Failed to search SAP items';
+        setError(status ? `${msg} [HTTP ${status}]` : msg);
         onSearchError?.(true);
       }
       setLoading(false);
@@ -52,23 +60,43 @@ export default function ItemSearchInput({
     return () => clearTimeout(timer.current);
   }, [query, onSearchError]);
 
-  function pick(item) {
-    const uomCode = item.uomCode || item.uom || item.purchaseUom || item.inventoryUom;
-    onSelect({
-      itemCode: item.itemCode,
-      itemName: item.itemName,
-      uom: item.uom || item.purchaseUom || item.inventoryUom,
-      uomCode,
-      ugpEntry: item.ugpEntry,
-      defaultWarehouse: item.defaultWarehouse,
-      warehouseCode: item.defaultWarehouse || undefined,
-      warehouseLabel: item.defaultWarehouse || undefined,
-      itemGroupCode: item.itemGroupCode,
-      itemGroupName: item.itemGroupName || item.itemGroup,
-    });
+  async function pick(item) {
+    setLoading(true);
+    setError('');
+    const { json, status } = await apiFetch(
+      `/api/sap/items/${encodeURIComponent(item.itemCode)}/details`,
+    );
+    setLoading(false);
+
+    if (json.success && json.data) {
+      const d = json.data;
+      onSelect({
+        itemCode: d.itemCode || item.itemCode,
+        itemName: d.itemName || item.itemName,
+        ugpEntry: d.uomGroupEntry ?? item.ugpEntry,
+        ugpName: d.uomGroupName || '',
+        warehouseCode: d.warehouseCode || item.defaultWarehouse || '',
+        warehouseLabel: warehouseLabel(d.warehouseCode, d.warehouseName),
+        estimatedUnitPrice:
+          d.price != null && d.price !== '' ? String(d.price) : '',
+        itemGroupCode: d.itemGroupCode ?? item.itemGroupCode,
+        itemGroupName: d.itemGroupName || item.itemGroupName || item.itemGroup,
+      });
+    } else {
+      const msg = json.message || 'Failed to load item details';
+      setError(status ? `${msg} [HTTP ${status}]` : msg);
+      onSelect({
+        itemCode: item.itemCode,
+        itemName: item.itemName,
+        ugpEntry: item.ugpEntry,
+        warehouseCode: item.defaultWarehouse || item.warehouseCode || '',
+        warehouseLabel: warehouseLabel(item.defaultWarehouse || item.warehouseCode, ''),
+        itemGroupCode: item.itemGroupCode,
+        itemGroupName: item.itemGroupName || item.itemGroup,
+      });
+    }
     setQuery(item.itemCode);
     setFocused(false);
-    setError('');
     onSearchError?.(false);
   }
 
@@ -87,7 +115,7 @@ export default function ItemSearchInput({
         onFocus={() => setFocused(true)}
         onBlur={() => setTimeout(() => setFocused(false), 200)}
       />
-      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+      {error && <p className="mt-1 text-xs text-destructive" role="alert">{error}</p>}
       {showDropdown && (
         <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-border bg-card shadow-lg">
           {loading && (
@@ -105,11 +133,11 @@ export default function ItemSearchInput({
               >
                 <span className="font-medium text-foreground">{item.itemCode}</span>
                 <span className="ms-2 text-muted-foreground">{item.itemName}</span>
-                <span className="ms-2 text-xs text-muted-foreground">
-                  {item.uom}
-                  {(item.itemGroupName || item.itemGroup) &&
-                    ` · ${item.itemGroupName || item.itemGroup}`}
-                </span>
+                {(item.itemGroupName || item.itemGroup) && (
+                  <span className="ms-2 text-xs text-muted-foreground">
+                    · {item.itemGroupName || item.itemGroup}
+                  </span>
+                )}
               </button>
             </li>
           ))}

@@ -3,6 +3,7 @@ import {
   buildItemSearchSql,
   buildItemDetailSql,
   buildUomGroupsSql,
+  buildWarehousesSql,
   buildLimitClause,
   quoteSchema,
 } from '@/lib/sap/hanaSql';
@@ -29,7 +30,7 @@ describe('sap HANA SQL builders', () => {
   it('builds item detail SQL', () => {
     const sql = buildItemDetailSql('MYCO');
     expect(sql).toContain('T0."ItemCode" = ?');
-    expect(sql).toContain('T1."ItmsGrpNam"');
+    expect(sql).toContain('T3."ItmsGrpNam"');
   });
 
   it('buildLimitClause caps range', () => {
@@ -44,5 +45,21 @@ describe('sap HANA SQL builders', () => {
     expect(sql).toContain('T0."UgpCode" AS "code"');
     expect(sql).toContain('ORDER BY T0."UgpName"');
     expect(sql).toContain('LIMIT 50');
+  });
+
+  it('builds item detail SQL with OUGP and OWHS joins', () => {
+    const sql = buildItemDetailSql('MYCO');
+    expect(sql).toContain('"MYCO"."OUGP"');
+    expect(sql).toContain('"MYCO"."OWHS"');
+    expect(sql).toContain('T0."AvgPrice"');
+    expect(sql).toContain('T1."UgpName"');
+    expect(sql).toContain('T2."WhsName"');
+  });
+
+  it('builds warehouses SQL from OWHS', () => {
+    const sql = buildWarehousesSql('DB', 100, 'limit');
+    expect(sql).toContain('"DB"."OWHS" T0');
+    expect(sql).toContain('T0."WhsCode" AS "value"');
+    expect(sql).toContain('T0."WhsName" AS "label"');
   });
 });

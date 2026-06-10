@@ -16,6 +16,10 @@ describe('PR create form — compact bilingual UI', () => {
     path.resolve(process.cwd(), 'components/lookups/WarehouseSelect.jsx'),
     'utf8',
   );
+  const searchable = fs.readFileSync(
+    path.resolve(process.cwd(), 'components/lookups/SearchableLookup.jsx'),
+    'utf8',
+  );
   const itemSearch = fs.readFileSync(
     path.resolve(process.cwd(), 'components/lookups/ItemSearchInput.jsx'),
     'utf8',
@@ -42,28 +46,21 @@ describe('PR create form — compact bilingual UI', () => {
     expect(ar.warehouseRequired).toBe('المخزن مطلوب');
   });
 
-  it('WarehouseSelect loads all warehouses on focus when empty', () => {
-    expect(warehouse).toContain('warehouseListCache');
+  it('WarehouseSelect uses searchable lookup with HANA warehouses API', () => {
+    expect(warehouse).toContain('SearchableLookup');
     expect(warehouse).toContain('/api/sap/warehouses');
-    expect(warehouse).toContain('onFocus={() => setFocused(true)}');
-    expect(warehouse).toContain('loadWarehouses');
-    expect(warehouse).toContain('if (!trimmed)');
-    expect(warehouse).toContain('setFocused(false)');
-    expect(warehouse).not.toContain('SapLookupCombobox');
-  });
-
-  it('WarehouseSelect filters warehouses when user types', () => {
-    expect(warehouse).toContain("params.set('query', query.trim())");
-    expect(warehouse).toContain('setTimeout(() => loadWarehouses(trimmed), 300)');
-  });
-
-  it('WarehouseSelect closes dropdown on select and uses styled list', () => {
-    expect(warehouse).toContain('onMouseDown={() => pick(warehouse)}');
-    expect(warehouse).toContain('max-h-56');
-    expect(warehouse).toContain('rounded-2xl');
-    expect(warehouse).toContain('hover:bg-primary/10');
+    expect(warehouse).toContain('loadAllOnFocus');
+    expect(searchable).toContain('onFocus={() => setFocused(true)}');
+    expect(searchable).toContain('loadAllOnFocus');
     expect(getDictionary('en').pr.create.noWarehousesFound).toBe('No warehouses found');
     expect(getDictionary('ar').pr.create.noWarehousesFound).toBe('لا توجد مخازن');
+  });
+
+  it('ItemSearchInput fetches full item details on select', () => {
+    expect(itemSearch).toContain('/details');
+    expect(itemSearch).toContain('uomGroupEntry');
+    expect(itemSearch).toContain('warehouseCode');
+    expect(itemSearch).toContain('estimatedUnitPrice');
   });
 
   it('Item and Vendor lookups still require typing before suggestions', () => {

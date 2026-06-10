@@ -43,6 +43,9 @@ describe('sapLookups normalization', () => {
 
   it('maps warehouse row from Service Layer fields', () => {
     expect(mapWarehouseRow({ WarehouseCode: 'RAN001', WarehouseName: 'Main' })).toEqual({
+      value: 'RAN001',
+      label: 'Main',
+      code: 'RAN001',
       warehouseCode: 'RAN001',
       warehouseName: 'Main',
     });
@@ -50,6 +53,9 @@ describe('sapLookups normalization', () => {
 
   it('falls back to HANA OWHS field names for warehouse row', () => {
     expect(mapWarehouseRow({ WhsCode: '01', WhsName: 'Legacy' })).toEqual({
+      value: '01',
+      label: 'Legacy',
+      code: '01',
       warehouseCode: '01',
       warehouseName: 'Legacy',
     });
@@ -57,6 +63,9 @@ describe('sapLookups normalization', () => {
 
   it('maps project row', () => {
     expect(mapProjectRow({ Code: 'P1', Name: 'Project 1' })).toEqual({
+      value: 'P1',
+      label: 'Project 1',
+      code: 'P1',
       projectCode: 'P1',
       projectName: 'Project 1',
     });
@@ -84,14 +93,26 @@ describe('searchSapWarehouses', () => {
       value: [{ WarehouseCode: 'WH1', WarehouseName: 'Main' }],
     });
     expect(await searchSapWarehouses('')).toEqual([
-      { warehouseCode: 'WH1', warehouseName: 'Main' },
+      {
+        value: 'WH1',
+        label: 'Main',
+        code: 'WH1',
+        warehouseCode: 'WH1',
+        warehouseName: 'Main',
+      },
     ]);
   });
 
   it('handles a direct array payload (already unwrapped)', async () => {
     getWarehouses.mockResolvedValue([{ WarehouseCode: 'WH2', WarehouseName: 'Spare' }]);
     expect(await searchSapWarehouses('spare')).toEqual([
-      { warehouseCode: 'WH2', warehouseName: 'Spare' },
+      {
+        value: 'WH2',
+        label: 'Spare',
+        code: 'WH2',
+        warehouseCode: 'WH2',
+        warehouseName: 'Spare',
+      },
     ]);
   });
 

@@ -1,8 +1,9 @@
 import { withAuth } from '@/lib/auth';
-import { searchSapWarehouses } from '@/lib/sapLookups.js';
-import { jsonSuccessCached } from '@/lib/apiHelpers';
+import { searchSapWarehousesHana } from '@/lib/sapHanaLookups.js';
+import { jsonSuccessCached, jsonValidation } from '@/lib/apiHelpers';
 import { parseSapLookupQuery } from '@/lib/validators/sapLookup';
 import { sapLookupFailureResponse } from '@/lib/sapLookupApi';
+import { ZodError } from 'zod';
 
 const PERMS = ['pr.create', 'pr.approve.whs', 'pr.approve.pm', 'po.create', 'view.all'];
 
@@ -10,10 +11,14 @@ async function getHandler(request) {
   try {
     const { searchParams } = new URL(request.url);
     const { query, limit } = parseSapLookupQuery(searchParams);
-    const items = await searchSapWarehouses(query, limit);
+    const items = await searchSapWarehousesHana(query, limit);
     return jsonSuccessCached(items);
   } catch (err) {
-    return sapLookupFailureResponse('sap/warehouses', err, 'Failed to load warehouses');
+    if (err instanceof ZodError) {
+      return jsonValidation(err);
+    }
+    const clientMessage = err?.message || 'Failed to load warehouses';
+    return sapLookupFailureResponse('sap/warehouses', err, clientMessage);
   }
 }
 

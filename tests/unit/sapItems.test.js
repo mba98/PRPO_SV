@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { searchSapItems, mapHanaItemRow } from '@/lib/sapItems';
+import { searchSapItems, mapHanaItemRow, mapItemDetailRow } from '@/lib/sapItems';
 
 vi.mock('@/lib/sapHana.js', () => ({
   searchItems: vi.fn(),
@@ -57,5 +57,29 @@ describe('sapItems search helper', () => {
     });
     expect(row.itemCode).toBe('X');
     expect(row.uom).toBe('PC');
+  });
+
+  it('mapItemDetailRow maps price, UoM group, and warehouse', () => {
+    expect(
+      mapItemDetailRow({
+        ItemCode: 'A1',
+        ItemName: 'Widget',
+        UgpEntry: 1,
+        UgpName: 'Manual',
+        DfltWH: 'KRA004',
+        WhsName: 'Main Warehouse',
+        AvgPrice: 100,
+      }),
+    ).toEqual({
+      itemCode: 'A1',
+      itemName: 'Widget',
+      price: 100,
+      uomGroupEntry: 1,
+      uomGroupName: 'Manual',
+      warehouseCode: 'KRA004',
+      warehouseName: 'Main Warehouse',
+      itemGroupCode: undefined,
+      itemGroupName: undefined,
+    });
   });
 });

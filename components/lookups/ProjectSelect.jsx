@@ -1,19 +1,18 @@
 'use client';
 
-import SapLookupCombobox from './SapLookupCombobox';
+import SearchableLookup from './SearchableLookup';
 
-export default function ProjectSelect({ valueCode, valueLabel, onSelect, disabled }) {
+export default function ProjectSelect({ valueCode, valueLabel, onSelect, disabled, placeholder = 'Search project' }) {
   return (
-    <SapLookupCombobox
+    <SearchableLookup
       endpoint="/api/sap/projects"
-      valueCode={valueCode}
-      valueLabel={valueLabel}
+      value={valueCode}
+      label={valueLabel}
       onSelect={(code, label) => onSelect(code, label)}
-      getCode={(p) => p.projectCode}
-      getLabel={(p) => `${p.projectCode} — ${p.projectName || ''}`}
-      placeholder="Search project"
+      placeholder={placeholder}
       disabled={disabled}
-      minChars={0}
+      loadAllOnFocus={false}
+      minChars={1}
     />
   );
 }
