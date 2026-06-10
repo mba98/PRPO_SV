@@ -15,13 +15,17 @@ export default function ItemSearchInput({
   onSearchError,
   placeholder = 'Search item code or name',
   searchingLabel = 'Searching…',
-  noResultsMessage = 'No results',
+  noResultsMessage = 'No matching items found',
+  createNewLabel = 'Create New Item',
+  canCreateNew = false,
+  onCreateNew,
   inputClassName = 'input-field',
 }) {
   const [query, setQuery] = useState(value?.itemCode || '');
   const [results, setResults] = useState([]);
   const [focused, setFocused] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
   const [error, setError] = useState('');
   const timer = useRef(null);
 
@@ -35,6 +39,7 @@ export default function ItemSearchInput({
     if (trimmed.length < 1) {
       setResults([]);
       setLoading(false);
+      setSearched(false);
       setError('');
       onSearchError?.(false);
       return undefined;
@@ -44,10 +49,13 @@ export default function ItemSearchInput({
       setError('');
       const { json, status } = await apiFetch(`/api/sap/items/search?query=${encodeURIComponent(trimmed)}`);
       if (json.success) {
-        setResults(json.data || []);
-        onSearchError?.((json.data || []).length === 0);
+        const rows = json.data || [];
+        setResults(rows);
+        setSearched(true);
+        onSearchError?.(rows.length === 0);
       } else {
         setResults([]);
+        setSearched(true);
         const fieldMessages = json.errors?.map((e) => e.message).filter(Boolean);
         const msg = fieldMessages?.length
           ? fieldMessages.join('; ')
@@ -97,11 +105,21 @@ export default function ItemSearchInput({
     }
     setQuery(item.itemCode);
     setFocused(false);
+    setSearched(false);
     onSearchError?.(false);
   }
 
+  function handleCreateNew() {
+    setFocused(false);
+    setSearched(false);
+    onCreateNew?.();
+  }
+
   const showDropdown =
-    focused && query.trim().length >= 1 && (loading || results.length > 0 || (!loading && !error));
+    focused && query.trim().length >= 1 && (loading || searched);
+
+  const showCreateOption =
+    canCreateNew && !loading && searched && results.length === 0 && !error;
 
   return (
     <div className="relative">
@@ -141,6 +159,18 @@ export default function ItemSearchInput({
               </button>
             </li>
           ))}
+          {showCreateOption && (
+            <li className="border-t border-border">
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-start text-sm font-semibold text-primary hover:bg-primary/10"
+                onMouseDown={handleCreateNew}
+              >
+                <span aria-hidden>+</span>
+                {createNewLabel}
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </div>

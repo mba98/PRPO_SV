@@ -15,25 +15,50 @@ const EMPTY = {
   U_Company: '',
 };
 
+const FIELD_LABELS = {
+  ItemName: 'Item Name',
+  ItemGroup: 'Item Group',
+  UgpEntry: 'UoM Group',
+  DefaultWarehouse: 'Default Warehouse',
+  U_Code: 'Part Number',
+  U_AcctCode: 'Account Code',
+  U_Company: 'Company',
+};
+
 function formatUom(row) {
   if (!row) return '';
   return row.label ? `${row.value} — ${row.label}` : String(row.value ?? '');
+}
+
+function mapApiErrors(errors = []) {
+  const fieldErrors = {};
+  const lines = [];
+  for (const e of errors) {
+    const key = e.path && e.path !== 'body' ? e.path : '_form';
+    const label = FIELD_LABELS[key] || key;
+    fieldErrors[key] = e.message;
+    lines.push(`${label}: ${e.message}`);
+  }
+  return { fieldErrors, lines };
 }
 
 export default function CreateItemModal({ open, onClose, onCreated, relatedPRNumber }) {
   const [form, setForm] = useState(EMPTY);
   const [labels, setLabels] = useState({});
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
-    setError('');
+    setFormError('');
+    setFieldErrors({});
+
     const payload = {
       ItemName: form.ItemName,
       ItemGroup: form.ItemGroup || undefined,
-      UgpEntry: form.UgpEntry ? Number(form.UgpEntry) : undefined,
+      UgpEntry: form.UgpEntry !== '' && form.UgpEntry != null ? form.UgpEntry : undefined,
       DefaultWarehouse: form.DefaultWarehouse || undefined,
       U_Code: form.U_Code || undefined,
       U_AcctCode: form.U_AcctCode || undefined,
@@ -49,7 +74,7 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
       onCreated({
         itemCode: createdCode,
         itemName: form.ItemName,
-        ugpEntry: form.UgpEntry ? Number(form.UgpEntry) : undefined,
+        ugpEntry: form.UgpEntry !== '' && form.UgpEntry != null ? Number(form.UgpEntry) : undefined,
         ugpName: labels.uom?.split(' — ').slice(1).join(' — ') || '',
         warehouseCode: form.DefaultWarehouse,
         warehouseLabel: labels.warehouse || form.DefaultWarehouse,
@@ -57,9 +82,12 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
       setForm(EMPTY);
       setLabels({});
       onClose();
+    } else if (json.errors?.length) {
+      const { fieldErrors: next, lines } = mapApiErrors(json.errors);
+      setFieldErrors(next);
+      setFormError(lines.join('\n'));
     } else {
-      const fieldMessages = json.errors?.map((x) => x.message).filter(Boolean);
-      setError(fieldMessages?.length ? fieldMessages.join('; ') : json.message || 'Failed to create item');
+      setFormError(json.message || 'Failed to create item');
     }
     setSaving(false);
   }
@@ -69,7 +97,11 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
   return (
     <AnimatedModal isOpen={open} onClose={onClose} title="Create New Item">
       <form onSubmit={handleSubmit} className="space-y-3">
-        {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+        {formError && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive whitespace-pre-line" role="alert">
+            {formError}
+          </div>
+        )}
 
         <label className="block text-sm">
           <span className="text-muted-foreground">Item Name</span>
@@ -79,6 +111,9 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             required
             onChange={(e) => setForm((f) => ({ ...f, ItemName: e.target.value }))}
           />
+          {fieldErrors.ItemName && (
+            <p className="mt-1 text-xs text-destructive">{fieldErrors.ItemName}</p>
+          )}
         </label>
 
         <label className="block text-sm">
@@ -96,6 +131,9 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             loadAllOnFocus
             minChars={0}
           />
+          {fieldErrors.ItemGroup && (
+            <p className="mt-1 text-xs text-destructive">{fieldErrors.ItemGroup}</p>
+          )}
         </label>
 
         <label className="block text-sm">
@@ -114,6 +152,9 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             loadAllOnFocus
             minChars={0}
           />
+          {fieldErrors.UgpEntry && (
+            <p className="mt-1 text-xs text-destructive">{fieldErrors.UgpEntry}</p>
+          )}
         </label>
 
         <label className="block text-sm">
@@ -123,6 +164,9 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             value={form.U_Code}
             onChange={(e) => setForm((f) => ({ ...f, U_Code: e.target.value }))}
           />
+          {fieldErrors.U_Code && (
+            <p className="mt-1 text-xs text-destructive">{fieldErrors.U_Code}</p>
+          )}
         </label>
 
         <label className="block text-sm">
@@ -140,6 +184,9 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             loadAllOnFocus
             minChars={0}
           />
+          {fieldErrors.U_AcctCode && (
+            <p className="mt-1 text-xs text-destructive">{fieldErrors.U_AcctCode}</p>
+          )}
         </label>
 
         <label className="block text-sm">
@@ -157,6 +204,9 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             loadAllOnFocus
             minChars={0}
           />
+          {fieldErrors.U_Company && (
+            <p className="mt-1 text-xs text-destructive">{fieldErrors.U_Company}</p>
+          )}
         </label>
 
         <label className="block text-sm">
@@ -174,6 +224,9 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             loadAllOnFocus
             minChars={0}
           />
+          {fieldErrors.DefaultWarehouse && (
+            <p className="mt-1 text-xs text-destructive">{fieldErrors.DefaultWarehouse}</p>
+          )}
         </label>
 
         <div className="flex justify-end gap-2 pt-2">

@@ -140,8 +140,25 @@ describe('purchaseRequest validators', () => {
     expect(approveRejectSchema.safeParse({}).success).toBe(true);
   });
 
-  it('requires ItemCode and ItemName for SAP item create', () => {
-    expect(createSapItemSchema.safeParse({ ItemCode: 'X', ItemName: 'Item' }).success).toBe(true);
+  it('requires ItemName for SAP item create', () => {
+    expect(createSapItemSchema.safeParse({ ItemName: 'Item' }).success).toBe(true);
     expect(createSapItemSchema.safeParse({ ItemCode: 'X' }).success).toBe(false);
+  });
+
+  it('createSapItemSchema coerces numeric ItemGroup to string', () => {
+    const result = createSapItemSchema.safeParse({
+      ItemName: 'Widget',
+      ItemGroup: 108,
+      UgpEntry: 1,
+      DefaultWarehouse: 'WH01',
+      U_AcctCode: '4000',
+      U_Company: 'ACME',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.ItemGroup).toBe('108');
+      expect(result.data.UgpEntry).toBe(1);
+      expect(result.data.DefaultWarehouse).toBe('WH01');
+    }
   });
 });

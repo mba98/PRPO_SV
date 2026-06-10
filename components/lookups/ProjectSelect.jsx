@@ -2,7 +2,16 @@
 
 import SearchableLookup from './SearchableLookup';
 
-export default function ProjectSelect({ valueCode, valueLabel, onSelect, disabled, placeholder = 'Search project' }) {
+export default function ProjectSelect({
+  valueCode,
+  valueLabel,
+  onSelect,
+  disabled,
+  placeholder = 'Search project',
+  emptyMessage = 'No projects found',
+  loadingMessage = 'Loading…',
+  inputClassName = 'input-field',
+}) {
   return (
     <SearchableLookup
       endpoint="/api/sap/projects"
@@ -10,9 +19,12 @@ export default function ProjectSelect({ valueCode, valueLabel, onSelect, disable
       label={valueLabel}
       onSelect={(code, label) => onSelect(code, label)}
       placeholder={placeholder}
+      emptyMessage={emptyMessage}
+      loadingMessage={loadingMessage}
+      inputClassName={inputClassName}
       disabled={disabled}
-      loadAllOnFocus={false}
-      minChars={1}
+      loadAllOnFocus
+      minChars={0}
     />
   );
 }

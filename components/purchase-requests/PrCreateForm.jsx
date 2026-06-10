@@ -90,7 +90,6 @@ export default function PrCreateForm() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [itemModal, setItemModal] = useState(false);
   const [itemModalLine, setItemModalLine] = useState(0);
-  const [noResultsLine, setNoResultsLine] = useState(null);
 
   function updateHeader(patch) {
     setHeader((prev) => {
@@ -344,25 +343,15 @@ export default function PrCreateForm() {
                     inputClassName={COMPACT_INPUT}
                     placeholder={t.searchItem}
                     searchingLabel={t.searching}
-                    noResultsMessage={t.noSuggestions}
-                    onSelect={(item) => {
-                      updateLine(idx, item);
-                      setNoResultsLine(null);
+                    noResultsMessage={t.noMatchingItems}
+                    canCreateNew={canCreateItem}
+                    createNewLabel={t.createNewItem}
+                    onCreateNew={() => {
+                      setItemModalLine(idx);
+                      setItemModal(true);
                     }}
-                    onSearchError={(failed) => setNoResultsLine(failed ? idx : null)}
+                    onSelect={(item) => updateLine(idx, item)}
                   />
-                  {canCreateItem && noResultsLine === idx && (
-                    <button
-                      type="button"
-                      className="mt-1 text-xs font-semibold text-primary hover:underline"
-                      onClick={() => {
-                        setItemModalLine(idx);
-                        setItemModal(true);
-                      }}
-                    >
-                      {t.createNewItem}
-                    </button>
-                  )}
                 </FormField>
 
                 <FormField className="lg:mt-0">

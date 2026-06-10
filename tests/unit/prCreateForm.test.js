@@ -63,6 +63,22 @@ describe('PR create form — compact bilingual UI', () => {
     expect(itemSearch).toContain('estimatedUnitPrice');
   });
 
+  it('ItemSearchInput shows Create New Item inside dropdown', () => {
+    expect(itemSearch).toContain('onCreateNew');
+    expect(itemSearch).toContain('canCreateNew');
+    expect(itemSearch).toContain('showCreateOption');
+    expect(form).not.toContain('noResultsLine');
+  });
+
+  it('ProjectSelect opens list on focus with loadAllOnFocus', () => {
+    const project = fs.readFileSync(
+      path.resolve(process.cwd(), 'components/lookups/ProjectSelect.jsx'),
+      'utf8',
+    );
+    expect(project).toContain('loadAllOnFocus');
+    expect(project).toContain('minChars={0}');
+  });
+
   it('Item and Vendor lookups still require typing before suggestions', () => {
     expect(combobox).toContain('queryMin');
     expect(combobox).toContain('trimmed.length < queryMin');
