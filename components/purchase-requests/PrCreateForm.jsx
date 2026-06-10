@@ -434,11 +434,10 @@ export default function PrCreateForm() {
                     valueLabel={line.ugpName}
                     placeholder={t.selectUom}
                     inputClassName={COMPACT_INPUT}
-                    onSelect={(entry, name) =>
+                    onSelect={(entry, row) =>
                       updateLine(idx, {
                         ugpEntry: entry,
-                        ugpName: name,
-                        uomCode: name || line.uomCode,
+                        ugpName: row?.label || '',
                       })
                     }
                   />

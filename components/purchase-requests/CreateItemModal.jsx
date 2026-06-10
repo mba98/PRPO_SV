@@ -8,7 +8,7 @@ const EMPTY = {
   ItemCode: '',
   ItemName: '',
   ItemGroup: '',
-  UoMGroup: '',
+  UgpEntry: '',
   DefaultWarehouse: '',
   U_Code: '',
   U_AcctCode: '',
@@ -52,7 +52,7 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
       onCreated({
         itemCode: form.ItemCode,
         itemName: form.ItemName,
-        uom: form.UoMGroup,
+        ugpEntry: form.UgpEntry ? Number(form.UgpEntry) : undefined,
       });
       setForm(EMPTY);
       onClose();
@@ -103,13 +103,13 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
           <span className="text-muted-foreground">UoM Group</span>
           <select
             className="input-field mt-1 w-full"
-            value={form.UoMGroup}
-            onChange={(e) => setForm((f) => ({ ...f, UoMGroup: e.target.value }))}
+            value={form.UgpEntry}
+            onChange={(e) => setForm((f) => ({ ...f, UgpEntry: e.target.value }))}
           >
             <option value="">Select UoM group</option>
             {uomGroups.map((g) => (
-              <option key={g.ugpEntry} value={g.ugpEntry}>
-                {g.ugpName || g.ugpCode}
+              <option key={g.value} value={g.value}>
+                {g.label || g.code || g.value}
               </option>
             ))}
           </select>

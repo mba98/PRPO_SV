@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildItemSearchSql,
   buildItemDetailSql,
+  buildUomGroupsSql,
   buildLimitClause,
   quoteSchema,
 } from '@/lib/sap/hanaSql';
@@ -33,5 +34,15 @@ describe('sap HANA SQL builders', () => {
 
   it('buildLimitClause caps range', () => {
     expect(buildLimitClause(200, 'limit')).toBe('LIMIT 100');
+  });
+
+  it('builds UoM groups SQL with OUGP aliases for OITM.UgpEntry', () => {
+    const sql = buildUomGroupsSql('SBODEMOUS', 50, 'limit');
+    expect(sql).toContain('"SBODEMOUS"."OUGP" T0');
+    expect(sql).toContain('T0."UgpEntry" AS "value"');
+    expect(sql).toContain('T0."UgpName" AS "label"');
+    expect(sql).toContain('T0."UgpCode" AS "code"');
+    expect(sql).toContain('ORDER BY T0."UgpName"');
+    expect(sql).toContain('LIMIT 50');
   });
 });

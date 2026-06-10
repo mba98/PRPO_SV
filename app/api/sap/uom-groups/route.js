@@ -13,7 +13,8 @@ async function getHandler(request) {
     const items = await searchSapUomGroups(query, limit);
     return jsonSuccessCached(items);
   } catch (err) {
-    return sapLookupFailureResponse('sap/uom-groups', err, 'Failed to load UoM groups');
+    const clientMessage = err?.message || 'Failed to load UoM groups';
+    return sapLookupFailureResponse('sap/uom-groups', err, clientMessage);
   }
 }
 

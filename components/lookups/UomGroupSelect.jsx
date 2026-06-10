@@ -20,12 +20,15 @@ export default function UomGroupSelect({
     (async () => {
       setLoading(true);
       setError('');
-      const { json } = await apiFetch('/api/sap/uom-groups?limit=200');
+      const { json, status } = await apiFetch('/api/sap/uom-groups?limit=200');
       if (cancelled) return;
       if (json.success) {
         setGroups(json.data || []);
       } else {
-        setError(json.message || 'Failed to load UoM groups');
+        const parts = [json.message || 'Failed to load UoM groups'];
+        if (json.error) parts.push(`(${json.error})`);
+        if (status) parts.push(`[HTTP ${status}]`);
+        setError(parts.filter(Boolean).join(' '));
       }
       setLoading(false);
     })();
@@ -42,19 +45,23 @@ export default function UomGroupSelect({
         value={valueEntry ?? ''}
         onChange={(e) => {
           const entry = e.target.value ? Number(e.target.value) : '';
-          const row = groups.find((g) => String(g.ugpEntry) === String(entry));
-          onSelect?.(entry, row?.ugpName || '');
+          const row = groups.find((g) => String(g.value) === String(entry));
+          onSelect?.(entry, row);
         }}
       >
         <option value="">{loading ? 'Loading…' : placeholder}</option>
         {groups.map((g) => (
-          <option key={g.ugpEntry} value={g.ugpEntry}>
-            {g.ugpName || g.ugpCode || g.ugpEntry}
+          <option key={g.value} value={g.value}>
+            {g.label || g.code || g.value}
           </option>
         ))}
       </select>
-      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
-      {valueLabel && valueEntry && (
+      {error && (
+        <p className="mt-1 text-xs text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+      {valueLabel && valueEntry && !error && (
         <p className="mt-0.5 text-xs text-muted-foreground">{valueLabel}</p>
       )}
     </div>
