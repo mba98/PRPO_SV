@@ -14,7 +14,8 @@ describe('listPrsReadyForPo approved-for-po API', () => {
 
   it('excludes PRs with active portal PO via relatedPRId distinct', () => {
     expect(service).toContain("PurchaseOrder.distinct('relatedPRId'");
-    expect(service).toContain("status: { $ne: 'Rejected' }");
+    expect(service).toContain('poStatusInQuery(PO_STATUS.REJECTED)');
+    expect(service).toContain('$nin: poStatusInQuery(PO_STATUS.REJECTED).$in');
     expect(service).toContain('buildReadyForPoPrFilter');
     expect(service).toContain('$nin: linkedPrIds');
     expect(service).toContain('prIsEligibleForReadyForPoList');

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { useMotionSafe } from './useMotionSafe';
+import { PO_STATUS, normalizePoStatus } from '@/lib/poStatus.js';
 
 const STATUS_STYLES = {
   Draft: 'bg-muted text-muted-foreground',
@@ -24,9 +25,26 @@ const STATUS_STYLES = {
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
   Open: 'bg-blue-100 text-blue-800 dark:bg-blue-500/25 dark:text-blue-300',
   Closed: 'bg-muted text-muted-foreground',
+  [PO_STATUS.DRAFT]: 'bg-muted text-muted-foreground',
+  [PO_STATUS.PENDING_PM]: 'bg-amber-100 text-amber-800 dark:bg-amber-500/25 dark:text-amber-300',
+  [PO_STATUS.PENDING_OM]: 'bg-amber-100 text-amber-800 dark:bg-amber-500/25 dark:text-amber-300',
+  [PO_STATUS.PENDING_FINANCE]: 'bg-amber-100 text-amber-800 dark:bg-amber-500/25 dark:text-amber-300',
+  [PO_STATUS.APPROVED]:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
+  [PO_STATUS.REJECTED]: 'bg-red-100 text-red-800 dark:bg-destructive/25 dark:text-rose-300',
+  [PO_STATUS.CREATING_IN_SAP]: 'bg-blue-100 text-blue-800 dark:bg-blue-500/25 dark:text-blue-300',
+  [PO_STATUS.CREATED_IN_SAP]:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
+  [PO_STATUS.FAILED_SAP]:
+    'bg-red-100 text-red-800 dark:bg-destructive/25 dark:text-rose-300',
+  [PO_STATUS.CANCELLED]: 'bg-muted text-muted-foreground',
 };
 
 function getStatusClass(status) {
+  const normalized = normalizePoStatus(status);
+  if (STATUS_STYLES[normalized]) {
+    return STATUS_STYLES[normalized];
+  }
   if (STATUS_STYLES[status]) {
     return STATUS_STYLES[status];
   }
@@ -38,7 +56,7 @@ function getStatusClass(status) {
 
 export default function AnimatedStatusBadge({ status }) {
   const { statusLabel: labelFor } = useI18n();
-  const isCreating = status === 'Creating in SAP';
+  const isCreating = normalizePoStatus(status) === PO_STATUS.CREATING_IN_SAP;
   const baseClass = getStatusClass(status);
 
   const mountProps = useMotionSafe({

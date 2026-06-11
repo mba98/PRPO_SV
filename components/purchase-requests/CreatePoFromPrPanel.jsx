@@ -35,7 +35,7 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
   const vendorOptions = pendingVendors.length ? pendingVendors : suggestedVendors;
   const vendorOptionsKey = vendorOptions.join('|');
   const existingForVendor = (pr.existingPOs || []).find(
-    (o) => o.vendor === vendor.trim() && o.status !== 'Rejected',
+    (o) => o.vendor === vendor.trim() && o.status !== 'Rejected' && o.status !== 'rejected',
   );
 
   useEffect(() => {

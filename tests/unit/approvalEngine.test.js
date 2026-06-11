@@ -6,6 +6,7 @@ import {
   pendingStatusForStep,
   userCanApproveStep,
 } from '@/lib/approvalEngine';
+import { PO_STATUS } from '@/lib/poStatus';
 
 const STEPS = [
   { stepOrder: 1, stepName: 'Warehouse Approval', requiredPermission: 'pr.approve.whs' },
@@ -60,9 +61,9 @@ describe('approvalEngine', () => {
       { stepOrder: 2, requiredPermission: 'po.approve.om' },
       { stepOrder: 3, requiredPermission: 'po.approve.finance' },
     ];
-    expect(getInitialSubmitState(poSteps, 'PO').status).toBe('Pending Project Manager Approval');
-    expect(getStateAfterApproval(poSteps, 1, 'PO').status).toBe('Pending Operation Manager Approval');
-    expect(getStateAfterApproval(poSteps, 2, 'PO').status).toBe('Pending Finance Approval');
+    expect(getInitialSubmitState(poSteps, 'PO').status).toBe(PO_STATUS.PENDING_PM);
+    expect(getStateAfterApproval(poSteps, 1, 'PO').status).toBe(PO_STATUS.PENDING_OM);
+    expect(getStateAfterApproval(poSteps, 2, 'PO').status).toBe(PO_STATUS.PENDING_FINANCE);
     expect(getStateAfterApproval(poSteps, 3, 'PO').isFinal).toBe(true);
   });
 

@@ -12,6 +12,7 @@ import PoEditForm from '@/components/purchase-orders/PoEditForm';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
+import { isPendingPoApprovalStatus } from '@/lib/poStatus.js';
 
 export default function PoDetailView({ id }) {
   const { common, detail, po: poI18n } = useI18n();
@@ -61,7 +62,7 @@ export default function PoDetailView({ id }) {
   const currentWorkflowStep = po.workflowSteps?.find((s) => s.state === 'current');
   const waitingForApproval =
     !canApprove &&
-    ['Pending Project Manager Approval', 'Pending Finance Approval'].includes(po.status) &&
+    isPendingPoApprovalStatus(po.status) &&
     currentWorkflowStep?.stepName;
 
   const tabs = [

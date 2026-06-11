@@ -8,6 +8,7 @@ import { mapPrToSap } from '@/lib/sap/mappers/prToSap';
 import { mapPoToSap, mapPoToSapFromPortalRecord } from '@/lib/sap/mappers/poToSap';
 import { buildDocumentWorkflow } from '@/lib/workflowSteps';
 import { canEditPurchaseOrder } from '@/lib/poEditPermissions';
+import { PO_STATUS } from '@/lib/poStatus';
 import PurchaseOrder from '@/models/PurchaseOrder.js';
 
 const prOptions = { requesterSapCode: 'manager', defaultRequesterCode: 'manager' };
@@ -121,32 +122,32 @@ describe('PO uomCode and docRate', () => {
 });
 
 describe('PO edit permissions', () => {
-  it('allows po.create while Pending Project Manager Approval', () => {
-    const po = { status: 'Pending Project Manager Approval', sapPODocEntry: null };
+  it('allows po.create while pending_pm', () => {
+    const po = { status: PO_STATUS.PENDING_PM, sapPODocEntry: null };
     const user = { permissions: [], role: { permissions: ['po.create'] } };
     expect(canEditPurchaseOrder(user, po)).toBe(true);
   });
 
-  it('rejects editing when Created in SAP', () => {
-    const po = { status: 'Created in SAP', sapPODocEntry: 99 };
+  it('rejects editing when created_in_sap', () => {
+    const po = { status: PO_STATUS.CREATED_IN_SAP, sapPODocEntry: 99 };
     const user = { permissions: ['view.all'], role: { permissions: [] } };
     expect(canEditPurchaseOrder(user, po)).toBe(false);
   });
 
   it('rejects unauthorized users', () => {
-    const po = { status: 'Pending Project Manager Approval', sapPODocEntry: null };
+    const po = { status: PO_STATUS.PENDING_PM, sapPODocEntry: null };
     const user = { permissions: [], role: { permissions: ['po.approve.pm'] } };
     expect(canEditPurchaseOrder(user, po)).toBe(false);
   });
 
   it('allows view.all and admin.settings', () => {
-    const po = { status: 'Approved', sapPODocEntry: null };
+    const po = { status: PO_STATUS.APPROVED, sapPODocEntry: null };
     expect(canEditPurchaseOrder({ permissions: ['view.all'] }, po)).toBe(true);
     expect(canEditPurchaseOrder({ permissions: ['admin.settings'] }, po)).toBe(true);
   });
 
   it('allows editing rejected PO for procurement resubmit', () => {
-    const po = { status: 'Rejected', sapPODocEntry: null };
+    const po = { status: PO_STATUS.REJECTED, sapPODocEntry: null };
     const user = { permissions: [], role: { permissions: ['po.create'] } };
     expect(canEditPurchaseOrder(user, po)).toBe(true);
   });
@@ -161,7 +162,7 @@ describe('PO workflow stepper', () => {
 
   it('builds Created + matrix + SAP steps dynamically', () => {
     const doc = {
-      status: 'Pending Project Manager Approval',
+      status: PO_STATUS.PENDING_PM,
       currentApprovalStep: 1,
       sapPODocEntry: null,
     };
@@ -178,7 +179,7 @@ describe('PO workflow stepper', () => {
 
   it('shows SAP failed on PO workflow', () => {
     const doc = {
-      status: 'Failed to Create in SAP',
+      status: PO_STATUS.FAILED_SAP,
       currentApprovalStep: 2,
       sapPODocEntry: null,
     };

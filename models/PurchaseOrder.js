@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { schemaOptions } from './schemaOptions.js';
+import { PO_MODEL_STATUS_ENUM, PO_STATUS } from '@/lib/poStatus.js';
 
 const poLineSchema = new mongoose.Schema(
   {
@@ -43,18 +44,8 @@ const purchaseOrderSchema = new mongoose.Schema(
     remarks: String,
     status: {
       type: String,
-      enum: [
-        'Draft',
-        'Pending Project Manager Approval',
-        'Pending Operation Manager Approval',
-        'Pending Finance Approval',
-        'Approved',
-        'Rejected',
-        'Creating in SAP',
-        'Created in SAP',
-        'Failed to Create in SAP',
-      ],
-      default: 'Draft',
+      enum: PO_MODEL_STATUS_ENUM,
+      default: PO_STATUS.DRAFT,
     },
     currentApprovalStep: { type: Number, default: 0 },
     sapPODocEntry: Number,

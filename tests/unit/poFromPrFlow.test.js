@@ -21,7 +21,7 @@ vi.mock('@/models/PurchaseOrder.js', () => ({
       lean: vi.fn().mockResolvedValue({
         _id: { toString: () => 'poid1' },
         portalPONumber: 'PO-20260521-0001',
-        status: 'Pending Project Manager Approval',
+        status: 'pending_pm',
         vendor: 'VENDOR1',
       }),
     })),
@@ -46,7 +46,7 @@ vi.mock('@/lib/approvalEngine.js', () => ({
   getApprovalSteps: mocks.getSteps,
   getInitialSubmitState: vi.fn(() => ({
     currentApprovalStep: 1,
-    status: 'Pending Project Manager Approval',
+    status: 'pending_pm',
   })),
 }));
 
@@ -128,7 +128,7 @@ describe('portal PO from PR', () => {
     expect(mocks.poCreate).toHaveBeenCalled();
     const created = mocks.poCreate.mock.calls[0][0];
     expect(created.docCurrency).toBe('USD');
-    expect(created.status).toBe('Pending Project Manager Approval');
+    expect(created.status).toBe('pending_pm');
     expect(created.currentApprovalStep).toBe(1);
     expect(created.relatedSAPPRDocEntry).toBe(99);
     expect(created.lines[0].uomCode).toBe('PCS');

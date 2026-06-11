@@ -5,6 +5,7 @@ import {
   pendingStatusForStep,
   userCanApproveStep,
 } from '@/lib/approvalEngine';
+import { PO_STATUS } from '@/lib/poStatus';
 
 const PO_STEPS = [
   { stepOrder: 1, stepName: 'Project Manager Approval', requiredPermission: 'po.approve.pm' },
@@ -13,23 +14,23 @@ const PO_STEPS = [
 ];
 
 describe('PO approval flow', () => {
-  it('starts at Pending Project Manager Approval', () => {
+  it('starts at pending_pm', () => {
     const state = getInitialSubmitState(PO_STEPS, 'PO');
-    expect(state.status).toBe('Pending Project Manager Approval');
+    expect(state.status).toBe(PO_STATUS.PENDING_PM);
     expect(state.currentApprovalStep).toBe(1);
   });
 
-  it('advances PM → OM → Finance → Approved', () => {
+  it('advances PM → OM → Finance → approved', () => {
     const afterPm = getStateAfterApproval(PO_STEPS, 1, 'PO');
-    expect(afterPm.status).toBe('Pending Operation Manager Approval');
+    expect(afterPm.status).toBe(PO_STATUS.PENDING_OM);
     expect(afterPm.isFinal).toBe(false);
 
     const afterOm = getStateAfterApproval(PO_STEPS, 2, 'PO');
-    expect(afterOm.status).toBe('Pending Finance Approval');
+    expect(afterOm.status).toBe(PO_STATUS.PENDING_FINANCE);
     expect(afterOm.isFinal).toBe(false);
 
     const fin = getStateAfterApproval(PO_STEPS, 3, 'PO');
-    expect(fin.status).toBe('Approved');
+    expect(fin.status).toBe(PO_STATUS.APPROVED);
     expect(fin.isFinal).toBe(true);
   });
 
@@ -41,8 +42,8 @@ describe('PO approval flow', () => {
   });
 
   it('maps step permissions to PO statuses', () => {
-    expect(pendingStatusForStep(PO_STEPS[0], 'PO')).toBe('Pending Project Manager Approval');
-    expect(pendingStatusForStep(PO_STEPS[1], 'PO')).toBe('Pending Operation Manager Approval');
-    expect(pendingStatusForStep(PO_STEPS[2], 'PO')).toBe('Pending Finance Approval');
+    expect(pendingStatusForStep(PO_STEPS[0], 'PO')).toBe(PO_STATUS.PENDING_PM);
+    expect(pendingStatusForStep(PO_STEPS[1], 'PO')).toBe(PO_STATUS.PENDING_OM);
+    expect(pendingStatusForStep(PO_STEPS[2], 'PO')).toBe(PO_STATUS.PENDING_FINANCE);
   });
 });

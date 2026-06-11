@@ -3,6 +3,7 @@ import {
   buildDocumentWorkflow,
   canApproveCurrentWorkflowStep,
 } from '@/lib/workflowSteps';
+import { PO_STATUS } from '@/lib/poStatus';
 
 const STEPS = [
   { stepOrder: 1, stepName: 'Warehouse Approval', requiredPermission: 'pr.approve.whs' },
@@ -41,7 +42,7 @@ const PO_STEPS = [
 describe('PO approval step permissions', () => {
   it('PM user cannot approve when PO is on Finance step', () => {
     const doc = {
-      status: 'Pending Finance Approval',
+      status: PO_STATUS.PENDING_FINANCE,
       currentApprovalStep: 3,
     };
     const pmUser = { permissions: [], role: { permissions: ['po.approve.pm'] } };
@@ -56,7 +57,7 @@ describe('PO approval step permissions', () => {
 
   it('Finance user can approve when PO is on Finance step', () => {
     const doc = {
-      status: 'Pending Finance Approval',
+      status: PO_STATUS.PENDING_FINANCE,
       currentApprovalStep: 3,
     };
     const financeUser = { permissions: [], role: { permissions: ['po.approve.finance'] } };

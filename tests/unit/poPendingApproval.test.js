@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildPoPendingApprovalFilter } from '@/lib/purchaseOrdersService';
+import { PO_STATUS } from '@/lib/poStatus';
 
 const getApprovalSteps = vi.fn();
 
@@ -40,7 +41,13 @@ describe('buildPoPendingApprovalFilter', () => {
     });
     expect(filter.$or).toEqual([
       {
-        status: 'Pending Project Manager Approval',
+        status: {
+          $in: expect.arrayContaining([
+            PO_STATUS.PENDING_PM,
+            'Pending Project Manager',
+            'Pending Project Manager Approval',
+          ]),
+        },
         currentApprovalStep: 1,
       },
     ]);
@@ -51,9 +58,13 @@ describe('buildPoPendingApprovalFilter', () => {
       permissions: ['view.all'],
       role: { permissions: [] },
     });
-    expect(filter.status.$in).toEqual([
-      'Pending Project Manager Approval',
-      'Pending Finance Approval',
-    ]);
+    expect(filter.status.$in).toEqual(
+      expect.arrayContaining([
+        PO_STATUS.PENDING_PM,
+        PO_STATUS.PENDING_FINANCE,
+        'Pending Project Manager Approval',
+        'Pending Finance Approval',
+      ]),
+    );
   });
 });
