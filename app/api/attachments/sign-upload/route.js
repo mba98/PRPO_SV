@@ -8,16 +8,9 @@ import {
   handleServiceError,
 } from '@/lib/apiHelpers';
 
-const REQUIRED_PERMS = [
-  'pr.create',
-  'pr.approve.whs',
-  'pr.approve.pm',
-  'po.create',
-  'po.approve.pm',
-  'po.approve.finance',
-  'apinvoice.create',
-  'view.all',
-];
+import { PORTAL_DASHBOARD_PERMISSIONS } from '@/lib/permissions.js';
+
+const REQUIRED_PERMS = PORTAL_DASHBOARD_PERMISSIONS;
 
 async function postHandler(request, _ctx, user) {
   try {

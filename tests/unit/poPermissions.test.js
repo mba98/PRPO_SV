@@ -19,6 +19,12 @@ describe('PO permissions and navigation', () => {
     expect(getVisibleNavItems(user).some((n) => n.href === '/purchase-orders')).toBe(true);
   });
 
+  it('shows Purchase Orders nav for Operation Manager with po.approve.om via role', () => {
+    const user = { permissions: [], role: { permissions: ['po.approve.om'] } };
+    expect(canViewPurchaseOrdersNav(user)).toBe(true);
+    expect(getVisibleNavItems(user).some((n) => n.href === '/purchase-orders')).toBe(true);
+  });
+
   it('shows Purchase Orders nav for Project Manager with po.approve.pm via role', () => {
     const user = {
       permissions: [],

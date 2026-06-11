@@ -24,6 +24,11 @@ const PO_STEPS = [
   },
   {
     stepOrder: 2,
+    stepName: 'Operation Manager Approval',
+    requiredPermission: 'po.approve.om',
+  },
+  {
+    stepOrder: 3,
     stepName: 'Finance Approval',
     requiredPermission: 'po.approve.finance',
   },
@@ -53,6 +58,25 @@ describe('buildPoPendingApprovalFilter', () => {
     ]);
   });
 
+  it('returns OM step filter when role permissions include po.approve.om only', async () => {
+    const filter = await buildPoPendingApprovalFilter({
+      permissions: [],
+      role: { permissions: ['po.approve.om'] },
+    });
+    expect(filter.$or).toEqual([
+      {
+        status: {
+          $in: expect.arrayContaining([
+            PO_STATUS.PENDING_OM,
+            'Pending Operation Manager',
+            'Pending Operation Manager Approval',
+          ]),
+        },
+        currentApprovalStep: 2,
+      },
+    ]);
+  });
+
   it('returns all pending statuses for view.all', async () => {
     const filter = await buildPoPendingApprovalFilter({
       permissions: ['view.all'],
@@ -61,8 +85,10 @@ describe('buildPoPendingApprovalFilter', () => {
     expect(filter.status.$in).toEqual(
       expect.arrayContaining([
         PO_STATUS.PENDING_PM,
+        PO_STATUS.PENDING_OM,
         PO_STATUS.PENDING_FINANCE,
         'Pending Project Manager Approval',
+        'Pending Operation Manager Approval',
         'Pending Finance Approval',
       ]),
     );

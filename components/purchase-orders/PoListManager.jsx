@@ -16,6 +16,7 @@ import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { FilterBar, Button } from '@/components/ui';
+import { PO_PENDING_TAB_PERMISSIONS } from '@/lib/poPermissions.js';
 
 const EMPTY_FILTERS = {
   q: '',
@@ -48,9 +49,7 @@ export default function PoListManager() {
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
 
-  const defaultTab = hasAnyPermission(['po.approve.pm', 'po.approve.finance', 'view.all'])
-    ? 'pending'
-    : 'approved';
+  const defaultTab = hasAnyPermission(PO_PENDING_TAB_PERMISSIONS) ? 'pending' : 'approved';
   const tab = searchParams.get('tab') || defaultTab;
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
   const sort = searchParams.get('sort') || 'createdAt';
@@ -120,7 +119,7 @@ export default function PoListManager() {
   const visibleTabs = tabs.filter((t) => {
     if (t.perm) return hasPermission(t.perm);
     if (t.id === 'pending') {
-      return hasAnyPermission(['po.approve.pm', 'po.approve.finance', 'view.all', 'po.create']);
+      return hasAnyPermission(PO_PENDING_TAB_PERMISSIONS);
     }
     return true;
   });

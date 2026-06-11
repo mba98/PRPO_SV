@@ -4,7 +4,9 @@ import { fetchPurchaseOrdersForExport } from '@/lib/purchaseOrdersService';
 import { poRowsForExport, buildWorkbookBuffer, exportFilename } from '@/lib/excelExport';
 import { handleServiceError } from '@/lib/apiHelpers';
 
-const LIST_PERMS = ['po.create', 'po.approve.pm', 'po.approve.finance', 'view.all'];
+import { PO_ACCESS_PERMISSIONS } from '@/lib/permissions.js';
+
+const LIST_PERMS = PO_ACCESS_PERMISSIONS;
 
 async function getHandler(request, _ctx, user) {
   try {

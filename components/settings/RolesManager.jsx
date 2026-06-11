@@ -17,6 +17,7 @@ export default function RolesManager() {
   const [modalError, setModalError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [permissionRefreshNote, setPermissionRefreshNote] = useState('');
 
   const loadPermissionGroups = useCallback(async () => {
     const { json } = await apiFetch('/api/permissions?grouped=true');
@@ -94,6 +95,9 @@ export default function RolesManager() {
 
     if (result.json.success) {
       setModalOpen(false);
+      setPermissionRefreshNote(
+        'Role saved. Users with this role should refresh the page to update sidebar and permissions. API calls already load the latest permissions from the database.',
+      );
       await loadRoles();
     } else {
       setModalError(result.json.message || 'Save failed');
@@ -158,6 +162,15 @@ export default function RolesManager() {
       {pageError && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
           {pageError}
+        </p>
+      )}
+
+      {permissionRefreshNote && (
+        <p
+          className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          role="status"
+        >
+          {permissionRefreshNote}
         </p>
       )}
 

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { formatDate } from '@/lib/formatDate';
+import { PO_VIEW_PERMISSIONS } from '@/lib/poPermissions.js';
 
 function RecentTable({ title, rows, columns, emptyMessage }) {
   return (
@@ -58,12 +59,7 @@ export default function DashboardView() {
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const canViewLogs = hasAnyPermission(['view.all', 'admin.settings']);
   const canViewPr = hasAnyPermission(['pr.create', 'pr.approve.whs', 'pr.approve.pm', 'view.all']);
-  const canViewPo = hasAnyPermission([
-    'po.create',
-    'po.approve.pm',
-    'po.approve.finance',
-    'view.all',
-  ]);
+  const canViewPo = hasAnyPermission(PO_VIEW_PERMISSIONS);
   const canViewApri = hasAnyPermission(['apinvoice.create', 'view.all']);
 
   const [summary, setSummary] = useState(null);

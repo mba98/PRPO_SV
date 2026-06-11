@@ -1,6 +1,7 @@
 import { withAuth } from '@/lib/auth';
 import { getDashboardSummary } from '@/lib/dashboardService';
 import { jsonSuccess, handleServiceError } from '@/lib/apiHelpers';
+import { PORTAL_DASHBOARD_PERMISSIONS } from '@/lib/permissions.js';
 
 async function getHandler(_request, _ctx, user) {
   try {
@@ -11,13 +12,4 @@ async function getHandler(_request, _ctx, user) {
   }
 }
 
-export const GET = withAuth(getHandler, [
-  'pr.create',
-  'pr.approve.whs',
-  'pr.approve.pm',
-  'po.create',
-  'po.approve.pm',
-  'po.approve.finance',
-  'apinvoice.create',
-  'view.all',
-]);
+export const GET = withAuth(getHandler, PORTAL_DASHBOARD_PERMISSIONS);

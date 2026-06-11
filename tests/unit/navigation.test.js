@@ -94,6 +94,11 @@ describe('navigation permissions', () => {
     expect(nav.some((n) => n.href === '/purchase-orders')).toBe(true);
   });
 
+  it('operation manager sees PO nav with po.approve.om', () => {
+    const nav = getVisibleNavItems(['po.approve.om']);
+    expect(nav.some((n) => n.href === '/purchase-orders')).toBe(true);
+  });
+
   it('procurement sees approved-for-po with po.create', () => {
     const nav = getVisibleNavItems(['po.create']);
     expect(nav.some((n) => n.href === '/purchase-requests/approved-for-po')).toBe(true);

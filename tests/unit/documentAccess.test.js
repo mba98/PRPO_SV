@@ -77,6 +77,23 @@ describe('assertCanAccessDocument', () => {
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 
+  it('allows po.approve.om users to access a PO pending Operation Manager approval', async () => {
+    mocks.poFindById.mockReturnValueOnce(
+      lean({
+        _id: PO_ID,
+        requester: 'someoneElse',
+        status: 'pending_om',
+      }),
+    );
+    await expect(
+      assertCanAccessDocument(
+        { _id: 'u4b', permissions: ['po.approve.om'] },
+        'PO',
+        PO_ID,
+      ),
+    ).resolves.toBeTruthy();
+  });
+
   it('allows po.approve.finance users to access a PO pending Finance approval', async () => {
     mocks.poFindById.mockReturnValueOnce(
       lean({

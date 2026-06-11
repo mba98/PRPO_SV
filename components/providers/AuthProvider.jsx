@@ -6,19 +6,12 @@ import { initializeAuthStore, useAuthStore } from '@/stores/authStore';
 export default function AuthProvider({ initialUser, children }) {
   initializeAuthStore(initialUser);
 
-  const setUser = useAuthStore((s) => s.setUser);
   const fetchMe = useAuthStore((s) => s.fetchMe);
 
+  // Always reload permissions from DB (role changes apply without a new login).
   useEffect(() => {
-    if (initialUser) {
-      const current = useAuthStore.getState().user;
-      if (current?.id !== initialUser.id) {
-        setUser(initialUser);
-      }
-    } else if (!useAuthStore.getState().user) {
-      fetchMe();
-    }
-  }, [initialUser, setUser, fetchMe]);
+    fetchMe();
+  }, [fetchMe]);
 
   return children;
 }

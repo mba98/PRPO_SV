@@ -122,34 +122,33 @@ describe('PO uomCode and docRate', () => {
 });
 
 describe('PO edit permissions', () => {
-  it('allows po.create while pending_pm', () => {
+  it('allows po.create while pending_pm before any approval', () => {
     const po = { status: PO_STATUS.PENDING_PM, sapPODocEntry: null };
     const user = { permissions: [], role: { permissions: ['po.create'] } };
-    expect(canEditPurchaseOrder(user, po)).toBe(true);
+    expect(canEditPurchaseOrder(user, po, [])).toBe(true);
   });
 
   it('rejects editing when created_in_sap', () => {
     const po = { status: PO_STATUS.CREATED_IN_SAP, sapPODocEntry: 99 };
-    const user = { permissions: ['view.all'], role: { permissions: [] } };
-    expect(canEditPurchaseOrder(user, po)).toBe(false);
+    const user = { permissions: [], role: { permissions: ['po.create'] } };
+    expect(canEditPurchaseOrder(user, po, [])).toBe(false);
   });
 
   it('rejects unauthorized users', () => {
     const po = { status: PO_STATUS.PENDING_PM, sapPODocEntry: null };
     const user = { permissions: [], role: { permissions: ['po.approve.pm'] } };
-    expect(canEditPurchaseOrder(user, po)).toBe(false);
+    expect(canEditPurchaseOrder(user, po, [])).toBe(false);
   });
 
-  it('allows view.all and admin.settings', () => {
-    const po = { status: PO_STATUS.APPROVED, sapPODocEntry: null };
-    expect(canEditPurchaseOrder({ permissions: ['view.all'] }, po)).toBe(true);
-    expect(canEditPurchaseOrder({ permissions: ['admin.settings'] }, po)).toBe(true);
+  it('rejects view.all without po.create', () => {
+    const po = { status: PO_STATUS.PENDING_PM, sapPODocEntry: null };
+    expect(canEditPurchaseOrder({ permissions: ['view.all'] }, po, [])).toBe(false);
   });
 
   it('allows editing rejected PO for procurement resubmit', () => {
     const po = { status: PO_STATUS.REJECTED, sapPODocEntry: null };
     const user = { permissions: [], role: { permissions: ['po.create'] } };
-    expect(canEditPurchaseOrder(user, po)).toBe(true);
+    expect(canEditPurchaseOrder(user, po, [])).toBe(true);
   });
 });
 

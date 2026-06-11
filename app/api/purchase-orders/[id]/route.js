@@ -9,7 +9,9 @@ import {
   jsonError,
 } from '@/lib/apiHelpers';
 
-const VIEW_PERMS = ['po.create', 'po.approve.pm', 'po.approve.finance', 'view.all'];
+import { PO_ACCESS_PERMISSIONS } from '@/lib/permissions.js';
+
+const VIEW_PERMS = PO_ACCESS_PERMISSIONS;
 
 async function getHandler(_request, { params }, user) {
   try {
@@ -34,4 +36,4 @@ async function putHandler(request, { params }, user) {
 }
 
 export const GET = withAuth(getHandler, VIEW_PERMS);
-export const PUT = withAuth(putHandler, ['po.create', 'view.all', 'admin.settings']);
+export const PUT = withAuth(putHandler, ['po.create']);

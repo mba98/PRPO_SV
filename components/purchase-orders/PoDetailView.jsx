@@ -13,12 +13,14 @@ import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 import { isPendingPoApprovalStatus } from '@/lib/poStatus.js';
+import { PO_VIEW_PERMISSIONS } from '@/lib/poPermissions.js';
 
 export default function PoDetailView({ id }) {
   const { common, detail, po: poI18n } = useI18n();
   const searchParams = useSearchParams();
   const attachmentWarning = searchParams.get('attachmentWarning');
   const hasPermission = useAuthStore((s) => s.hasPermission);
+  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const [po, setPo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [retryingSap, setRetryingSap] = useState(false);
@@ -230,12 +232,7 @@ export default function PoDetailView({ id }) {
         <AttachmentPanel
           documentType="PO"
           documentId={id}
-          canUpload={
-            hasPermission('po.create') ||
-            hasPermission('po.approve.pm') ||
-            hasPermission('po.approve.finance') ||
-            hasPermission('view.all')
-          }
+          canUpload={hasAnyPermission(PO_VIEW_PERMISSIONS)}
           approvalStep={po.currentApprovalStep}
         />
       )}
