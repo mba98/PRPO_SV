@@ -68,15 +68,11 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
     });
     if (json.success) {
       const createdCode = json.data?.ItemCode;
-      onCreated({
-        itemCode: createdCode,
-        itemName: form.ItemName,
-        ugpEntry: form.UgpEntry !== '' && form.UgpEntry != null ? Number(form.UgpEntry) : undefined,
-        ugpName: labels.uom?.split(' — ').slice(1).join(' — ') || '',
-      });
+      if (createdCode) {
+        onCreated(createdCode);
+      }
       setForm(EMPTY);
       setLabels({});
-      onClose();
     } else if (json.errors?.length) {
       const { fieldErrors: next, lines } = mapApiErrors(json.errors);
       setFieldErrors(next);

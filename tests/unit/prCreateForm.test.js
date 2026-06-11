@@ -56,15 +56,15 @@ describe('PR create form — compact bilingual UI', () => {
     expect(getDictionary('ar').pr.create.noWarehousesFound).toBe('لا توجد مخازن');
   });
 
-  it('ItemSearchInput fetches full item details on select', () => {
-    expect(itemSearch).toContain('/details');
-    expect(itemSearch).toContain('uomGroupEntry');
-    expect(itemSearch).toContain('warehouseCode');
-    expect(itemSearch).toContain('warehouseLabel');
-    expect(itemSearch).toContain('[item-select] assigned warehouse');
+  it('uses shared item details loader for select and create-item flows', () => {
+    expect(form).toContain('handleItemSelected');
+    expect(form).toContain('fetchSapItemDetails');
+    expect(form).toContain('mapItemDetailsToLinePatch');
+    expect(form).toContain('onItemCodeSelected={(itemCode) => handleItemSelected(itemCode, idx)}');
+    expect(form).toContain('handleItemSelected(itemCode, itemModalLine)');
+    expect(itemSearch).toContain('onItemCodeSelected');
+    expect(itemSearch).toContain('detailLoading');
     expect(itemSearch).toContain('loadingItemDetailsLabel');
-    expect(itemSearch).toContain('onDetailLoadingChange');
-    expect(itemSearch).toContain('estimatedUnitPrice');
   });
 
   it('UomGroupSelect enforces minimum width for readable labels', () => {

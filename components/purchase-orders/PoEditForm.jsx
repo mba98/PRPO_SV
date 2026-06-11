@@ -7,6 +7,7 @@ import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import { Button, DateInput, FormField, Input } from '@/components/ui';
+import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
 import {
   applyCurrencyChangeToHeader,
   applyVendorCurrencyToHeader,
@@ -69,6 +70,32 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [lineDetailLoading, setLineDetailLoading] = useState({});
+
+  async function handleItemSelected(itemCode, lineIndex) {
+    const code = String(itemCode || '').trim();
+    if (!code) return;
+
+    setLineDetailLoading((prev) => ({ ...prev, [lineIndex]: true }));
+    try {
+      const details = await fetchSapItemDetails(code);
+      const patch = mapItemDetailsToLinePatch(details);
+      updateLine(lineIndex, {
+        itemCode: patch.itemCode,
+        itemName: patch.itemName,
+        uomCode: patch.uomCode || patch.ugpName || '',
+        ugpEntry: patch.ugpEntry,
+        ugpName: patch.ugpName,
+        unitPrice: patch.unitPrice,
+        warehouseCode: patch.warehouseCode,
+        warehouseLabel: patch.warehouseLabel,
+      });
+    } catch (err) {
+      console.error('[item-select] failed to load item details', err);
+      updateLine(lineIndex, { itemCode: code });
+    } finally {
+      setLineDetailLoading((prev) => ({ ...prev, [lineIndex]: false }));
+    }
+  }
 
   function updateLine(idx, patch) {
     setLines((prev) =>
@@ -265,31 +292,8 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
                     inputClassName={COMPACT_INPUT}
                     searchingLabel={c.searching}
                     loadingItemDetailsLabel={c.loadingItemDetails}
-                    onDetailLoadingChange={(loading) =>
-                      setLineDetailLoading((prev) => ({ ...prev, [idx]: loading }))
-                    }
-                    onSelect={(item) => {
-                      const patch = {
-                        itemCode: item.itemCode,
-                        itemName: item.itemName,
-                        uomCode: item.uomCode || item.uom || line.uomCode,
-                        ugpEntry: item.ugpEntry ?? line.ugpEntry,
-                        ugpName: item.ugpName || line.ugpName,
-                        unitPrice: item.estimatedUnitPrice ?? line.unitPrice,
-                      };
-                      if (item.warehouseCode) {
-                        patch.warehouseCode = item.warehouseCode;
-                        patch.warehouseLabel =
-                          item.warehouseLabel ||
-                          (item.warehouseName
-                            ? `${item.warehouseCode} — ${item.warehouseName}`
-                            : item.warehouseCode);
-                      } else {
-                        patch.warehouseCode = '';
-                        patch.warehouseLabel = '';
-                      }
-                      updateLine(idx, patch);
-                    }}
+                    detailLoading={Boolean(lineDetailLoading[idx])}
+                    onItemCodeSelected={(itemCode) => handleItemSelected(itemCode, idx)}
                   />
                 </FormField>
 

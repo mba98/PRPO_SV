@@ -3,31 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
 
-function warehouseLabel(code, name) {
-  const c = code != null ? String(code).trim() : '';
-  if (!c) return '';
-  const n = name != null ? String(name).trim() : '';
-  return n ? `${c} — ${n}` : c;
-}
-
-function buildWarehouseFields(d, item) {
-  const code = (d?.warehouseCode || item?.warehouseCode || item?.defaultWarehouse || '')
-    .toString()
-    .trim();
-  if (!code) {
-    return {};
-  }
-  const label =
-    (d?.warehouseLabel || '').trim() ||
-    warehouseLabel(d?.warehouseCode || code, d?.warehouseName || item?.warehouseName) ||
-    code;
-  return {
-    warehouseCode: code,
-    warehouseName: (d?.warehouseName || item?.warehouseName || '').toString().trim(),
-    warehouseLabel: label,
-  };
-}
-
 function ItemDetailSpinner() {
   return (
     <span
@@ -39,10 +14,10 @@ function ItemDetailSpinner() {
 
 export default function ItemSearchInput({
   value,
-  onSelect,
+  onItemCodeSelected,
   disabled,
+  detailLoading = false,
   onSearchError,
-  onDetailLoadingChange,
   placeholder = 'Search item code or name',
   searchingLabel = 'Searching…',
   loadingItemDetailsLabel = 'Loading item details…',
@@ -56,7 +31,6 @@ export default function ItemSearchInput({
   const [results, setResults] = useState([]);
   const [focused, setFocused] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState('');
   const timer = useRef(null);
@@ -64,10 +38,6 @@ export default function ItemSearchInput({
   useEffect(() => {
     if (value?.itemCode) setQuery(value.itemCode);
   }, [value?.itemCode]);
-
-  useEffect(() => {
-    onDetailLoadingChange?.(detailLoading);
-  }, [detailLoading, onDetailLoadingChange]);
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
@@ -104,55 +74,13 @@ export default function ItemSearchInput({
     return () => clearTimeout(timer.current);
   }, [query, onSearchError]);
 
-  function emitSelection(item, d) {
-    const warehouse = buildWarehouseFields(d, item);
-    const ugpEntry = d?.uomGroupEntry ?? d?.ugpEntry ?? item.ugpEntry ?? '';
-    const ugpName = d?.uomGroupName || d?.uom || '';
-    const selection = {
-      itemCode: (d?.itemCode || item.itemCode || '').trim(),
-      itemName: d?.itemName || item.itemName || '',
-      ugpEntry,
-      ugpName,
-      estimatedUnitPrice:
-        d?.price != null && d?.price !== '' ? String(d.price) : '',
-      itemGroupCode: d?.itemGroupCode ?? item.itemGroupCode,
-      itemGroupName: d?.itemGroupName || item.itemGroupName || item.itemGroup,
-      ...warehouse,
-    };
-
+  function pick(item) {
     console.log('[item-select] selected item', item);
-    console.log('[item-select] returned warehouse', {
-      warehouseCode: d?.warehouseCode,
-      warehouseName: d?.warehouseName,
-      warehouseLabel: d?.warehouseLabel,
-    });
-    console.log('[item-select] assigned warehouse', warehouse);
-
-    onSelect(selection);
-  }
-
-  async function pick(item) {
-    setDetailLoading(true);
-    setError('');
-    try {
-      const { json, status } = await apiFetch(
-        `/api/sap/items/${encodeURIComponent(item.itemCode)}/details`,
-      );
-
-      if (json.success && json.data) {
-        emitSelection(item, json.data);
-      } else {
-        const msg = json.message || 'Failed to load item details';
-        setError(status ? `${msg} [HTTP ${status}]` : msg);
-        emitSelection(item, null);
-      }
-      setQuery(item.itemCode);
-      setFocused(false);
-      setSearched(false);
-      onSearchError?.(false);
-    } finally {
-      setDetailLoading(false);
-    }
+    onItemCodeSelected?.(item.itemCode);
+    setQuery(item.itemCode);
+    setFocused(false);
+    setSearched(false);
+    onSearchError?.(false);
   }
 
   function handleCreateNew() {

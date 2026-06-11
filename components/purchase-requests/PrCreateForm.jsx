@@ -18,6 +18,7 @@ import UomGroupSelect from '@/components/lookups/UomGroupSelect';
 import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
 import { DateInput, FormField } from '@/components/ui';
 import CreateItemModal from './CreateItemModal';
+import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
 
 const COMPACT_INPUT = 'input-field-compact';
 
@@ -108,6 +109,22 @@ export default function PrCreateForm() {
       }
       return next;
     });
+  }
+
+  async function handleItemSelected(itemCode, lineIndex) {
+    const code = String(itemCode || '').trim();
+    if (!code) return;
+
+    setLineDetailLoading((prev) => ({ ...prev, [lineIndex]: true }));
+    try {
+      const details = await fetchSapItemDetails(code);
+      updateLine(lineIndex, mapItemDetailsToLinePatch(details));
+    } catch (err) {
+      console.error('[item-select] failed to load item details', err);
+      updateLine(lineIndex, { itemCode: code });
+    } finally {
+      setLineDetailLoading((prev) => ({ ...prev, [lineIndex]: false }));
+    }
   }
 
   function updateLine(idx, patch) {
@@ -348,38 +365,15 @@ export default function PrCreateForm() {
                     placeholder={t.searchItem}
                     searchingLabel={t.searching}
                     loadingItemDetailsLabel={t.loadingItemDetails}
+                    detailLoading={Boolean(lineDetailLoading[idx])}
                     noResultsMessage={t.noMatchingItems}
                     canCreateNew={canCreateItem}
                     createNewLabel={t.createNewItem}
-                    onDetailLoadingChange={(loading) =>
-                      setLineDetailLoading((prev) => ({ ...prev, [idx]: loading }))
-                    }
                     onCreateNew={() => {
                       setItemModalLine(idx);
                       setItemModal(true);
                     }}
-                    onSelect={(item) => {
-                      const patch = {
-                        itemCode: item.itemCode,
-                        itemName: item.itemName,
-                        ugpEntry: item.ugpEntry ?? '',
-                        ugpName: item.ugpName || '',
-                        estimatedUnitPrice: item.estimatedUnitPrice ?? '',
-                        itemGroupName: item.itemGroupName || '',
-                      };
-                      if (item.warehouseCode) {
-                        patch.warehouseCode = item.warehouseCode;
-                        patch.warehouseLabel =
-                          item.warehouseLabel ||
-                          (item.warehouseName
-                            ? `${item.warehouseCode} — ${item.warehouseName}`
-                            : item.warehouseCode);
-                      } else {
-                        patch.warehouseCode = '';
-                        patch.warehouseLabel = '';
-                      }
-                      updateLine(idx, patch);
-                    }}
+                    onItemCodeSelected={(itemCode) => handleItemSelected(itemCode, idx)}
                   />
                 </FormField>
 
@@ -513,7 +507,10 @@ export default function PrCreateForm() {
       <CreateItemModal
         open={itemModal}
         onClose={() => setItemModal(false)}
-        onCreated={(item) => updateLine(itemModalLine, item)}
+        onCreated={(itemCode) => {
+          setItemModal(false);
+          handleItemSelected(itemCode, itemModalLine);
+        }}
       />
     </form>
   );
