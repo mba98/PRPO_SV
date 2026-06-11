@@ -7,7 +7,7 @@ import {
   parseJsonBody,
   handleServiceError,
 } from '@/lib/apiHelpers';
-import { APRI_VIEW_PERMISSIONS } from '@/lib/apriPermissions.js';
+import { APRI_VIEW_PERMISSIONS } from '@/lib/permissions.js';
 
 async function postHandler(request, { params }, user) {
   try {

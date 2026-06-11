@@ -23,8 +23,8 @@ import {
   buildApriListAccessFilter,
   buildApriPendingApprovalFilter,
   userCanViewApriDocument,
-  userIsApriMatrixApprover,
 } from '@/lib/apriPermissions.js';
+import { userIsApriMatrixApprover } from '@/lib/permissions.js';
 
 const WHS_USER = { _id: 'whs1', permissions: ['pr.approve.whs'] };
 const PROC_USER = { _id: 'proc1', permissions: ['apinvoice.create'] };

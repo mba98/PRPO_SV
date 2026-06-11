@@ -8,7 +8,7 @@ import {
   jsonValidation,
   parseJsonBody,
 } from '@/lib/apiHelpers';
-import { APRI_VIEW_PERMISSIONS } from '@/lib/apriPermissions.js';
+import { APRI_VIEW_PERMISSIONS } from '@/lib/permissions.js';
 
 async function getHandler(_request, { params }, user) {
   try {

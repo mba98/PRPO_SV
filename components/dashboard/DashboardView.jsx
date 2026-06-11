@@ -11,7 +11,7 @@ import {
 } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { formatDate } from '@/lib/formatDate';
-import { APRI_VIEW_PERMISSIONS } from '@/lib/apriPermissions.js';
+import { APRI_VIEW_PERMISSIONS } from '@/lib/permissions.js';
 import { PO_VIEW_PERMISSIONS } from '@/lib/poPermissions.js';
 
 function RecentTable({ title, rows, columns, emptyMessage }) {

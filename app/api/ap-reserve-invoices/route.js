@@ -2,7 +2,7 @@ import { withAuth } from '@/lib/auth';
 import { parseListQuery } from '@/lib/errors';
 import { listApReserveInvoices } from '@/lib/apReserveInvoicesService';
 import { jsonSuccess, handleServiceError } from '@/lib/apiHelpers';
-import { APRI_VIEW_PERMISSIONS } from '@/lib/apriPermissions.js';
+import { APRI_VIEW_PERMISSIONS } from '@/lib/permissions.js';
 
 async function getHandler(request, _ctx, user) {
   try {
