@@ -29,7 +29,7 @@ export default function PrDetailView({ id }) {
     if (attachmentWarning) setActiveTab('attachments');
   }, [attachmentWarning]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isCancelled) => {
     const cached = readPortalDocument('PR', id);
     if (cached) {
       setPr(cached);
@@ -37,14 +37,23 @@ export default function PrDetailView({ id }) {
       return;
     }
     setLoading(true);
-    const { json: prJson } = await apiFetch(`/api/purchase-requests/${id}`);
-    if (prJson.success) setPr(prJson.data);
-    else setError(prJson.message || common.errorLoad);
+    const { json: prJson } = await apiFetch(`/api/purchase-requests/${id}`, {
+      source: 'PrDetailView',
+    });
+    if (isCancelled?.()) return;
+    if (prJson.success) {
+      setPr(prJson.data);
+      cachePortalDocument('PR', id, prJson.data);
+    } else setError(prJson.message || common.errorLoad);
     setLoading(false);
   }, [id, common.errorLoad]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   async function retrySap() {

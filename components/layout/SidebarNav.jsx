@@ -39,6 +39,7 @@ export default function SidebarNav({ user, onNavigate }) {
           <li key={item.href}>
             <Link
               href={item.href}
+              prefetch={false}
               onClick={() => handleNavClick(item.href, activeMainHref)}
               className={`block min-h-10 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${linkClass(item.href, activeMainHref)}`}
             >
@@ -57,6 +58,7 @@ export default function SidebarNav({ user, onNavigate }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  prefetch={false}
                   onClick={() => handleNavClick(item.href, activeSettingsHref)}
                   className={`block min-h-10 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${linkClass(item.href, activeSettingsHref)}`}
                 >

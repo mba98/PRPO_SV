@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
@@ -67,22 +67,31 @@ export default function DashboardView() {
   const [recent, setRecent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const errorLoadRef = useRef(common.errorLoad);
+  errorLoadRef.current = common.errorLoad;
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isCancelled) => {
     setLoading(true);
     setError('');
-    const [summaryRes, recentRes] = await Promise.all([
-      apiFetch('/api/dashboard/summary'),
-      apiFetch('/api/dashboard/recent?limit=5'),
-    ]);
-    if (summaryRes.json.success) setSummary(summaryRes.json.data);
-    else setError(summaryRes.json.message || common.errorLoad);
-    if (recentRes.json.success) setRecent(recentRes.json.data);
+    const { json } = await apiFetch('/api/dashboard/overview?limit=5', {
+      source: 'DashboardOverview',
+    });
+    if (isCancelled?.()) return;
+    if (json.success) {
+      setSummary(json.data.summary);
+      setRecent(json.data.recent);
+    } else {
+      setError(json.message || errorLoadRef.current);
+    }
     setLoading(false);
-  }, [common.errorLoad]);
+  }, []);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   const cards = [];

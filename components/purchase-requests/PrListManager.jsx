@@ -90,11 +90,14 @@ export default function PrListManager() {
     [tab, page, sort, order, filters],
   );
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isCancelled) => {
     setLoading(true);
     setError('');
     const params = buildQueryParams();
-    const { json } = await apiFetch(`/api/purchase-requests?${params}`);
+    const { json } = await apiFetch(`/api/purchase-requests?${params}`, {
+      source: 'PrListManager',
+    });
+    if (isCancelled?.()) return;
     if (json.success) {
       setItems(json.data);
       setPagination(json.pagination);
@@ -105,7 +108,11 @@ export default function PrListManager() {
   }, [buildQueryParams, common.errorLoad]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   function pushParams(overrides = {}) {

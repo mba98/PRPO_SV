@@ -23,7 +23,7 @@ export default function ApriDetailView({ id }) {
   const [emailLogs, setEmailLogs] = useState([]);
   const [emailLogsLoading, setEmailLogsLoading] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isCancelled) => {
     const cached = readPortalDocument('APRI', id);
     if (cached) {
       setApri(cached);
@@ -31,14 +31,21 @@ export default function ApriDetailView({ id }) {
       return;
     }
     setLoading(true);
-    const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}`);
-    if (json.success) setApri(json.data);
-    else setError(json.message || common.errorLoad);
+    const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}`, { source: 'ApriDetailView' });
+    if (isCancelled?.()) return;
+    if (json.success) {
+      setApri(json.data);
+      cachePortalDocument('APRI', id, json.data);
+    } else setError(json.message || common.errorLoad);
     setLoading(false);
   }, [id, common.errorLoad]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   useEffect(() => {
@@ -50,7 +57,7 @@ export default function ApriDetailView({ id }) {
         relatedDocumentId: id,
         limit: '50',
       });
-      const { json } = await apiFetch(`/api/email/logs?${params}`);
+      const { json } = await apiFetch(`/api/email/logs?${params}`, { source: 'ApriDetailView:emails' });
       if (json.success) setEmailLogs(Array.isArray(json.data) ? json.data : []);
       setEmailLogsLoading(false);
     })();

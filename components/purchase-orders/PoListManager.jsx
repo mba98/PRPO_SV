@@ -89,10 +89,13 @@ export default function PoListManager() {
     [tab, page, sort, order, filters],
   );
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isCancelled) => {
     setLoading(true);
     setError('');
-    const { json } = await apiFetch(`/api/purchase-orders?${buildQueryParams()}`);
+    const { json } = await apiFetch(`/api/purchase-orders?${buildQueryParams()}`, {
+      source: 'PoListManager',
+    });
+    if (isCancelled?.()) return;
     if (json.success) {
       setItems(json.data);
       setPagination(json.pagination);
@@ -103,7 +106,11 @@ export default function PoListManager() {
   }, [buildQueryParams]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   function pushParams(overrides = {}) {

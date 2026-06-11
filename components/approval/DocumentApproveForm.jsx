@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
@@ -55,21 +55,30 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
   const detailPath = config.detailPath(id);
   const pageTitle = approveNs[config.titleFromApprove] || appr.title;
   const backLabel = appr[config.backLabel] || appr.cancel;
+  const errorLoadRef = useRef(common.errorLoad);
+  errorLoadRef.current = common.errorLoad;
 
   useEffect(() => {
+    let cancelled = false;
     const cached = readPortalDocument(kind, id) || peekPortalDocument(kind, id);
     if (cached) {
       setDoc(cached);
       setLoading(false);
-      return;
+      return undefined;
     }
     (async () => {
-      const { json } = await apiFetch(`${config.apiBase}/${id}`);
+      const { json } = await apiFetch(`${config.apiBase}/${id}`, {
+        source: `DocumentApproveForm:${kind}`,
+      });
+      if (cancelled) return;
       if (json.success) setDoc(json.data);
-      else setError(json.message || common.errorLoad);
+      else setError(json.message || errorLoadRef.current);
       setLoading(false);
     })();
-  }, [id, kind, config.apiBase, common.errorLoad]);
+    return () => {
+      cancelled = true;
+    };
+  }, [id, kind, config.apiBase]);
 
   async function handleAction(action) {
     if (submittingAction) return;
@@ -88,6 +97,8 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
       const { json } = await apiFetch(`${config.apiBase}/${id}/${endpoint}`, {
         method: 'POST',
         body: JSON.stringify({ comment, __v: doc.__v }),
+        source: `DocumentApproveForm:${kind}:${endpoint}`,
+        dedupe: false,
       });
 
       if (!json.success) {
@@ -106,7 +117,7 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
         if (failures.length) {
           const updatedDoc = json.data?.document || json.data?.pr || json.data?.po || json.data?.apri;
           if (updatedDoc) cachePortalDocument(kind, id, updatedDoc);
-          router.push(
+          router.replace(
             `${detailPath}?attachmentWarning=${encodeURIComponent(appr.attachmentUploadWarning)}`,
           );
           return;
@@ -117,7 +128,7 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
       if (updatedDoc) {
         cachePortalDocument(kind, id, updatedDoc);
       }
-      router.push(detailPath);
+      router.replace(detailPath);
     } catch (err) {
       setError(err.message || appr.submitError);
       setSubmittingAction(null);

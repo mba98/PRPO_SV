@@ -33,7 +33,7 @@ export default function PoDetailView({ id }) {
     if (attachmentWarning) setActiveTab('attachments');
   }, [attachmentWarning]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isCancelled) => {
     const cached = readPortalDocument('PO', id);
     if (cached) {
       setPo(cached);
@@ -41,14 +41,21 @@ export default function PoDetailView({ id }) {
       return;
     }
     setLoading(true);
-    const { json } = await apiFetch(`/api/purchase-orders/${id}`);
-    if (json.success) setPo(json.data);
-    else setError(json.message || common.errorLoad);
+    const { json } = await apiFetch(`/api/purchase-orders/${id}`, { source: 'PoDetailView' });
+    if (isCancelled?.()) return;
+    if (json.success) {
+      setPo(json.data);
+      cachePortalDocument('PO', id, json.data);
+    } else setError(json.message || common.errorLoad);
     setLoading(false);
   }, [id, common.errorLoad]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   async function retrySap() {

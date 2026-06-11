@@ -39,10 +39,13 @@ export default function ApprovedForPoManager() {
 
   const selected = items.find((prItem) => prItem.id === selectedId);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isCancelled) => {
     setLoading(true);
     setError('');
-    const { json } = await apiFetch('/api/purchase-requests/approved-for-po?limit=100');
+    const { json } = await apiFetch('/api/purchase-requests/approved-for-po?limit=100', {
+      source: 'ApprovedForPoManager',
+    });
+    if (isCancelled?.()) return;
     if (json.success) {
       setItems(json.data);
       setSelectedId((prev) => prev || json.data[0]?.id || '');
@@ -53,7 +56,11 @@ export default function ApprovedForPoManager() {
   }, [t.loadError]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   useEffect(() => {

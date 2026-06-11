@@ -72,10 +72,13 @@ export default function ApriListManager() {
     [page, sort, order, filters],
   );
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isCancelled) => {
     setLoading(true);
     setError('');
-    const { json } = await apiFetch(`/api/ap-reserve-invoices?${buildQueryParams()}`);
+    const { json } = await apiFetch(`/api/ap-reserve-invoices?${buildQueryParams()}`, {
+      source: 'ApriListManager',
+    });
+    if (isCancelled?.()) return;
     if (json.success) {
       setItems(json.data);
       setPagination(json.pagination);
@@ -86,7 +89,11 @@ export default function ApriListManager() {
   }, [buildQueryParams, common.errorLoad]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   function pushParams(overrides = {}) {
@@ -103,7 +110,7 @@ export default function ApriListManager() {
     <div className="space-y-6">
       <div className="flex flex-wrap justify-end gap-2">
         {hasAnyPermission(['apinvoice.create', 'view.all']) && (
-          <Link href="/purchase-orders/ready-for-ap-reserve-invoice" className="btn-secondary min-h-10">
+          <Link href="/purchase-orders/ready-for-ap-reserve-invoice" prefetch={false} className="btn-secondary min-h-10">
             {poI18n.posReadyForApri}
           </Link>
         )}

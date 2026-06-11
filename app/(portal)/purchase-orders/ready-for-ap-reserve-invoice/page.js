@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SectionPageHeader from '@/components/layout/SectionPageHeader';
@@ -18,18 +18,27 @@ export default function ReadyForApriPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [creatingId, setCreatingId] = useState(null);
+  const errorLoadRef = useRef(common.errorLoad);
+  errorLoadRef.current = common.errorLoad;
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isCancelled) => {
     setLoading(true);
     setError('');
-    const { json } = await apiFetch('/api/purchase-orders/ready-for-ap-reserve-invoice?limit=100');
+    const { json } = await apiFetch('/api/purchase-orders/ready-for-ap-reserve-invoice?limit=100', {
+      source: 'ReadyForApriPage',
+    });
+    if (isCancelled?.()) return;
     if (json.success) setItems(json.data);
-    else setError(json.message || common.errorLoad);
+    else setError(json.message || errorLoadRef.current);
     setLoading(false);
-  }, [common.errorLoad]);
+  }, []);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   async function createApri(poId) {

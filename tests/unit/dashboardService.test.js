@@ -8,13 +8,15 @@ const counts = vi.hoisted(() => ({
   emailLog: 0,
 }));
 
-function mockFindQuery({ withPopulate = false } = {}) {
-  const lean = () => Promise.resolve([]);
-  const limitResult = withPopulate ? { populate: () => ({ lean }) } : { lean };
-  return {
-    select: () => ({ lean }),
-    sort: () => ({ limit: () => limitResult }),
+function chainableLean(result = []) {
+  const chain = {
+    select: () => chain,
+    sort: () => chain,
+    limit: () => chain,
+    populate: () => chain,
+    lean: () => Promise.resolve(result),
   };
+  return chain;
 }
 
 vi.mock('@/lib/mongodb', () => ({ connectDB: vi.fn().mockResolvedValue(true) }));
@@ -22,50 +24,56 @@ vi.mock('@/lib/mongodb', () => ({ connectDB: vi.fn().mockResolvedValue(true) }))
 vi.mock('@/models/PurchaseRequest.js', () => ({
   default: {
     countDocuments: vi.fn(() => Promise.resolve(counts.pr)),
-    find: vi.fn(() => mockFindQuery({ withPopulate: true })),
+    find: vi.fn(() => chainableLean([])),
+    exists: vi.fn(() => Promise.resolve(null)),
   },
 }));
 
 vi.mock('@/models/PurchaseOrder.js', () => ({
   default: {
     countDocuments: vi.fn(() => Promise.resolve(counts.po)),
-    find: vi.fn(() => mockFindQuery({ withPopulate: true })),
+    find: vi.fn(() => chainableLean([])),
+    exists: vi.fn(() => Promise.resolve(null)),
   },
 }));
 
 vi.mock('@/models/APReserveInvoice.js', () => ({
   default: {
     countDocuments: vi.fn(() => Promise.resolve(counts.apri)),
-    find: vi.fn(() => mockFindQuery()),
+    find: vi.fn(() => chainableLean([])),
+    exists: vi.fn(() => Promise.resolve(null)),
   },
 }));
 
 vi.mock('@/models/SapIntegrationLog.js', () => ({
   default: {
     countDocuments: vi.fn(() => Promise.resolve(counts.sapLog)),
-    find: vi.fn(() => mockFindQuery()),
+    find: vi.fn(() => chainableLean([])),
   },
 }));
 
 vi.mock('@/models/EmailLog.js', () => ({
   default: {
     countDocuments: vi.fn(() => Promise.resolve(counts.emailLog)),
-    find: vi.fn(() => mockFindQuery()),
+    find: vi.fn(() => chainableLean([])),
   },
 }));
 
 vi.mock('@/lib/purchaseRequestsService.js', () => ({
   buildPrPendingApprovalFilter: vi.fn().mockResolvedValue({ status: 'Pending Warehouse Approval' }),
   sanitizePr: (d) => d,
+  sanitizePrListItem: (d) => ({ ...d, id: d.id || d._id }),
 }));
 
 vi.mock('@/lib/purchaseOrdersService.js', () => ({
   buildPoPendingApprovalFilter: vi.fn().mockResolvedValue({ status: 'Pending Project Manager Approval' }),
   sanitizePo: (d) => d,
+  sanitizePoListItem: (d) => ({ ...d, id: d.id || d._id }),
 }));
 
 vi.mock('@/lib/apReserveInvoicesService.js', () => ({
   sanitizeApri: (d) => d,
+  sanitizeApriListItem: (d) => ({ ...d, id: d.id || d._id }),
 }));
 
 import { getDashboardSummary, getDashboardRecent } from '@/lib/dashboardService';
