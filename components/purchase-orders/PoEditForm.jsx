@@ -267,6 +267,11 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
                         itemCode: item.itemCode,
                         itemName: item.itemName,
                         uomCode: item.uomCode || item.uom || line.uomCode,
+                        ugpEntry: item.ugpEntry ?? line.ugpEntry,
+                        ugpName: item.ugpName || line.ugpName,
+                        warehouseCode: item.warehouseCode || '',
+                        warehouseLabel: item.warehouseLabel || item.warehouseCode || '',
+                        unitPrice: item.estimatedUnitPrice ?? line.unitPrice,
                       })
                     }
                   />
@@ -329,6 +334,8 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
                     {t.warehouse}
                   </span>
                   <WarehouseSelect
+                    key={`wh-${idx}-${line.itemCode}`}
+                    syncKey={`${line.itemCode}|${line.warehouseCode}|${line.warehouseLabel}`}
                     valueCode={line.warehouseCode}
                     valueLabel={line.warehouseLabel}
                     inputClassName={COMPACT_INPUT}

@@ -21,6 +21,9 @@ import CreateItemModal from './CreateItemModal';
 
 const COMPACT_INPUT = 'input-field-compact';
 
+const LINE_GRID =
+  'lg:grid-cols-[2rem_minmax(8rem,1.2fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_4.5rem_5.5rem_minmax(11.25rem,1.2fr)_4.5rem_2.5rem]';
+
 const EMPTY_LINE = () => ({
   itemCode: '',
   itemName: '',
@@ -299,7 +302,7 @@ export default function PrCreateForm() {
           </button>
         </div>
 
-        <div className="hidden lg:grid lg:grid-cols-[2rem_minmax(8rem,1.2fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_4.5rem_5.5rem_4rem_4.5rem_2.5rem] lg:gap-2 lg:px-1 lg:text-[10px] lg:font-bold lg:uppercase lg:tracking-widest lg:text-muted-foreground">
+        <div className={`hidden lg:grid ${LINE_GRID} lg:gap-2 lg:px-1 lg:text-[10px] lg:font-bold lg:uppercase lg:tracking-widest lg:text-muted-foreground`}>
           <span>#</span>
           <span>{t.item}</span>
           <span>{t.itemName}</span>
@@ -331,7 +334,7 @@ export default function PrCreateForm() {
                 </button>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[2rem_minmax(8rem,1.2fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_4.5rem_5.5rem_4rem_4.5rem_2.5rem] lg:items-start lg:gap-2">
+              <div className={`grid gap-2 sm:grid-cols-2 ${LINE_GRID} lg:items-start lg:gap-2`}>
                 <span className="hidden pt-2 text-center text-xs font-bold text-muted-foreground lg:block">
                   {idx + 1}
                 </span>
@@ -350,7 +353,18 @@ export default function PrCreateForm() {
                       setItemModalLine(idx);
                       setItemModal(true);
                     }}
-                    onSelect={(item) => updateLine(idx, item)}
+                    onSelect={(item) => {
+                      updateLine(idx, {
+                        itemCode: item.itemCode,
+                        itemName: item.itemName,
+                        ugpEntry: item.ugpEntry ?? '',
+                        ugpName: item.ugpName || '',
+                        warehouseCode: item.warehouseCode || '',
+                        warehouseLabel: item.warehouseLabel || item.warehouseCode || '',
+                        estimatedUnitPrice: item.estimatedUnitPrice ?? '',
+                        itemGroupName: item.itemGroupName || '',
+                      });
+                    }}
                   />
                 </FormField>
 
@@ -367,6 +381,8 @@ export default function PrCreateForm() {
                 <FormField error={fieldErrors[`line${idx}.warehouse`]} className="lg:mt-0">
                   <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.warehouse}</span>
                   <WarehouseSelect
+                    key={`wh-${idx}-${line.itemCode}`}
+                    syncKey={`${line.itemCode}|${line.warehouseCode}|${line.warehouseLabel}`}
                     valueCode={line.warehouseCode}
                     valueLabel={line.warehouseLabel}
                     placeholder={t.searchWarehouse}
@@ -419,6 +435,7 @@ export default function PrCreateForm() {
                 <FormField className="lg:mt-0">
                   <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.uom}</span>
                   <UomGroupSelect
+                    key={`uom-${idx}-${line.itemCode}-${line.ugpEntry}`}
                     valueEntry={line.ugpEntry}
                     valueLabel={line.ugpName}
                     placeholder={t.selectUom}

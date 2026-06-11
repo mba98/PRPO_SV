@@ -137,4 +137,17 @@ describe('sapItems search helper', () => {
       itemGroupName: undefined,
     });
   });
+
+  it('mapItemDetailRow trims warehouse code from OITM.DfltWH', () => {
+    expect(
+      mapItemDetailRow({
+        ItemCode: 'A1',
+        DfltWH: '  KRA004  ',
+        WhsName: ' Main ',
+      }),
+    ).toMatchObject({
+      warehouseCode: 'KRA004',
+      warehouseName: 'Main',
+    });
+  });
 });

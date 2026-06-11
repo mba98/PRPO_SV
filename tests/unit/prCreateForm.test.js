@@ -60,7 +60,23 @@ describe('PR create form — compact bilingual UI', () => {
     expect(itemSearch).toContain('/details');
     expect(itemSearch).toContain('uomGroupEntry');
     expect(itemSearch).toContain('warehouseCode');
+    expect(itemSearch).toContain('warehouseLabel');
+    expect(itemSearch).toContain('[item-select] assigned warehouse');
     expect(itemSearch).toContain('estimatedUnitPrice');
+  });
+
+  it('UomGroupSelect enforces minimum width for readable labels', () => {
+    const uom = fs.readFileSync(
+      path.resolve(process.cwd(), 'components/lookups/UomGroupSelect.jsx'),
+      'utf8',
+    );
+    expect(uom).toContain('min-w-[180px]');
+    expect(form).toContain('minmax(11.25rem');
+  });
+
+  it('WarehouseSelect remounts when item selection changes warehouse', () => {
+    expect(warehouse).toContain('syncKey');
+    expect(form).toContain('syncKey={`${line.itemCode}|${line.warehouseCode}|${line.warehouseLabel}`}');
   });
 
   it('ItemSearchInput shows Create New Item inside dropdown', () => {

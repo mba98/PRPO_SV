@@ -38,6 +38,7 @@ export default function SearchableLookup({
   emptyMessage = 'No results',
   loadingMessage = 'Loading…',
   inputClassName = 'input-field',
+  containerClassName = '',
   limit = 100,
   loadAllOnFocus = true,
   formatOption = defaultFormat,
@@ -51,10 +52,11 @@ export default function SearchableLookup({
   const [error, setError] = useState('');
   const timer = useRef(null);
   const queryMin = Math.max(minChars, 0);
+  const externalKey = `${value ?? ''}|${label ?? ''}`;
 
   useEffect(() => {
-    setQuery(label || (value ? String(value) : ''));
-  }, [value, label]);
+    setQuery(label || (value != null && value !== '' ? String(value) : ''));
+  }, [externalKey, value, label]);
 
   const loadOptions = useCallback(
     async (searchQuery) => {
@@ -131,10 +133,10 @@ export default function SearchableLookup({
   const showDropdown = focused && (loading || fetched);
 
   return (
-    <div className="relative">
+    <div className={['relative w-full', containerClassName].filter(Boolean).join(' ')}>
       <input
         type="text"
-        className={inputClassName}
+        className={[inputClassName, 'w-full'].filter(Boolean).join(' ')}
         value={query}
         disabled={disabled}
         placeholder={placeholder}
@@ -151,7 +153,7 @@ export default function SearchableLookup({
         </p>
       )}
       {showDropdown && (
-        <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-border bg-card py-1 shadow-lg">
+        <ul className="absolute z-20 mt-1 max-h-56 min-w-full w-full overflow-y-auto overflow-x-auto rounded-xl border border-border bg-card py-1 shadow-lg">
           {loading && (
             <li className="px-3 py-2 text-xs text-muted-foreground">{loadingMessage}</li>
           )}
@@ -167,7 +169,7 @@ export default function SearchableLookup({
                   <button
                     type="button"
                     className={[
-                      'w-full px-3 py-2 text-start text-sm transition-colors hover:bg-muted',
+                      'w-full whitespace-nowrap px-3 py-2 text-start text-sm transition-colors hover:bg-muted',
                       selected ? 'font-semibold text-primary' : 'text-foreground',
                     ].join(' ')}
                     onMouseDown={() => pick(row)}

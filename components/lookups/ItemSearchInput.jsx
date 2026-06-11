@@ -4,8 +4,26 @@ import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
 
 function warehouseLabel(code, name) {
-  if (!code) return '';
-  return name ? `${code} — ${name}` : code;
+  const c = code != null ? String(code).trim() : '';
+  if (!c) return '';
+  const n = name != null ? String(name).trim() : '';
+  return n ? `${c} — ${n}` : c;
+}
+
+function normalizeWarehouseFromDetails(d, item) {
+  const code = (
+    d?.warehouseCode ||
+    item?.defaultWarehouse ||
+    item?.warehouseCode ||
+    ''
+  )
+    .toString()
+    .trim();
+  const label =
+    warehouseLabel(d?.warehouseCode, d?.warehouseName) ||
+    warehouseLabel(item?.defaultWarehouse || item?.warehouseCode, '') ||
+    code;
+  return { warehouseCode: code, warehouseLabel: label };
 }
 
 export default function ItemSearchInput({
@@ -68,6 +86,34 @@ export default function ItemSearchInput({
     return () => clearTimeout(timer.current);
   }, [query, onSearchError]);
 
+  function emitSelection(item, d) {
+    const warehouse = normalizeWarehouseFromDetails(d, item);
+    const selection = {
+      itemCode: (d?.itemCode || item.itemCode || '').trim(),
+      itemName: d?.itemName || item.itemName || '',
+      ugpEntry: d?.uomGroupEntry ?? item.ugpEntry ?? '',
+      ugpName: d?.uomGroupName || '',
+      warehouseCode: warehouse.warehouseCode,
+      warehouseLabel: warehouse.warehouseLabel,
+      estimatedUnitPrice:
+        d?.price != null && d?.price !== '' ? String(d.price) : '',
+      itemGroupCode: d?.itemGroupCode ?? item.itemGroupCode,
+      itemGroupName: d?.itemGroupName || item.itemGroupName || item.itemGroup,
+    };
+
+    console.log('[item-select] selected item', item);
+    console.log('[item-select] returned warehouse', {
+      warehouseCode: d?.warehouseCode,
+      warehouseName: d?.warehouseName,
+    });
+    console.log('[item-select] assigned warehouse', {
+      warehouseCode: selection.warehouseCode,
+      warehouseLabel: selection.warehouseLabel,
+    });
+
+    onSelect(selection);
+  }
+
   async function pick(item) {
     setLoading(true);
     setError('');
@@ -77,31 +123,11 @@ export default function ItemSearchInput({
     setLoading(false);
 
     if (json.success && json.data) {
-      const d = json.data;
-      onSelect({
-        itemCode: d.itemCode || item.itemCode,
-        itemName: d.itemName || item.itemName,
-        ugpEntry: d.uomGroupEntry ?? item.ugpEntry,
-        ugpName: d.uomGroupName || '',
-        warehouseCode: d.warehouseCode || item.defaultWarehouse || '',
-        warehouseLabel: warehouseLabel(d.warehouseCode, d.warehouseName),
-        estimatedUnitPrice:
-          d.price != null && d.price !== '' ? String(d.price) : '',
-        itemGroupCode: d.itemGroupCode ?? item.itemGroupCode,
-        itemGroupName: d.itemGroupName || item.itemGroupName || item.itemGroup,
-      });
+      emitSelection(item, json.data);
     } else {
       const msg = json.message || 'Failed to load item details';
       setError(status ? `${msg} [HTTP ${status}]` : msg);
-      onSelect({
-        itemCode: item.itemCode,
-        itemName: item.itemName,
-        ugpEntry: item.ugpEntry,
-        warehouseCode: item.defaultWarehouse || item.warehouseCode || '',
-        warehouseLabel: warehouseLabel(item.defaultWarehouse || item.warehouseCode, ''),
-        itemGroupCode: item.itemGroupCode,
-        itemGroupName: item.itemGroupName || item.itemGroup,
-      });
+      emitSelection(item, null);
     }
     setQuery(item.itemCode);
     setFocused(false);

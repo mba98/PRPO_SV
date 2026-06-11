@@ -19,17 +19,22 @@ export default function UomGroupSelect({
   emptyMessage = 'No UoM groups found',
   loadingMessage = 'Loading…',
 }) {
+  const displayLabel = valueLabel
+    ? formatUom({ value: valueEntry, label: valueLabel })
+    : '';
+
   return (
     <SearchableLookup
       endpoint="/api/sap/uom-groups"
       value={valueEntry ?? ''}
-      label={valueLabel ? formatUom({ value: valueEntry, label: valueLabel }) : ''}
+      label={displayLabel}
       onSelect={(entry, _display, row) => onSelect?.(entry, row)}
       disabled={disabled}
       placeholder={placeholder}
       emptyMessage={emptyMessage}
       loadingMessage={loadingMessage}
-      inputClassName={inputClassName}
+      inputClassName={[inputClassName, 'min-w-[180px]'].filter(Boolean).join(' ')}
+      containerClassName="min-w-[180px] w-full"
       formatOption={formatUom}
       loadAllOnFocus
       minChars={0}

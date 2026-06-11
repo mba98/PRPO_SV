@@ -11,9 +11,11 @@ export default function WarehouseSelect({
   emptyMessage = 'No warehouses found',
   inputClassName = 'input-field',
   loadingMessage = 'Loading…',
+  syncKey,
 }) {
   return (
     <SearchableLookup
+      key={syncKey}
       endpoint="/api/sap/warehouses"
       value={valueCode}
       label={valueLabel}
@@ -23,6 +25,7 @@ export default function WarehouseSelect({
       emptyMessage={emptyMessage}
       loadingMessage={loadingMessage}
       inputClassName={inputClassName}
+      containerClassName="w-full"
       loadAllOnFocus
       minChars={0}
     />
