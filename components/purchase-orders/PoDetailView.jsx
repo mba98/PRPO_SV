@@ -1,12 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { PortalLoader, AnimatedStatusBadge, AnimatedTabs, Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
+import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
+import { primePortalDocument } from '@/lib/documentClientCache';
 import { WorkflowStepper } from '@/components/workflow';
 import PoEditForm from '@/components/purchase-orders/PoEditForm';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
@@ -14,18 +16,15 @@ import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 import { isPendingPoApprovalStatus } from '@/lib/poStatus.js';
 import { PO_VIEW_PERMISSIONS } from '@/lib/poPermissions.js';
-import { readPortalDocument, cachePortalDocument } from '@/lib/documentClientCache';
 
 export default function PoDetailView({ id }) {
   const { common, detail, po: poI18n } = useI18n();
   const searchParams = useSearchParams();
   const attachmentWarning = searchParams.get('attachmentWarning');
-  const hasPermission = useAuthStore((s) => s.hasPermission);
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
-  const [po, setPo] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { doc: po, loading, error, refresh, setDocument } = usePortalDocument('PO', id, 'PoDetailView');
   const [retryingSap, setRetryingSap] = useState(false);
-  const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
   const [editing, setEditing] = useState(false);
 
@@ -33,46 +32,30 @@ export default function PoDetailView({ id }) {
     if (attachmentWarning) setActiveTab('attachments');
   }, [attachmentWarning]);
 
-  const load = useCallback(async (isCancelled) => {
-    const cached = readPortalDocument('PO', id);
-    if (cached) {
-      setPo(cached);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const { json } = await apiFetch(`/api/purchase-orders/${id}`, { source: 'PoDetailView' });
-    if (isCancelled?.()) return;
-    if (json.success) {
-      setPo(json.data);
-      cachePortalDocument('PO', id, json.data);
-    } else setError(json.message || common.errorLoad);
-    setLoading(false);
-  }, [id, common.errorLoad]);
-
-  useEffect(() => {
-    let cancelled = false;
-    load(() => cancelled);
-    return () => {
-      cancelled = true;
-    };
-  }, [load]);
-
   async function retrySap() {
     if (retryingSap) return;
     setRetryingSap(true);
-    setError('');
+    setActionError('');
     try {
-      const { json } = await apiFetch(`/api/purchase-orders/${id}/retry-sap`, { method: 'POST' });
-      if (json.success) await load();
-      else setError(json.message || common.errorLoad);
+      const { json } = await apiFetch(`/api/purchase-orders/${id}/retry-sap`, {
+        method: 'POST',
+        dedupe: false,
+      });
+      if (json.success) {
+        if (json.data) setDocument(json.data);
+        else await refresh();
+      } else {
+        setActionError(json.message || common.errorLoad);
+      }
     } finally {
       setRetryingSap(false);
     }
   }
 
   if (loading) return <PortalLoader fullScreen />;
-  if (!po) return <p className="text-red-600">{error || detail.notFound}</p>;
+  if (!po) return <p className="text-red-600">{error || actionError || detail.notFound}</p>;
+
+  const displayError = actionError || error;
 
   const canApprove = po.canApproveCurrentStep === true;
   const currentWorkflowStep = po.workflowSteps?.find((s) => s.state === 'current');
@@ -95,12 +78,12 @@ export default function PoDetailView({ id }) {
           {attachmentWarning}
         </p>
       )}
-      {error && (
+      {displayError && (
         <p
           role="alert"
           className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
-          {error}
+          {displayError}
         </p>
       )}
       {po.workflowSteps?.length > 0 && (
@@ -131,7 +114,7 @@ export default function PoDetailView({ id }) {
             <Link
               href={`/purchase-orders/${id}/approve`}
               className="btn-primary min-h-10"
-              onClick={() => cachePortalDocument('PO', id, po)}
+              onClick={() => primePortalDocument('PO', id, po)}
             >
               {common.approveReject}
             </Link>
@@ -161,9 +144,10 @@ export default function PoDetailView({ id }) {
       {activeTab === 'details' && editing && po.canEdit && (
         <PoEditForm
           po={po}
-          onSaved={() => {
+          onSaved={(data) => {
             setEditing(false);
-            load();
+            if (data) setDocument(data);
+            else refresh();
           }}
           onCancel={() => setEditing(false)}
         />

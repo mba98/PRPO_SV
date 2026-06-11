@@ -55,6 +55,7 @@ export default function ApprovalTimeline({ documentType, documentId }) {
     setError('');
     const { json } = await apiFetch(
       `/api/approval-history/${encodeURIComponent(documentType)}/${encodeURIComponent(documentId)}`,
+      { source: 'ApprovalTimeline' },
     );
     if (json.success) {
       setItems(json.data);

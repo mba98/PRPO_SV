@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
@@ -10,43 +10,22 @@ import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 import { useI18n } from '@/lib/hooks/useI18n';
-import { readPortalDocument, cachePortalDocument } from '@/lib/documentClientCache';
+import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
+import { primePortalDocument } from '@/lib/documentClientCache';
 
 export default function ApriDetailView({ id }) {
   const { common, detail, apri: apriI18n } = useI18n();
   const hasPermission = useAuthStore((s) => s.hasPermission);
-  const [apri, setApri] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { doc: apri, loading, error, refresh, setDocument } = usePortalDocument(
+    'APRI',
+    id,
+    'ApriDetailView',
+  );
+  const [actionError, setActionError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
   const [retrying, setRetrying] = useState(false);
   const [emailLogs, setEmailLogs] = useState([]);
   const [emailLogsLoading, setEmailLogsLoading] = useState(false);
-
-  const load = useCallback(async (isCancelled) => {
-    const cached = readPortalDocument('APRI', id);
-    if (cached) {
-      setApri(cached);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}`, { source: 'ApriDetailView' });
-    if (isCancelled?.()) return;
-    if (json.success) {
-      setApri(json.data);
-      cachePortalDocument('APRI', id, json.data);
-    } else setError(json.message || common.errorLoad);
-    setLoading(false);
-  }, [id, common.errorLoad]);
-
-  useEffect(() => {
-    let cancelled = false;
-    load(() => cancelled);
-    return () => {
-      cancelled = true;
-    };
-  }, [load]);
 
   useEffect(() => {
     if (activeTab !== 'emails' || emailLogs.length || emailLogsLoading) return;
@@ -65,15 +44,24 @@ export default function ApriDetailView({ id }) {
 
   async function retrySap() {
     setRetrying(true);
-    setError('');
-    const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}/retry-sap`, { method: 'POST' });
+    setActionError('');
+    const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}/retry-sap`, {
+      method: 'POST',
+      dedupe: false,
+    });
     setRetrying(false);
-    if (json.success) load();
-    else setError(json.message || common.errorLoad);
+    if (json.success) {
+      if (json.data) setDocument(json.data);
+      else await refresh();
+    } else {
+      setActionError(json.message || common.errorLoad);
+    }
   }
 
   if (loading) return <PortalLoader fullScreen />;
-  if (!apri) return <p className="text-red-600">{error || detail.notFound}</p>;
+  if (!apri) return <p className="text-red-600">{error || actionError || detail.notFound}</p>;
+
+  const displayError = actionError || error;
 
   const canRetry =
     apri.status === 'Failed to Create in SAP' &&
@@ -126,7 +114,7 @@ export default function ApriDetailView({ id }) {
             <Link
               href={`/ap-reserve-invoices/${id}/approve`}
               className="btn-primary min-h-10"
-              onClick={() => cachePortalDocument('APRI', id, apri)}
+              onClick={() => primePortalDocument('APRI', id, apri)}
             >
               {common.approveReject}
             </Link>
@@ -144,7 +132,7 @@ export default function ApriDetailView({ id }) {
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {displayError && <p className="text-sm text-red-600">{displayError}</p>}
 
       <div className="flex gap-2 border-b border-border">
         {tabs.map((t) => (

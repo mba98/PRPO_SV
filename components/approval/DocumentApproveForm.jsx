@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
@@ -8,7 +8,8 @@ import { uploadDocumentAttachments } from '@/lib/attachmentUploadHelpers';
 import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
 import { Button, FormField, PortalLoader, Textarea } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
-import { cachePortalDocument, peekPortalDocument, readPortalDocument } from '@/lib/documentClientCache';
+import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
+import { primePortalDocument } from '@/lib/documentClientCache';
 
 const KIND_CONFIG = {
   PR: {
@@ -44,10 +45,13 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
   const config = KIND_CONFIG[kind] || KIND_CONFIG.PR;
   const router = useRouter();
   const { approval: appr, attachments: att, pr: prI18n, common, approve: approveNs, detail } = useI18n();
-  const [doc, setDoc] = useState(null);
+  const { doc, loading, error: loadError, setDocument } = usePortalDocument(
+    kind,
+    id,
+    'DocumentApproveForm',
+  );
   const [comment, setComment] = useState('');
   const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [submittingAction, setSubmittingAction] = useState(null);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
@@ -55,30 +59,7 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
   const detailPath = config.detailPath(id);
   const pageTitle = approveNs[config.titleFromApprove] || appr.title;
   const backLabel = appr[config.backLabel] || appr.cancel;
-  const errorLoadRef = useRef(common.errorLoad);
-  errorLoadRef.current = common.errorLoad;
-
-  useEffect(() => {
-    let cancelled = false;
-    const cached = readPortalDocument(kind, id) || peekPortalDocument(kind, id);
-    if (cached) {
-      setDoc(cached);
-      setLoading(false);
-      return undefined;
-    }
-    (async () => {
-      const { json } = await apiFetch(`${config.apiBase}/${id}`, {
-        source: `DocumentApproveForm:${kind}`,
-      });
-      if (cancelled) return;
-      if (json.success) setDoc(json.data);
-      else setError(json.message || errorLoadRef.current);
-      setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [id, kind, config.apiBase]);
+  const displayError = error || loadError;
 
   async function handleAction(action) {
     if (submittingAction) return;
@@ -107,6 +88,8 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
         return;
       }
 
+      const updatedDoc = json.data?.document || json.data?.pr || json.data?.po || json.data?.apri;
+
       if (files.length) {
         const { failures } = await uploadDocumentAttachments({
           documentType: config.documentType,
@@ -115,8 +98,10 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
           approvalStep: String(doc.currentApprovalStep),
         });
         if (failures.length) {
-          const updatedDoc = json.data?.document || json.data?.pr || json.data?.po || json.data?.apri;
-          if (updatedDoc) cachePortalDocument(kind, id, updatedDoc);
+          if (updatedDoc) {
+            setDocument(updatedDoc);
+            primePortalDocument(kind, id, updatedDoc);
+          }
           router.replace(
             `${detailPath}?attachmentWarning=${encodeURIComponent(appr.attachmentUploadWarning)}`,
           );
@@ -124,9 +109,9 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
         }
       }
 
-      const updatedDoc = json.data?.document || json.data?.pr || json.data?.po || json.data?.apri;
       if (updatedDoc) {
-        cachePortalDocument(kind, id, updatedDoc);
+        setDocument(updatedDoc);
+        primePortalDocument(kind, id, updatedDoc);
       }
       router.replace(detailPath);
     } catch (err) {
@@ -144,7 +129,7 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
   }
 
   if (!doc) {
-    return <p className="text-sm text-destructive">{error || detail.notFound}</p>;
+    return <p className="text-sm text-destructive">{displayError || detail.notFound}</p>;
   }
 
   const canAct = doc.canApproveCurrentStep === true;
@@ -171,12 +156,12 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
         )}
       </p>
 
-      {error && (
+      {displayError && (
         <p
           role="alert"
           className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
         >
-          {error}
+          {displayError}
         </p>
       )}
       {warning && (

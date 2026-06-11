@@ -1,73 +1,48 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { PortalLoader, AnimatedStatusBadge, AnimatedTabs, Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
+import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
+import { primePortalDocument } from '@/lib/documentClientCache';
 import { WorkflowStepper } from '@/components/workflow';
 import CreatePoFromPrPanel from '@/components/purchase-requests/CreatePoFromPrPanel';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
-import { readPortalDocument, cachePortalDocument } from '@/lib/documentClientCache';
 
 export default function PrDetailView({ id }) {
   const { common, detail, pr: prI18n } = useI18n();
   const searchParams = useSearchParams();
   const attachmentWarning = searchParams.get('attachmentWarning');
   const hasPermission = useAuthStore((s) => s.hasPermission);
-  const [pr, setPr] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { doc: pr, loading, error, refresh, setDocument } = usePortalDocument('PR', id, 'PrDetailView');
   const [retryingSap, setRetryingSap] = useState(false);
-  const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
 
   useEffect(() => {
     if (attachmentWarning) setActiveTab('attachments');
   }, [attachmentWarning]);
 
-  const load = useCallback(async (isCancelled) => {
-    const cached = readPortalDocument('PR', id);
-    if (cached) {
-      setPr(cached);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const { json: prJson } = await apiFetch(`/api/purchase-requests/${id}`, {
-      source: 'PrDetailView',
-    });
-    if (isCancelled?.()) return;
-    if (prJson.success) {
-      setPr(prJson.data);
-      cachePortalDocument('PR', id, prJson.data);
-    } else setError(prJson.message || common.errorLoad);
-    setLoading(false);
-  }, [id, common.errorLoad]);
-
-  useEffect(() => {
-    let cancelled = false;
-    load(() => cancelled);
-    return () => {
-      cancelled = true;
-    };
-  }, [load]);
-
   async function retrySap() {
     if (retryingSap) return;
     setRetryingSap(true);
-    setError('');
+    setActionError('');
     try {
       const { json } = await apiFetch(`/api/purchase-requests/${id}/retry-sap`, {
         method: 'POST',
+        dedupe: false,
       });
       if (json.success) {
-        await load();
+        if (json.data) setDocument(json.data);
+        else await refresh();
       } else {
-        setError(json.message || common.errorLoad);
+        setActionError(json.message || common.errorLoad);
       }
     } finally {
       setRetryingSap(false);
@@ -75,8 +50,9 @@ export default function PrDetailView({ id }) {
   }
 
   if (loading) return <PortalLoader fullScreen />;
-  if (!pr) return <p className="text-red-600">{error || detail.notFound}</p>;
+  if (!pr) return <p className="text-red-600">{error || actionError || detail.notFound}</p>;
 
+  const displayError = actionError || error;
   const canApprove = pr.canApproveCurrentStep === true;
   const canRetrySap = pr.canRetrySap === true;
   const showRetryDeniedNote = pr.status === 'Failed to Create in SAP' && !canRetrySap;
@@ -100,12 +76,12 @@ export default function PrDetailView({ id }) {
           {attachmentWarning}
         </p>
       )}
-      {error && (
+      {displayError && (
         <p
           role="alert"
           className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
-          {error}
+          {displayError}
         </p>
       )}
       {pr.workflowSteps?.length > 0 && (
@@ -131,7 +107,7 @@ export default function PrDetailView({ id }) {
             <Link
               href={`/purchase-requests/${id}/approve`}
               className="btn-primary min-h-10"
-              onClick={() => cachePortalDocument('PR', id, pr)}
+              onClick={() => primePortalDocument('PR', id, pr)}
             >
               {common.approveReject}
             </Link>
