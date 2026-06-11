@@ -10,20 +10,31 @@ function warehouseLabel(code, name) {
   return n ? `${c} — ${n}` : c;
 }
 
-function normalizeWarehouseFromDetails(d, item) {
-  const code = (
-    d?.warehouseCode ||
-    item?.defaultWarehouse ||
-    item?.warehouseCode ||
-    ''
-  )
+function buildWarehouseFields(d, item) {
+  const code = (d?.warehouseCode || item?.warehouseCode || item?.defaultWarehouse || '')
     .toString()
     .trim();
+  if (!code) {
+    return {};
+  }
   const label =
-    warehouseLabel(d?.warehouseCode, d?.warehouseName) ||
-    warehouseLabel(item?.defaultWarehouse || item?.warehouseCode, '') ||
+    (d?.warehouseLabel || '').trim() ||
+    warehouseLabel(d?.warehouseCode || code, d?.warehouseName || item?.warehouseName) ||
     code;
-  return { warehouseCode: code, warehouseLabel: label };
+  return {
+    warehouseCode: code,
+    warehouseName: (d?.warehouseName || item?.warehouseName || '').toString().trim(),
+    warehouseLabel: label,
+  };
+}
+
+function ItemDetailSpinner() {
+  return (
+    <span
+      className="inline-block h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent"
+      aria-hidden
+    />
+  );
 }
 
 export default function ItemSearchInput({
@@ -31,8 +42,10 @@ export default function ItemSearchInput({
   onSelect,
   disabled,
   onSearchError,
+  onDetailLoadingChange,
   placeholder = 'Search item code or name',
   searchingLabel = 'Searching…',
+  loadingItemDetailsLabel = 'Loading item details…',
   noResultsMessage = 'No matching items found',
   createNewLabel = 'Create New Item',
   canCreateNew = false,
@@ -42,7 +55,8 @@ export default function ItemSearchInput({
   const [query, setQuery] = useState(value?.itemCode || '');
   const [results, setResults] = useState([]);
   const [focused, setFocused] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState('');
   const timer = useRef(null);
@@ -52,18 +66,22 @@ export default function ItemSearchInput({
   }, [value?.itemCode]);
 
   useEffect(() => {
+    onDetailLoadingChange?.(detailLoading);
+  }, [detailLoading, onDetailLoadingChange]);
+
+  useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
     const trimmed = query.trim();
     if (trimmed.length < 1) {
       setResults([]);
-      setLoading(false);
+      setSearchLoading(false);
       setSearched(false);
       setError('');
       onSearchError?.(false);
       return undefined;
     }
     timer.current = setTimeout(async () => {
-      setLoading(true);
+      setSearchLoading(true);
       setError('');
       const { json, status } = await apiFetch(`/api/sap/items/search?query=${encodeURIComponent(trimmed)}`);
       if (json.success) {
@@ -81,58 +99,60 @@ export default function ItemSearchInput({
         setError(status ? `${msg} [HTTP ${status}]` : msg);
         onSearchError?.(true);
       }
-      setLoading(false);
+      setSearchLoading(false);
     }, 300);
     return () => clearTimeout(timer.current);
   }, [query, onSearchError]);
 
   function emitSelection(item, d) {
-    const warehouse = normalizeWarehouseFromDetails(d, item);
+    const warehouse = buildWarehouseFields(d, item);
+    const ugpEntry = d?.uomGroupEntry ?? d?.ugpEntry ?? item.ugpEntry ?? '';
+    const ugpName = d?.uomGroupName || d?.uom || '';
     const selection = {
       itemCode: (d?.itemCode || item.itemCode || '').trim(),
       itemName: d?.itemName || item.itemName || '',
-      ugpEntry: d?.uomGroupEntry ?? item.ugpEntry ?? '',
-      ugpName: d?.uomGroupName || '',
-      warehouseCode: warehouse.warehouseCode,
-      warehouseLabel: warehouse.warehouseLabel,
+      ugpEntry,
+      ugpName,
       estimatedUnitPrice:
         d?.price != null && d?.price !== '' ? String(d.price) : '',
       itemGroupCode: d?.itemGroupCode ?? item.itemGroupCode,
       itemGroupName: d?.itemGroupName || item.itemGroupName || item.itemGroup,
+      ...warehouse,
     };
 
     console.log('[item-select] selected item', item);
     console.log('[item-select] returned warehouse', {
       warehouseCode: d?.warehouseCode,
       warehouseName: d?.warehouseName,
+      warehouseLabel: d?.warehouseLabel,
     });
-    console.log('[item-select] assigned warehouse', {
-      warehouseCode: selection.warehouseCode,
-      warehouseLabel: selection.warehouseLabel,
-    });
+    console.log('[item-select] assigned warehouse', warehouse);
 
     onSelect(selection);
   }
 
   async function pick(item) {
-    setLoading(true);
+    setDetailLoading(true);
     setError('');
-    const { json, status } = await apiFetch(
-      `/api/sap/items/${encodeURIComponent(item.itemCode)}/details`,
-    );
-    setLoading(false);
+    try {
+      const { json, status } = await apiFetch(
+        `/api/sap/items/${encodeURIComponent(item.itemCode)}/details`,
+      );
 
-    if (json.success && json.data) {
-      emitSelection(item, json.data);
-    } else {
-      const msg = json.message || 'Failed to load item details';
-      setError(status ? `${msg} [HTTP ${status}]` : msg);
-      emitSelection(item, null);
+      if (json.success && json.data) {
+        emitSelection(item, json.data);
+      } else {
+        const msg = json.message || 'Failed to load item details';
+        setError(status ? `${msg} [HTTP ${status}]` : msg);
+        emitSelection(item, null);
+      }
+      setQuery(item.itemCode);
+      setFocused(false);
+      setSearched(false);
+      onSearchError?.(false);
+    } finally {
+      setDetailLoading(false);
     }
-    setQuery(item.itemCode);
-    setFocused(false);
-    setSearched(false);
-    onSearchError?.(false);
   }
 
   function handleCreateNew() {
@@ -142,30 +162,46 @@ export default function ItemSearchInput({
   }
 
   const showDropdown =
-    focused && query.trim().length >= 1 && (loading || searched);
+    focused && query.trim().length >= 1 && (searchLoading || searched);
 
   const showCreateOption =
-    canCreateNew && !loading && searched && results.length === 0 && !error;
+    canCreateNew && !searchLoading && searched && results.length === 0 && !error;
+
+  const inputDisabled = disabled || detailLoading;
 
   return (
     <div className="relative">
-      <input
-        type="text"
-        className={inputClassName}
-        value={query}
-        disabled={disabled}
-        placeholder={placeholder}
-        onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setTimeout(() => setFocused(false), 200)}
-      />
+      <div className="relative flex items-center gap-2">
+        <input
+          type="text"
+          className={[inputClassName, 'w-full'].filter(Boolean).join(' ')}
+          value={query}
+          disabled={inputDisabled}
+          placeholder={placeholder}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 200)}
+          aria-busy={detailLoading}
+        />
+        {detailLoading && (
+          <span className="pointer-events-none absolute end-2 top-1/2 flex -translate-y-1/2 items-center gap-1.5 text-xs text-muted-foreground">
+            <ItemDetailSpinner />
+          </span>
+        )}
+      </div>
+      {detailLoading && (
+        <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground" role="status">
+          <ItemDetailSpinner />
+          {loadingItemDetailsLabel}
+        </p>
+      )}
       {error && <p className="mt-1 text-xs text-destructive" role="alert">{error}</p>}
       {showDropdown && (
         <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-border bg-card shadow-lg">
-          {loading && (
+          {searchLoading && (
             <li className="px-3 py-2 text-xs text-muted-foreground">{searchingLabel}</li>
           )}
-          {!loading && results.length === 0 && (
+          {!searchLoading && results.length === 0 && (
             <li className="px-3 py-2 text-xs text-muted-foreground">{noResultsMessage}</li>
           )}
           {results.map((item) => (

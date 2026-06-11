@@ -3,6 +3,7 @@ import {
   searchSapItems,
   mapHanaItemRow,
   mapItemDetailRow,
+  formatItemWarehouseFields,
   buildSapItemCreatePayload,
   getSapItemSeries,
 } from '@/lib/sapItems';
@@ -114,40 +115,75 @@ describe('sapItems search helper', () => {
     expect(payload.Series).toBe(129);
   });
 
-  it('mapItemDetailRow maps price, UoM group, and warehouse', () => {
+  it('formatItemWarehouseFields builds label from code and name', () => {
+    expect(formatItemWarehouseFields('KRA004', 'Main Warehouse')).toEqual({
+      warehouseCode: 'KRA004',
+      warehouseName: 'Main Warehouse',
+      warehouseLabel: 'KRA004 — Main Warehouse',
+    });
+    expect(formatItemWarehouseFields('', '')).toEqual({
+      warehouseCode: '',
+      warehouseName: '',
+      warehouseLabel: '',
+    });
+  });
+
+  it('mapItemDetailRow maps price, UoM group, and warehouse from SQL aliases', () => {
     expect(
       mapItemDetailRow({
-        ItemCode: 'A1',
-        ItemName: 'Widget',
-        UgpEntry: 1,
-        UgpName: 'Manual',
-        DfltWH: 'KRA004',
-        WhsName: 'Main Warehouse',
-        AvgPrice: 100,
+        itemCode: 'A1',
+        itemName: 'Widget',
+        ugpEntry: 1,
+        uom: 'Manual',
+        warehouseCode: 'KRA004',
+        warehouseName: 'Main Warehouse',
+        price: 100,
       }),
     ).toEqual({
       itemCode: 'A1',
       itemName: 'Widget',
       price: 100,
+      ugpEntry: 1,
+      uom: 'Manual',
+      uomCode: undefined,
+      inventoryUom: undefined,
       uomGroupEntry: 1,
       uomGroupName: 'Manual',
       warehouseCode: 'KRA004',
       warehouseName: 'Main Warehouse',
+      warehouseLabel: 'KRA004 — Main Warehouse',
       itemGroupCode: undefined,
       itemGroupName: undefined,
     });
   });
 
-  it('mapItemDetailRow trims warehouse code from OITM.DfltWH', () => {
+  it('mapItemDetailRow returns empty warehouse fields when DfltWH is missing', () => {
     expect(
       mapItemDetailRow({
-        ItemCode: 'A1',
-        DfltWH: '  KRA004  ',
-        WhsName: ' Main ',
+        itemCode: 'A1',
+        warehouseCode: '',
+        warehouseName: '',
+      }),
+    ).toMatchObject({
+      warehouseCode: '',
+      warehouseName: '',
+      warehouseLabel: '',
+    });
+  });
+
+  it('mapHanaItemRow includes warehouse from search SQL aliases', () => {
+    expect(
+      mapHanaItemRow({
+        itemCode: 'ITM1',
+        itemName: 'Widget',
+        warehouseCode: 'KRA004',
+        warehouseName: 'Main',
+        ugpEntry: 1,
       }),
     ).toMatchObject({
       warehouseCode: 'KRA004',
       warehouseName: 'Main',
+      warehouseLabel: 'KRA004 — Main',
     });
   });
 });

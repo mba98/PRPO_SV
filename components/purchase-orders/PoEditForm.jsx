@@ -68,6 +68,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [lineDetailLoading, setLineDetailLoading] = useState({});
 
   function updateLine(idx, patch) {
     setLines((prev) =>
@@ -262,18 +263,33 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
                   <ItemSearchInput
                     value={line}
                     inputClassName={COMPACT_INPUT}
-                    onSelect={(item) =>
-                      updateLine(idx, {
+                    searchingLabel={c.searching}
+                    loadingItemDetailsLabel={c.loadingItemDetails}
+                    onDetailLoadingChange={(loading) =>
+                      setLineDetailLoading((prev) => ({ ...prev, [idx]: loading }))
+                    }
+                    onSelect={(item) => {
+                      const patch = {
                         itemCode: item.itemCode,
                         itemName: item.itemName,
                         uomCode: item.uomCode || item.uom || line.uomCode,
                         ugpEntry: item.ugpEntry ?? line.ugpEntry,
                         ugpName: item.ugpName || line.ugpName,
-                        warehouseCode: item.warehouseCode || '',
-                        warehouseLabel: item.warehouseLabel || item.warehouseCode || '',
                         unitPrice: item.estimatedUnitPrice ?? line.unitPrice,
-                      })
-                    }
+                      };
+                      if (item.warehouseCode) {
+                        patch.warehouseCode = item.warehouseCode;
+                        patch.warehouseLabel =
+                          item.warehouseLabel ||
+                          (item.warehouseName
+                            ? `${item.warehouseCode} — ${item.warehouseName}`
+                            : item.warehouseCode);
+                      } else {
+                        patch.warehouseCode = '';
+                        patch.warehouseLabel = '';
+                      }
+                      updateLine(idx, patch);
+                    }}
                   />
                 </FormField>
 
@@ -314,6 +330,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
                     className={COMPACT_INPUT}
                     required
                     value={line.unitPrice}
+                    disabled={Boolean(lineDetailLoading[idx])}
                     onChange={(e) => updateLine(idx, { unitPrice: e.target.value })}
                   />
                 </FormField>
@@ -339,6 +356,7 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
                     valueCode={line.warehouseCode}
                     valueLabel={line.warehouseLabel}
                     inputClassName={COMPACT_INPUT}
+                    disabled={Boolean(lineDetailLoading[idx])}
                     onSelect={(code, label) =>
                       updateLine(idx, { warehouseCode: code, warehouseLabel: label })
                     }

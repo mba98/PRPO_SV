@@ -13,11 +13,13 @@ describe('sap HANA SQL builders', () => {
     expect(quoteSchema('SBODEMOUS')).toBe('"SBODEMOUS"');
   });
 
-  it('builds item search SQL with OITM/OITB join', () => {
+  it('builds item search SQL with OITM/OITB/OWHS join and warehouse aliases', () => {
     const sql = buildItemSearchSql('SBODEMOUS', 20, 'limit');
     expect(sql).toContain('"SBODEMOUS"."OITM"');
     expect(sql).toContain('LEFT JOIN "SBODEMOUS"."OITB"');
-    expect(sql).toContain('T1."ItmsGrpNam"');
+    expect(sql).toContain('LEFT JOIN "SBODEMOUS"."OWHS"');
+    expect(sql).toContain('AS "warehouseCode"');
+    expect(sql).toContain('AS "warehouseName"');
     expect(sql).toContain('UPPER(?)');
     expect(sql).toContain('LIMIT 20');
   });
@@ -47,13 +49,15 @@ describe('sap HANA SQL builders', () => {
     expect(sql).toContain('LIMIT 50');
   });
 
-  it('builds item detail SQL with OUGP and OWHS joins', () => {
+  it('builds item detail SQL with OUGP and OWHS joins and response aliases', () => {
     const sql = buildItemDetailSql('MYCO');
     expect(sql).toContain('"MYCO"."OUGP"');
     expect(sql).toContain('"MYCO"."OWHS"');
-    expect(sql).toContain('T0."AvgPrice"');
-    expect(sql).toContain('T1."UgpName"');
-    expect(sql).toContain('T2."WhsName"');
+    expect(sql).toContain('AS "warehouseCode"');
+    expect(sql).toContain('AS "warehouseName"');
+    expect(sql).toContain('AS "ugpEntry"');
+    expect(sql).toContain('AS "uom"');
+    expect(sql).toContain('AS "price"');
   });
 
   it('builds warehouses SQL from OWHS', () => {

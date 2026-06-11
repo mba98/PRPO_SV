@@ -93,6 +93,7 @@ export default function PrCreateForm() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [itemModal, setItemModal] = useState(false);
   const [itemModalLine, setItemModalLine] = useState(0);
+  const [lineDetailLoading, setLineDetailLoading] = useState({});
 
   function updateHeader(patch) {
     setHeader((prev) => {
@@ -346,24 +347,38 @@ export default function PrCreateForm() {
                     inputClassName={COMPACT_INPUT}
                     placeholder={t.searchItem}
                     searchingLabel={t.searching}
+                    loadingItemDetailsLabel={t.loadingItemDetails}
                     noResultsMessage={t.noMatchingItems}
                     canCreateNew={canCreateItem}
                     createNewLabel={t.createNewItem}
+                    onDetailLoadingChange={(loading) =>
+                      setLineDetailLoading((prev) => ({ ...prev, [idx]: loading }))
+                    }
                     onCreateNew={() => {
                       setItemModalLine(idx);
                       setItemModal(true);
                     }}
                     onSelect={(item) => {
-                      updateLine(idx, {
+                      const patch = {
                         itemCode: item.itemCode,
                         itemName: item.itemName,
                         ugpEntry: item.ugpEntry ?? '',
                         ugpName: item.ugpName || '',
-                        warehouseCode: item.warehouseCode || '',
-                        warehouseLabel: item.warehouseLabel || item.warehouseCode || '',
                         estimatedUnitPrice: item.estimatedUnitPrice ?? '',
                         itemGroupName: item.itemGroupName || '',
-                      });
+                      };
+                      if (item.warehouseCode) {
+                        patch.warehouseCode = item.warehouseCode;
+                        patch.warehouseLabel =
+                          item.warehouseLabel ||
+                          (item.warehouseName
+                            ? `${item.warehouseCode} — ${item.warehouseName}`
+                            : item.warehouseCode);
+                      } else {
+                        patch.warehouseCode = '';
+                        patch.warehouseLabel = '';
+                      }
+                      updateLine(idx, patch);
                     }}
                   />
                 </FormField>
@@ -389,6 +404,7 @@ export default function PrCreateForm() {
                     emptyMessage={t.noWarehousesFound}
                     loadingMessage={t.loading}
                     inputClassName={COMPACT_INPUT}
+                    disabled={Boolean(lineDetailLoading[idx])}
                     onSelect={(code, label) =>
                       updateLine(idx, { warehouseCode: code, warehouseLabel: label })
                     }
@@ -428,6 +444,7 @@ export default function PrCreateForm() {
                     step="any"
                     className={COMPACT_INPUT}
                     value={line.estimatedUnitPrice}
+                    disabled={Boolean(lineDetailLoading[idx])}
                     onChange={(e) => updateLine(idx, { estimatedUnitPrice: e.target.value })}
                   />
                 </FormField>
@@ -440,6 +457,7 @@ export default function PrCreateForm() {
                     valueLabel={line.ugpName}
                     placeholder={t.selectUom}
                     inputClassName={COMPACT_INPUT}
+                    disabled={Boolean(lineDetailLoading[idx])}
                     onSelect={(entry, row) =>
                       updateLine(idx, {
                         ugpEntry: entry,

@@ -62,6 +62,8 @@ describe('PR create form — compact bilingual UI', () => {
     expect(itemSearch).toContain('warehouseCode');
     expect(itemSearch).toContain('warehouseLabel');
     expect(itemSearch).toContain('[item-select] assigned warehouse');
+    expect(itemSearch).toContain('loadingItemDetailsLabel');
+    expect(itemSearch).toContain('onDetailLoadingChange');
     expect(itemSearch).toContain('estimatedUnitPrice');
   });
 
