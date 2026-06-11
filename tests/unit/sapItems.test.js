@@ -121,6 +121,11 @@ describe('sapItems search helper', () => {
       warehouseName: 'Main Warehouse',
       warehouseLabel: 'KRA004 — Main Warehouse',
     });
+    expect(formatItemWarehouseFields('-', 'Ignored')).toEqual({
+      warehouseCode: '',
+      warehouseName: 'Ignored',
+      warehouseLabel: '',
+    });
     expect(formatItemWarehouseFields('', '')).toEqual({
       warehouseCode: '',
       warehouseName: '',
@@ -146,7 +151,6 @@ describe('sapItems search helper', () => {
       ugpEntry: 1,
       uom: 'Manual',
       uomCode: undefined,
-      inventoryUom: undefined,
       uomGroupEntry: 1,
       uomGroupName: 'Manual',
       warehouseCode: 'KRA004',
@@ -168,6 +172,25 @@ describe('sapItems search helper', () => {
       warehouseCode: '',
       warehouseName: '',
       warehouseLabel: '',
+    });
+  });
+
+  it('mapItemDetailRow uses OITW fallback warehouse from SQL alias', () => {
+    expect(
+      mapItemDetailRow({
+        itemCode: 'ITM0000271',
+        warehouseCode: '01',
+        warehouseName: 'Smart Vision',
+        uomCode: 'PCS',
+        uom: 'قطعة',
+        ugpEntry: 1,
+      }),
+    ).toMatchObject({
+      warehouseCode: '01',
+      warehouseName: 'Smart Vision',
+      warehouseLabel: '01 — Smart Vision',
+      uomCode: 'PCS',
+      uom: 'قطعة',
     });
   });
 

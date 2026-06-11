@@ -49,12 +49,17 @@ describe('sap HANA SQL builders', () => {
     expect(sql).toContain('LIMIT 50');
   });
 
-  it('builds item detail SQL with OUGP and OWHS joins and response aliases', () => {
+  it('builds item detail SQL with OITW warehouse fallback and response aliases', () => {
     const sql = buildItemDetailSql('MYCO');
     expect(sql).toContain('"MYCO"."OUGP"');
     expect(sql).toContain('"MYCO"."OWHS"');
+    expect(sql).toContain('"MYCO"."OITW"');
+    expect(sql).toContain('MIN("WhsCode")');
+    expect(sql).toContain('COALESCE(NULLIF(NULLIF(T0."DfltWH", \'\'), \'-\'), W1."WhsCode")');
+    expect(sql).not.toContain('CROSS JOIN');
     expect(sql).toContain('AS "warehouseCode"');
     expect(sql).toContain('AS "warehouseName"');
+    expect(sql).toContain('AS "uomCode"');
     expect(sql).toContain('AS "ugpEntry"');
     expect(sql).toContain('AS "uom"');
     expect(sql).toContain('AS "price"');
