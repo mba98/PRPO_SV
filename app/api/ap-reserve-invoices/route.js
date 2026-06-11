@@ -2,6 +2,7 @@ import { withAuth } from '@/lib/auth';
 import { parseListQuery } from '@/lib/errors';
 import { listApReserveInvoices } from '@/lib/apReserveInvoicesService';
 import { jsonSuccess, handleServiceError } from '@/lib/apiHelpers';
+import { APRI_VIEW_PERMISSIONS } from '@/lib/apriPermissions.js';
 
 async function getHandler(request, _ctx, user) {
   try {
@@ -19,4 +20,4 @@ async function getHandler(request, _ctx, user) {
   }
 }
 
-export const GET = withAuth(getHandler, ['apinvoice.create', 'view.all']);
+export const GET = withAuth(getHandler, APRI_VIEW_PERMISSIONS);

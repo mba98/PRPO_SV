@@ -99,6 +99,16 @@ describe('navigation permissions', () => {
     expect(nav.some((n) => n.href === '/purchase-orders')).toBe(true);
   });
 
+  it('WHS approver sees A/P Reserve Invoices nav with pr.approve.whs', () => {
+    const nav = getVisibleNavItems(['pr.approve.whs']);
+    expect(nav.some((n) => n.href === '/ap-reserve-invoices')).toBe(true);
+  });
+
+  it('hides A/P Reserve Invoices without APRI view permissions', () => {
+    const nav = getVisibleNavItems(['pr.create']);
+    expect(nav.some((n) => n.href === '/ap-reserve-invoices')).toBe(false);
+  });
+
   it('procurement sees approved-for-po with po.create', () => {
     const nav = getVisibleNavItems(['po.create']);
     expect(nav.some((n) => n.href === '/purchase-requests/approved-for-po')).toBe(true);

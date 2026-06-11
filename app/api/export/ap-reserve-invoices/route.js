@@ -4,7 +4,9 @@ import { fetchApReserveInvoicesForExport } from '@/lib/apReserveInvoicesService'
 import { apriRowsForExport, buildWorkbookBuffer, exportFilename } from '@/lib/excelExport';
 import { handleServiceError } from '@/lib/apiHelpers';
 
-const LIST_PERMS = ['apinvoice.create', 'view.all'];
+import { APRI_VIEW_PERMISSIONS } from '@/lib/apriPermissions.js';
+
+const LIST_PERMS = APRI_VIEW_PERMISSIONS;
 
 async function getHandler(request, _ctx, user) {
   try {

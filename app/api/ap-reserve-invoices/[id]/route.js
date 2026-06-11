@@ -8,6 +8,7 @@ import {
   jsonValidation,
   parseJsonBody,
 } from '@/lib/apiHelpers';
+import { APRI_VIEW_PERMISSIONS } from '@/lib/apriPermissions.js';
 
 async function getHandler(_request, { params }, user) {
   try {
@@ -31,5 +32,5 @@ async function putHandler(request, { params }, user) {
   }
 }
 
-export const GET = withAuth(getHandler, ['apinvoice.create', 'view.all', 'pr.approve.whs']);
+export const GET = withAuth(getHandler, APRI_VIEW_PERMISSIONS);
 export const PUT = withAuth(putHandler, ['apinvoice.create', 'view.all']);

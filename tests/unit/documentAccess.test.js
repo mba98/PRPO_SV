@@ -18,6 +18,21 @@ vi.mock('@/models/APReserveInvoice.js', () => ({
   default: { findById: (id) => mocks.apriFindById(id) },
 }));
 
+vi.mock('@/lib/approvalEngine.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    getApprovalSteps: vi.fn().mockResolvedValue([
+      {
+        stepOrder: 1,
+        stepName: 'Warehouse Approval',
+        requiredPermission: 'pr.approve.whs',
+        pendingStatus: 'Pending Warehouse Approval',
+      },
+    ]),
+  };
+});
+
 import { assertCanAccessDocument } from '@/lib/documentAccess.js';
 
 const PR_ID = '64b8c1a52f5b1b2c3d4e5f60';
@@ -111,8 +126,15 @@ describe('assertCanAccessDocument', () => {
     ).resolves.toBeTruthy();
   });
 
-  it('allows apinvoice.create users to access any APRI', async () => {
-    mocks.apriFindById.mockReturnValueOnce(lean({ _id: APRI_ID }));
+  it('allows apinvoice.create users to access their own APRI', async () => {
+    mocks.apriFindById.mockReturnValueOnce(
+      lean({
+        _id: APRI_ID,
+        createdBy: 'u5',
+        status: 'Pending Warehouse Approval',
+        currentApprovalStep: 1,
+      }),
+    );
     await expect(
       assertCanAccessDocument(
         { _id: 'u5', permissions: ['apinvoice.create'] },
@@ -122,11 +144,36 @@ describe('assertCanAccessDocument', () => {
     ).resolves.toBeTruthy();
   });
 
-  it('forbids users without apinvoice.create or view.all from APRI access', async () => {
-    mocks.apriFindById.mockReturnValueOnce(lean({ _id: APRI_ID }));
+  it('allows pr.approve.whs users to access APRI pending warehouse approval', async () => {
+    mocks.apriFindById.mockReturnValueOnce(
+      lean({
+        _id: APRI_ID,
+        createdBy: 'someoneElse',
+        status: 'Pending Warehouse Approval',
+        currentApprovalStep: 1,
+      }),
+    );
     await expect(
       assertCanAccessDocument(
-        { _id: 'u6', permissions: ['pr.create'] },
+        { _id: 'u6', permissions: ['pr.approve.whs'] },
+        'APRI',
+        APRI_ID,
+      ),
+    ).resolves.toBeTruthy();
+  });
+
+  it('forbids users without matrix or procurement access from APRI', async () => {
+    mocks.apriFindById.mockReturnValueOnce(
+      lean({
+        _id: APRI_ID,
+        createdBy: 'someoneElse',
+        status: 'Pending Warehouse Approval',
+        currentApprovalStep: 1,
+      }),
+    );
+    await expect(
+      assertCanAccessDocument(
+        { _id: 'u7', permissions: ['pr.create'] },
         'APRI',
         APRI_ID,
       ),

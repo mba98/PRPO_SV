@@ -7,6 +7,7 @@ import {
   parseJsonBody,
   handleServiceError,
 } from '@/lib/apiHelpers';
+import { APRI_VIEW_PERMISSIONS } from '@/lib/apriPermissions.js';
 
 async function postHandler(request, { params }, user) {
   try {
@@ -20,4 +21,4 @@ async function postHandler(request, { params }, user) {
   }
 }
 
-export const POST = withAuth(postHandler, ['pr.approve.whs', 'view.all']);
+export const POST = withAuth(postHandler, APRI_VIEW_PERMISSIONS);
