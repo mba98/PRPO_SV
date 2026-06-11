@@ -81,6 +81,7 @@ purchaseRequestSchema.index({ department: 1, createdAt: -1 });
 purchaseRequestSchema.index({ project: 1 });
 purchaseRequestSchema.index({ warehouse: 1 });
 purchaseRequestSchema.index({ createdAt: -1 });
+purchaseRequestSchema.index({ createdBy: 1, createdAt: -1 });
 
 export default mongoose.models.PurchaseRequest ||
   mongoose.model('PurchaseRequest', purchaseRequestSchema);

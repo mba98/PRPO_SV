@@ -64,6 +64,8 @@ apReserveInvoiceSchema.index({ relatedPOId: 1 });
 apReserveInvoiceSchema.index({ sapAPDocEntry: 1 });
 apReserveInvoiceSchema.index({ status: 1, createdAt: -1 });
 apReserveInvoiceSchema.index({ vendor: 1 });
+apReserveInvoiceSchema.index({ status: 1, currentApprovalStep: 1 });
+apReserveInvoiceSchema.index({ createdBy: 1, createdAt: -1 });
 
 export default mongoose.models.APReserveInvoice ||
   mongoose.model('APReserveInvoice', apReserveInvoiceSchema);

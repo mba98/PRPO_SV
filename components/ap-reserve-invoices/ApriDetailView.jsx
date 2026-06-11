@@ -10,6 +10,7 @@ import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 import { useI18n } from '@/lib/hooks/useI18n';
+import { readPortalDocument, cachePortalDocument } from '@/lib/documentClientCache';
 
 export default function ApriDetailView({ id }) {
   const { common, detail, apri: apriI18n } = useI18n();
@@ -19,8 +20,16 @@ export default function ApriDetailView({ id }) {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
   const [retrying, setRetrying] = useState(false);
+  const [emailLogs, setEmailLogs] = useState([]);
+  const [emailLogsLoading, setEmailLogsLoading] = useState(false);
 
   const load = useCallback(async () => {
+    const cached = readPortalDocument('APRI', id);
+    if (cached) {
+      setApri(cached);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}`);
     if (json.success) setApri(json.data);
@@ -31,6 +40,21 @@ export default function ApriDetailView({ id }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (activeTab !== 'emails' || emailLogs.length || emailLogsLoading) return;
+    (async () => {
+      setEmailLogsLoading(true);
+      const params = new URLSearchParams({
+        relatedDocumentType: 'APRI',
+        relatedDocumentId: id,
+        limit: '50',
+      });
+      const { json } = await apiFetch(`/api/email/logs?${params}`);
+      if (json.success) setEmailLogs(Array.isArray(json.data) ? json.data : []);
+      setEmailLogsLoading(false);
+    })();
+  }, [activeTab, emailLogs.length, emailLogsLoading, id]);
 
   async function retrySap() {
     setRetrying(true);
@@ -92,7 +116,11 @@ export default function ApriDetailView({ id }) {
         </div>
         <div className="flex flex-wrap gap-2">
           {canApprove && (
-            <Link href={`/ap-reserve-invoices/${id}/approve`} className="btn-primary min-h-10">
+            <Link
+              href={`/ap-reserve-invoices/${id}/approve`}
+              className="btn-primary min-h-10"
+              onClick={() => cachePortalDocument('APRI', id, apri)}
+            >
               {common.approveReject}
             </Link>
           )}
@@ -210,7 +238,9 @@ export default function ApriDetailView({ id }) {
 
       {activeTab === 'emails' && (
         <section className="card overflow-x-auto">
-          {(apri.emailLogs || []).length === 0 ? (
+          {emailLogsLoading ? (
+            <p className="text-sm text-muted-foreground">{common.loading}</p>
+          ) : emailLogs.length === 0 ? (
             <p className="text-sm text-muted-foreground">{detail.noEmailLogs}</p>
           ) : (
             <table className="min-w-full text-sm">
@@ -223,7 +253,7 @@ export default function ApriDetailView({ id }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {apri.emailLogs.map((e) => (
+                {emailLogs.map((e) => (
                   <tr key={e.id}>
                     <td className="py-2 pr-4">{e.to}</td>
                     <td className="py-2 pr-4">{e.subject}</td>

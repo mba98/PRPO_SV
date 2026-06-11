@@ -67,6 +67,9 @@ purchaseOrderSchema.index({ status: 1, currentApprovalStep: 1 });
 purchaseOrderSchema.index({ relatedPRId: 1 });
 purchaseOrderSchema.index({ relatedPRId: 1, vendor: 1 });
 purchaseOrderSchema.index({ sapPODocEntry: 1 });
+purchaseOrderSchema.index({ createdAt: -1 });
+purchaseOrderSchema.index({ requester: 1, createdAt: -1 });
+purchaseOrderSchema.index({ createdBy: 1, createdAt: -1 });
 
 export default mongoose.models.PurchaseOrder ||
   mongoose.model('PurchaseOrder', purchaseOrderSchema);

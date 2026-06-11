@@ -20,9 +20,13 @@ vi.mock('@/lib/attachmentsService.js', () => ({
   listAttachments: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock('@/lib/workflowSteps.js', () => ({
-  loadPoWorkflow: vi.fn().mockResolvedValue([]),
-}));
+vi.mock('@/lib/workflowSteps.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    loadPoWorkflow: vi.fn().mockResolvedValue([]),
+  };
+});
 
 import { PO_EDIT_FORBIDDEN_MESSAGE } from '@/lib/poEditPermissions';
 import { PO_STATUS } from '@/lib/poStatus';

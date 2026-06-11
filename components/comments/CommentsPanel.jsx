@@ -64,7 +64,6 @@ export default function CommentsPanel({
       if (json.data) {
         setItems((prev) => [...prev, json.data]);
       }
-      await load();
     } else {
       setError(json.message || 'Failed to post comment');
     }

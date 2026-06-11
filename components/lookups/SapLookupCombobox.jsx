@@ -35,7 +35,7 @@ export default function SapLookupCombobox({
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
-    if (disabled) return undefined;
+    if (disabled || !focused) return undefined;
 
     const trimmed = query.trim();
     if (trimmed.length < queryMin) {
@@ -59,7 +59,7 @@ export default function SapLookupCombobox({
     }, 300);
 
     return () => clearTimeout(timer.current);
-  }, [query, endpoint, disabled, queryMin]);
+  }, [query, endpoint, disabled, queryMin, focused]);
 
   function pick(option) {
     const code = getCode(option);

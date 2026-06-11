@@ -8,6 +8,7 @@ import { uploadDocumentAttachments } from '@/lib/attachmentUploadHelpers';
 import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
 import { Button, FormField, PortalLoader, Textarea } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
+import { cachePortalDocument, peekPortalDocument, readPortalDocument } from '@/lib/documentClientCache';
 
 const KIND_CONFIG = {
   PR: {
@@ -56,13 +57,19 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
   const backLabel = appr[config.backLabel] || appr.cancel;
 
   useEffect(() => {
+    const cached = readPortalDocument(kind, id) || peekPortalDocument(kind, id);
+    if (cached) {
+      setDoc(cached);
+      setLoading(false);
+      return;
+    }
     (async () => {
       const { json } = await apiFetch(`${config.apiBase}/${id}`);
       if (json.success) setDoc(json.data);
       else setError(json.message || common.errorLoad);
       setLoading(false);
     })();
-  }, [id, config.apiBase, common.errorLoad]);
+  }, [id, kind, config.apiBase, common.errorLoad]);
 
   async function handleAction(action) {
     if (submittingAction) return;
@@ -97,6 +104,8 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
           approvalStep: String(doc.currentApprovalStep),
         });
         if (failures.length) {
+          const updatedDoc = json.data?.document || json.data?.pr || json.data?.po || json.data?.apri;
+          if (updatedDoc) cachePortalDocument(kind, id, updatedDoc);
           router.push(
             `${detailPath}?attachmentWarning=${encodeURIComponent(appr.attachmentUploadWarning)}`,
           );
@@ -104,6 +113,10 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
         }
       }
 
+      const updatedDoc = json.data?.document || json.data?.pr || json.data?.po || json.data?.apri;
+      if (updatedDoc) {
+        cachePortalDocument(kind, id, updatedDoc);
+      }
       router.push(detailPath);
     } catch (err) {
       setError(err.message || appr.submitError);

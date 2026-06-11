@@ -17,6 +17,8 @@ const sapIntegrationLogSchema = new mongoose.Schema(
 );
 
 sapIntegrationLogSchema.index({ documentType: 1, documentId: 1, createdAt: -1 });
+sapIntegrationLogSchema.index({ status: 1, createdAt: -1 });
+sapIntegrationLogSchema.index({ status: 1, documentId: 1 });
 
 export default mongoose.models.SapIntegrationLog ||
   mongoose.model('SapIntegrationLog', sapIntegrationLogSchema);

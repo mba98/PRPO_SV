@@ -14,6 +14,7 @@ import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 import { isPendingPoApprovalStatus } from '@/lib/poStatus.js';
 import { PO_VIEW_PERMISSIONS } from '@/lib/poPermissions.js';
+import { readPortalDocument, cachePortalDocument } from '@/lib/documentClientCache';
 
 export default function PoDetailView({ id }) {
   const { common, detail, po: poI18n } = useI18n();
@@ -33,6 +34,12 @@ export default function PoDetailView({ id }) {
   }, [attachmentWarning]);
 
   const load = useCallback(async () => {
+    const cached = readPortalDocument('PO', id);
+    if (cached) {
+      setPo(cached);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { json } = await apiFetch(`/api/purchase-orders/${id}`);
     if (json.success) setPo(json.data);
@@ -114,7 +121,11 @@ export default function PoDetailView({ id }) {
             </button>
           )}
           {canApprove && (
-            <Link href={`/purchase-orders/${id}/approve`} className="btn-primary min-h-10">
+            <Link
+              href={`/purchase-orders/${id}/approve`}
+              className="btn-primary min-h-10"
+              onClick={() => cachePortalDocument('PO', id, po)}
+            >
               {common.approveReject}
             </Link>
           )}

@@ -8,10 +8,10 @@ export default function AuthProvider({ initialUser, children }) {
 
   const fetchMe = useAuthStore((s) => s.fetchMe);
 
-  // Always reload permissions from DB (role changes apply without a new login).
+  // Refresh permissions from DB without blocking UI when layout already seeded user.
   useEffect(() => {
-    fetchMe();
-  }, [fetchMe]);
+    fetchMe({ background: Boolean(initialUser) });
+  }, [fetchMe, initialUser]);
 
   return children;
 }

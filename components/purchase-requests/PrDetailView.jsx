@@ -12,6 +12,7 @@ import CreatePoFromPrPanel from '@/components/purchase-requests/CreatePoFromPrPa
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
+import { readPortalDocument, cachePortalDocument } from '@/lib/documentClientCache';
 
 export default function PrDetailView({ id }) {
   const { common, detail, pr: prI18n } = useI18n();
@@ -29,6 +30,12 @@ export default function PrDetailView({ id }) {
   }, [attachmentWarning]);
 
   const load = useCallback(async () => {
+    const cached = readPortalDocument('PR', id);
+    if (cached) {
+      setPr(cached);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { json: prJson } = await apiFetch(`/api/purchase-requests/${id}`);
     if (prJson.success) setPr(prJson.data);
@@ -112,7 +119,11 @@ export default function PrDetailView({ id }) {
         </div>
         <div className="flex gap-2">
           {canApprove && (
-            <Link href={`/purchase-requests/${id}/approve`} className="btn-primary min-h-10">
+            <Link
+              href={`/purchase-requests/${id}/approve`}
+              className="btn-primary min-h-10"
+              onClick={() => cachePortalDocument('PR', id, pr)}
+            >
               {common.approveReject}
             </Link>
           )}

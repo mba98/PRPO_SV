@@ -15,6 +15,7 @@ const approvalMatrixSchema = new mongoose.Schema(
 );
 
 approvalMatrixSchema.index({ documentType: 1, stepOrder: 1 }, { unique: true });
+approvalMatrixSchema.index({ documentType: 1, isActive: 1, stepOrder: 1 });
 
 export default mongoose.models.ApprovalMatrix ||
   mongoose.model('ApprovalMatrix', approvalMatrixSchema);

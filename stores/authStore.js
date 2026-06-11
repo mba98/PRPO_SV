@@ -14,8 +14,10 @@ export const useAuthStore = create((set, get) => ({
 
   setUser: (user) => set({ user, loading: false, error: null }),
 
-  fetchMe: async () => {
-    set({ loading: true, error: null });
+  fetchMe: async ({ background = false } = {}) => {
+    if (!background) {
+      set({ loading: true, error: null });
+    }
     try {
       const res = await fetch('/api/auth/me', { credentials: 'include' });
       const json = await res.json();
