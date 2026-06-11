@@ -387,14 +387,23 @@ export default function ApprovalMatrixManager() {
               {fieldErrors.stepName && <p className="mt-1 text-xs text-destructive">{fieldErrors.stepName}</p>}
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-sm font-medium">Pending status label (optional)</label>
+              <label className="mb-1 block text-sm font-medium">Pending status (optional)</label>
               <input
                 value={form.pendingStatus}
                 onChange={(e) => setForm({ ...form, pendingStatus: e.target.value })}
-                placeholder="e.g. Pending Warehouse Approval"
+                placeholder={
+                  form.documentType === 'PO'
+                    ? 'Auto: pending_pm / pending_om / pending_finance'
+                    : 'e.g. Pending Warehouse Approval'
+                }
                 className="input-field"
+                disabled={form.documentType === 'PO'}
               />
-              <p className="mt-1 text-xs text-muted-foreground">Used as document status while awaiting this step.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {form.documentType === 'PO'
+                  ? 'PO steps use stable status keys from the required permission (not display labels).'
+                  : 'Used as document status while awaiting this step.'}
+              </p>
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium">Required permission</label>

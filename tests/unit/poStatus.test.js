@@ -49,6 +49,39 @@ describe('poStatus', () => {
     expect(pendingPoStatusForStep(PO_STEPS[1])).toBe(PO_STATUS.PENDING_OM);
     expect(pendingPoStatusForStep(PO_STEPS[2])).toBe(PO_STATUS.PENDING_FINANCE);
   });
+
+  it('ignores generic pendingStatus labels when permission maps to stable key', () => {
+    expect(
+      pendingPoStatusForStep({
+        stepName: 'Finance Approval',
+        requiredPermission: 'po.approve.finance',
+        pendingStatus: 'Pending approval',
+      }),
+    ).toBe(PO_STATUS.PENDING_FINANCE);
+  });
+
+  it('advances OM approval to pending_finance even with bad matrix pendingStatus', () => {
+    const steps = [
+      { stepOrder: 1, requiredPermission: 'po.approve.pm', stepName: 'PM' },
+      {
+        stepOrder: 2,
+        requiredPermission: 'po.approve.om',
+        stepName: 'Operation Manager',
+        pendingStatus: 'Pending approval',
+      },
+      {
+        stepOrder: 3,
+        requiredPermission: 'po.approve.finance',
+        stepName: 'Finance',
+        pendingStatus: 'Pending approval',
+      },
+    ];
+    expect(getStateAfterApproval(steps, 2, 'PO')).toMatchObject({
+      status: PO_STATUS.PENDING_FINANCE,
+      currentApprovalStep: 3,
+      isFinal: false,
+    });
+  });
 });
 
 describe('PO approval flow with stable status keys', () => {
