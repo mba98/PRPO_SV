@@ -23,6 +23,7 @@ export default function PoDetailView({ id }) {
   const attachmentWarning = searchParams.get('attachmentWarning');
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const { doc: po, loading, error, refresh, setDocument } = usePortalDocument('PO', id, 'PoDetailView');
+  const userId = useAuthStore((s) => s.user?.id);
   const [retryingSap, setRetryingSap] = useState(false);
   const [actionError, setActionError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
@@ -58,6 +59,7 @@ export default function PoDetailView({ id }) {
   const displayError = actionError || error;
 
   const canApprove = po.canApproveCurrentStep === true;
+  const approveHref = po.approveUrl || `/purchase-orders/${id}/approve`;
   const currentWorkflowStep = po.workflowSteps?.find((s) => s.state === 'current');
   const waitingForApproval =
     !canApprove &&
@@ -112,9 +114,9 @@ export default function PoDetailView({ id }) {
           )}
           {canApprove && (
             <Link
-              href={`/purchase-orders/${id}/approve`}
+              href={approveHref}
               className="btn-primary min-h-10"
-              onClick={() => primePortalDocument('PO', id, po)}
+              onClick={() => primePortalDocument('PO', id, po, userId)}
             >
               {common.approveReject}
             </Link>

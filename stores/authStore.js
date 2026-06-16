@@ -6,6 +6,7 @@ import {
   userHasAnyEffectivePermission,
   userHasEffectivePermission,
 } from '@/lib/effectivePermissions';
+import { clearPortalDocumentCache } from '@/lib/documentClientCache';
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -23,10 +24,19 @@ export const useAuthStore = create((set, get) => ({
       const json = await res.json();
       if (!json.success) {
         set({ user: null, loading: false, error: json.message });
+        clearPortalDocumentCache();
         return null;
       }
-      set({ user: json.data.user, loading: false, error: null });
-      return json.data.user;
+      const prev = get().user;
+      const nextUser = json.data.user;
+      if (
+        prev?.id !== nextUser?.id ||
+        !permissionsEqual(prev?.permissions, nextUser?.permissions)
+      ) {
+        clearPortalDocumentCache();
+      }
+      set({ user: nextUser, loading: false, error: null });
+      return nextUser;
     } catch (err) {
       set({ user: null, loading: false, error: err.message });
       return null;
@@ -35,6 +45,7 @@ export const useAuthStore = create((set, get) => ({
 
   logout: async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    clearPortalDocumentCache();
     set({ user: null, loading: false, error: null });
   },
 
@@ -66,7 +77,11 @@ function permissionsEqual(a = [], b = []) {
 export function initializeAuthStore(user) {
   if (!user) return;
   const state = useAuthStore.getState();
-  if (
+  if (state.user?.id !== user.id) {
+    clearPortalDocumentCache();
+  } else if (!permissionsEqual(state.user?.permissions, user.permissions)) {
+    clearPortalDocumentCache();
+  } else if (
     state.user?.id === user.id &&
     permissionsEqual(state.user?.permissions, user.permissions)
   ) {

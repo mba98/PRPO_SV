@@ -10,6 +10,7 @@ import { Button, FormField, PortalLoader, Textarea } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
 import { primePortalDocument } from '@/lib/documentClientCache';
+import { useAuthStore } from '@/stores/authStore';
 
 const KIND_CONFIG = {
   PR: {
@@ -44,6 +45,7 @@ const KIND_CONFIG = {
 export default function DocumentApproveForm({ id, kind = 'PR' }) {
   const config = KIND_CONFIG[kind] || KIND_CONFIG.PR;
   const router = useRouter();
+  const userId = useAuthStore((s) => s.user?.id);
   const { approval: appr, attachments: att, pr: prI18n, common, approve: approveNs, detail } = useI18n();
   const { doc, loading, error: loadError, setDocument } = usePortalDocument(
     kind,
@@ -100,7 +102,7 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
         if (failures.length) {
           if (updatedDoc) {
             setDocument(updatedDoc);
-            primePortalDocument(kind, id, updatedDoc);
+            primePortalDocument(kind, id, updatedDoc, userId);
           }
           router.replace(
             `${detailPath}?attachmentWarning=${encodeURIComponent(appr.attachmentUploadWarning)}`,
@@ -111,7 +113,7 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
 
       if (updatedDoc) {
         setDocument(updatedDoc);
-        primePortalDocument(kind, id, updatedDoc);
+        primePortalDocument(kind, id, updatedDoc, userId);
       }
       router.replace(detailPath);
     } catch (err) {

@@ -16,6 +16,7 @@ import { primePortalDocument } from '@/lib/documentClientCache';
 export default function ApriDetailView({ id }) {
   const { common, detail, apri: apriI18n } = useI18n();
   const hasPermission = useAuthStore((s) => s.hasPermission);
+  const userId = useAuthStore((s) => s.user?.id);
   const { doc: apri, loading, error, refresh, setDocument } = usePortalDocument(
     'APRI',
     id,
@@ -68,6 +69,7 @@ export default function ApriDetailView({ id }) {
     (hasPermission('view.all') || hasPermission('admin.settings'));
 
   const canApprove = apri.canApproveCurrentStep === true;
+  const approveHref = apri.approveUrl || `/ap-reserve-invoices/${id}/approve`;
   const currentWorkflowStep = apri.workflowSteps?.find((s) => s.state === 'current');
   const waitingForApproval =
     !canApprove &&
@@ -112,9 +114,9 @@ export default function ApriDetailView({ id }) {
         <div className="flex flex-wrap gap-2">
           {canApprove && (
             <Link
-              href={`/ap-reserve-invoices/${id}/approve`}
+              href={approveHref}
               className="btn-primary min-h-10"
-              onClick={() => primePortalDocument('APRI', id, apri)}
+              onClick={() => primePortalDocument('APRI', id, apri, userId)}
             >
               {common.approveReject}
             </Link>

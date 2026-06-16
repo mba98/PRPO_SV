@@ -6,37 +6,44 @@ import {
   readPortalDocument,
 } from '@/lib/documentClientCache';
 
+const USER_A = 'user-a';
+const USER_B = 'user-b';
+
 describe('documentClientCache', () => {
   beforeEach(() => {
-    invalidatePortalDocument('PO', 'po1');
+    invalidatePortalDocument('PO', 'po1', USER_A);
+    invalidatePortalDocument('PO', 'po1', USER_B);
   });
 
   afterEach(() => {
-    invalidatePortalDocument('PO', 'po1');
+    invalidatePortalDocument('PO', 'po1', USER_A);
+    invalidatePortalDocument('PO', 'po1', USER_B);
   });
 
   it('readPortalDocument does not remove cached document', () => {
-    primePortalDocument('PO', 'po1', { id: 'po1', portalPONumber: 'PO-1' });
-    expect(readPortalDocument('PO', 'po1')).toEqual({ id: 'po1', portalPONumber: 'PO-1' });
-    expect(getPortalDocument('PO', 'po1')).toEqual({ id: 'po1', portalPONumber: 'PO-1' });
+    primePortalDocument('PO', 'po1', { id: 'po1', portalPONumber: 'PO-1' }, USER_A);
+    expect(readPortalDocument('PO', 'po1', USER_A)).toEqual({ id: 'po1', portalPONumber: 'PO-1' });
+    expect(getPortalDocument('PO', 'po1', USER_A)).toEqual({ id: 'po1', portalPONumber: 'PO-1' });
   });
 
-  it('getPortalDocument returns memory cache without sessionStorage', () => {
-    primePortalDocument('PO', 'po1', { id: 'po1' });
-    expect(getPortalDocument('PO', 'po1')).toEqual({ id: 'po1' });
-    expect(getPortalDocument('PO', 'po1')).toEqual({ id: 'po1' });
+  it('scopes cache per viewer user', () => {
+    primePortalDocument('PO', 'po1', { id: 'po1', canApproveCurrentStep: false }, USER_A);
+    primePortalDocument('PO', 'po1', { id: 'po1', canApproveCurrentStep: true }, USER_B);
+
+    expect(getPortalDocument('PO', 'po1', USER_A).canApproveCurrentStep).toBe(false);
+    expect(getPortalDocument('PO', 'po1', USER_B).canApproveCurrentStep).toBe(true);
   });
 });
 
 describe('fetchPortalDocument', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
-    invalidatePortalDocument('PO', 'po1');
+    invalidatePortalDocument('PO', 'po1', USER_A);
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    invalidatePortalDocument('PO', 'po1');
+    invalidatePortalDocument('PO', 'po1', USER_A);
   });
 
   it('dedupes concurrent fetches for the same document', async () => {
@@ -59,12 +66,12 @@ describe('fetchPortalDocument', () => {
     );
 
     const [a, b] = await Promise.all([
-      fetchPortalDocument('PO', 'po1', 'TestA'),
-      fetchPortalDocument('PO', 'po1', 'TestB'),
+      fetchPortalDocument('PO', 'po1', 'TestA', USER_A),
+      fetchPortalDocument('PO', 'po1', 'TestB', USER_A),
     ]);
 
     expect(a).toEqual(b);
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(getPortalDocument('PO', 'po1')).toEqual(a);
+    expect(getPortalDocument('PO', 'po1', USER_A)).toEqual(a);
   });
 });

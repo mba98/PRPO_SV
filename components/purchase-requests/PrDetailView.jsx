@@ -20,6 +20,7 @@ export default function PrDetailView({ id }) {
   const searchParams = useSearchParams();
   const attachmentWarning = searchParams.get('attachmentWarning');
   const hasPermission = useAuthStore((s) => s.hasPermission);
+  const userId = useAuthStore((s) => s.user?.id);
   const { doc: pr, loading, error, refresh, setDocument } = usePortalDocument('PR', id, 'PrDetailView');
   const [retryingSap, setRetryingSap] = useState(false);
   const [actionError, setActionError] = useState('');
@@ -54,6 +55,7 @@ export default function PrDetailView({ id }) {
 
   const displayError = actionError || error;
   const canApprove = pr.canApproveCurrentStep === true;
+  const approveHref = pr.approveUrl || `/purchase-requests/${id}/approve`;
   const canRetrySap = pr.canRetrySap === true;
   const showRetryDeniedNote = pr.status === 'Failed to Create in SAP' && !canRetrySap;
   const currentWorkflowStep = pr.workflowSteps?.find((s) => s.state === 'current');
@@ -105,9 +107,9 @@ export default function PrDetailView({ id }) {
         <div className="flex gap-2">
           {canApprove && (
             <Link
-              href={`/purchase-requests/${id}/approve`}
+              href={approveHref}
               className="btn-primary min-h-10"
-              onClick={() => primePortalDocument('PR', id, pr)}
+              onClick={() => primePortalDocument('PR', id, pr, userId)}
             >
               {common.approveReject}
             </Link>
