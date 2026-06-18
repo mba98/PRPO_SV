@@ -42,7 +42,7 @@ describe('Dashboard bilingual i18n', () => {
 
   it('statusLabel normalizes pending warehouse approval casing', () => {
     expect(statusLabel('pending warehouse approval', 'en')).toBe('Pending Warehouse Approval');
-    expect(statusLabel('pending warehouse approval', 'ar')).toBe('بانتظار موافقة المخزن');
+    expect(statusLabel('pending warehouse approval', 'ar')).toBe('بانتظار موافقة المستودع');
   });
 
   it('DashboardView uses status badges and dashboard empty message', () => {

@@ -15,6 +15,8 @@ export const DEFAULT_EMAIL_GROUPS = [
   { eventKey: 'po.rejected', roleNames: ['Requester'] },
   { eventKey: 'po.sap.created', roleNames: ['Requester', 'Procurement', 'Admin'] },
   { eventKey: 'po.sap.failed', roleNames: ['Admin'] },
-  { eventKey: 'apri.sap.created', roleNames: ['Finance', 'WHS Approver', 'Procurement'] },
-  { eventKey: 'apri.sap.failed', roleNames: ['Admin'] },
+  { eventKey: 'apri.warehouse.approved', roleNames: ['Procurement'] },
+  { eventKey: 'apri.warehouse.rejected', roleNames: ['Procurement'] },
+  { eventKey: 'apri.sap.created', roleNames: ['Finance', 'Procurement'] },
+  { eventKey: 'apri.sap.failed', roleNames: ['Admin', 'Procurement'] },
 ];

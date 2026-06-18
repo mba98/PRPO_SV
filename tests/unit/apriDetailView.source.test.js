@@ -14,8 +14,7 @@ describe('ApriDetailView source', () => {
     expect(source).toContain('const canApprove = apri.canApproveCurrentStep === true');
   });
 
-  it('links to APRI approve page', () => {
-    expect(source).toContain('/ap-reserve-invoices/${id}/approve');
-    expect(source).toContain('common.approveReject');
+  it('uses API canCreateInSap for Create in SAP button visibility', () => {
+    expect(source).toContain('const canCreateInSap = apri.canCreateInSap === true');
   });
 });

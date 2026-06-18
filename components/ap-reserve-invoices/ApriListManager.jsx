@@ -17,7 +17,15 @@ import { useI18n } from '@/lib/hooks/useI18n';
 import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
 
-const STATUS_OPTIONS = ['', 'Creating in SAP', 'Created in SAP', 'Failed to Create in SAP'];
+const STATUS_OPTIONS = [
+  '',
+  'pending_warehouse',
+  'warehouse_approved',
+  'warehouse_rejected',
+  'creating_in_sap',
+  'created_in_sap',
+  'failed_sap',
+];
 
 const EMPTY_FILTERS = {
   q: '',

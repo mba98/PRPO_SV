@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { schemaOptions } from './schemaOptions.js';
+import { APRI_MODEL_STATUS_ENUM } from '@/lib/apriStatus.js';
 
 const apriLineSchema = new mongoose.Schema(
   {
@@ -37,17 +38,8 @@ const apReserveInvoiceSchema = new mongoose.Schema(
     currentApprovalStep: { type: Number, default: 0 },
     status: {
       type: String,
-      enum: [
-        'Ready for AP Reserve Invoice',
-        'Pending Warehouse Approval',
-        'Rejected',
-        'Approved',
-        'Creating in SAP',
-        'Created in SAP',
-        'Failed to Create in SAP',
-        'Completed',
-      ],
-      default: 'Ready for AP Reserve Invoice',
+      enum: APRI_MODEL_STATUS_ENUM,
+      default: 'draft',
     },
     sapAPDocEntry: Number,
     sapAPDocNum: String,

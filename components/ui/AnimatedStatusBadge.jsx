@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { useMotionSafe } from './useMotionSafe';
 import { PO_STATUS, normalizePoStatus } from '@/lib/poStatus.js';
+import { APRI_STATUS, normalizeApriStatus } from '@/lib/apriStatus.js';
 
 const STATUS_STYLES = {
   Draft: 'bg-muted text-muted-foreground',
@@ -38,12 +39,25 @@ const STATUS_STYLES = {
   [PO_STATUS.FAILED_SAP]:
     'bg-red-100 text-red-800 dark:bg-destructive/25 dark:text-rose-300',
   [PO_STATUS.CANCELLED]: 'bg-muted text-muted-foreground',
+  warehouse_approved:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
+  warehouse_rejected: 'bg-red-100 text-red-800 dark:bg-destructive/25 dark:text-rose-300',
+  pending_warehouse: 'bg-amber-100 text-amber-800 dark:bg-amber-500/25 dark:text-amber-300',
+  creating_in_sap: 'bg-blue-100 text-blue-800 dark:bg-blue-500/25 dark:text-blue-300',
+  created_in_sap:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
+  failed_sap:
+    'bg-red-100 text-red-800 dark:bg-destructive/25 dark:text-rose-300',
 };
 
 function getStatusClass(status) {
-  const normalized = normalizePoStatus(status);
-  if (STATUS_STYLES[normalized]) {
-    return STATUS_STYLES[normalized];
+  const normalizedPo = normalizePoStatus(status);
+  const normalizedApri = normalizeApriStatus(status);
+  if (STATUS_STYLES[normalizedPo]) {
+    return STATUS_STYLES[normalizedPo];
+  }
+  if (STATUS_STYLES[normalizedApri]) {
+    return STATUS_STYLES[normalizedApri];
   }
   if (STATUS_STYLES[status]) {
     return STATUS_STYLES[status];
@@ -56,7 +70,9 @@ function getStatusClass(status) {
 
 export default function AnimatedStatusBadge({ status }) {
   const { statusLabel: labelFor } = useI18n();
-  const isCreating = normalizePoStatus(status) === PO_STATUS.CREATING_IN_SAP;
+  const isCreating =
+    normalizePoStatus(status) === PO_STATUS.CREATING_IN_SAP ||
+    normalizeApriStatus(status) === APRI_STATUS.CREATING_IN_SAP;
   const baseClass = getStatusClass(status);
 
   const mountProps = useMotionSafe({

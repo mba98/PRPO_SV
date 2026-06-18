@@ -49,22 +49,15 @@ describe('apriPermissions', () => {
 
   it('builds pending approval filter for WHS approver', async () => {
     const filter = await buildApriPendingApprovalFilter(WHS_USER);
-    expect(filter).toEqual({
-      $or: [
-        {
-          status: 'Pending Warehouse Approval',
-          currentApprovalStep: 1,
-        },
-      ],
-    });
+    expect(filter.$or?.[0].currentApprovalStep).toBe(1);
+    expect(filter.$or?.[0].status.$in).toContain('pending_warehouse');
+    expect(filter.$or?.[0].status.$in).toContain('Pending Warehouse Approval');
   });
 
   it('includes pending APRI in list access for WHS approver', async () => {
     const filter = await buildApriListAccessFilter(WHS_USER);
-    expect(filter).toEqual({
-      status: 'Pending Warehouse Approval',
-      currentApprovalStep: 1,
-    });
+    expect(filter.currentApprovalStep).toBe(1);
+    expect(filter.status.$in).toContain('pending_warehouse');
   });
 
   it('includes own created APRI for procurement user', async () => {

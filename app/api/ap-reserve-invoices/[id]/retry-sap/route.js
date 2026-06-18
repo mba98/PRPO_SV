@@ -38,4 +38,4 @@ async function postHandler(request, { params }, user) {
   }
 }
 
-export const POST = withAuth(postHandler, ['admin.settings', 'view.all']);
+export const POST = withAuth(postHandler, ['apri.create.sap', 'admin.settings']);

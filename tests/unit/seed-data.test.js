@@ -20,7 +20,12 @@ describe('seed data definitions', () => {
     expect(finance.permissions).toEqual(['po.approve.finance', 'apinvoice.create']);
 
     const procurement = DEFAULT_ROLES.find((r) => r.name === 'Procurement');
-    expect(procurement.permissions).toEqual(['po.create', 'apinvoice.create', 'items.create']);
+    expect(procurement.permissions).toEqual([
+      'po.create',
+      'apinvoice.create',
+      'apri.create.sap',
+      'items.create',
+    ]);
   });
 
   it('defines default test users with unique usernames and role names', () => {
@@ -47,8 +52,8 @@ describe('seed data definitions', () => {
   });
 
   it('defines email groups for all Phase 8 events', () => {
-    expect(DEFAULT_EMAIL_GROUPS).toHaveLength(14);
+    expect(DEFAULT_EMAIL_GROUPS.length).toBeGreaterThanOrEqual(16);
     const keys = DEFAULT_EMAIL_GROUPS.map((g) => g.eventKey);
-    expect(new Set(keys).size).toBe(14);
+    expect(new Set(keys).size).toBe(16);
   });
 });

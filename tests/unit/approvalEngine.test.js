@@ -69,7 +69,10 @@ describe('approvalEngine', () => {
 
   it('supports APRI warehouse approval status', () => {
     const apriSteps = [{ stepOrder: 1, requiredPermission: 'pr.approve.whs' }];
-    expect(getInitialSubmitState(apriSteps, 'APRI').status).toBe('Pending Warehouse Approval');
-    expect(getStateAfterApproval(apriSteps, 1, 'APRI').isFinal).toBe(true);
+    expect(getInitialSubmitState(apriSteps, 'APRI').status).toBe('pending_warehouse');
+    const fin = getStateAfterApproval(apriSteps, 1, 'APRI');
+    expect(fin.isFinal).toBe(true);
+    expect(fin.status).toBe('warehouse_approved');
+    expect(fin.currentApprovalStep).toBe(0);
   });
 });

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
-import { PortalLoader, AnimatedStatusBadge } from '@/components/ui';
+import { PortalLoader, AnimatedStatusBadge, Button } from '@/components/ui';
 import { WorkflowStepper } from '@/components/workflow';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
@@ -12,6 +12,7 @@ import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
 import { primePortalDocument } from '@/lib/documentClientCache';
+import { APRI_STATUS, normalizeApriStatus } from '@/lib/apriStatus.js';
 
 export default function ApriDetailView({ id }) {
   const { common, detail, apri: apriI18n } = useI18n();
@@ -25,8 +26,20 @@ export default function ApriDetailView({ id }) {
   const [actionError, setActionError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
   const [retrying, setRetrying] = useState(false);
+  const [creatingSap, setCreatingSap] = useState(false);
+  const [savingQty, setSavingQty] = useState(false);
+  const [lineQty, setLineQty] = useState({});
   const [emailLogs, setEmailLogs] = useState([]);
   const [emailLogsLoading, setEmailLogsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!apri?.lines?.length) return;
+    const next = {};
+    for (const line of apri.lines) {
+      if (line._id) next[line._id] = line.quantity;
+    }
+    setLineQty(next);
+  }, [apri?.lines, apri?.__v]);
 
   useEffect(() => {
     if (activeTab !== 'emails' || emailLogs.length || emailLogsLoading) return;
@@ -48,12 +61,61 @@ export default function ApriDetailView({ id }) {
     setActionError('');
     const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}/retry-sap`, {
       method: 'POST',
+      body: JSON.stringify({ __v: apri.__v }),
       dedupe: false,
     });
     setRetrying(false);
     if (json.success) {
-      if (json.data) setDocument(json.data);
+      const next = json.data?.apri || json.data;
+      if (next) setDocument(next);
       else await refresh();
+    } else {
+      setActionError(json.message || common.errorLoad);
+    }
+  }
+
+  async function createInSap() {
+    if (creatingSap) return;
+    setCreatingSap(true);
+    setActionError('');
+    const { json, status } = await apiFetch(`/api/ap-reserve-invoices/${id}/create-in-sap`, {
+      method: 'POST',
+      body: JSON.stringify({ __v: apri.__v }),
+      dedupe: false,
+      source: 'ApriDetailView:createInSap',
+    });
+    setCreatingSap(false);
+    if (json.success) {
+      const next = json.data?.apri;
+      if (next) setDocument(next);
+      else await refresh();
+    } else if (status === 409 && json.error === 'APRI_ALREADY_CREATING_OR_CREATED') {
+      setActionError(json.message);
+      await refresh();
+    } else {
+      setActionError(json.message || common.errorLoad);
+      if (json.data?.apri) setDocument(json.data.apri);
+      else await refresh();
+    }
+  }
+
+  async function saveQuantities() {
+    if (savingQty) return;
+    setSavingQty(true);
+    setActionError('');
+    const lines = (apri.lines || []).map((line) => ({
+      _id: line._id,
+      quantity: Number(lineQty[line._id] ?? line.quantity),
+    }));
+    const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ lines, __v: apri.__v }),
+      dedupe: false,
+    });
+    setSavingQty(false);
+    if (json.success) {
+      setDocument(json.data);
+      primePortalDocument('APRI', id, json.data, userId);
     } else {
       setActionError(json.message || common.errorLoad);
     }
@@ -63,20 +125,16 @@ export default function ApriDetailView({ id }) {
   if (!apri) return <p className="text-red-600">{error || actionError || detail.notFound}</p>;
 
   const displayError = actionError || error;
-
-  const canRetry =
-    apri.status === 'Failed to Create in SAP' &&
-    (hasPermission('view.all') || hasPermission('admin.settings'));
+  const normStatus = normalizeApriStatus(apri.status);
 
   const canApprove = apri.canApproveCurrentStep === true;
   const approveHref = apri.approveUrl || `/ap-reserve-invoices/${id}/approve`;
-  const currentWorkflowStep = apri.workflowSteps?.find((s) => s.state === 'current');
-  const waitingForApproval =
-    !canApprove &&
-    currentWorkflowStep?.stepName &&
-    apri.status !== 'Rejected' &&
-    apri.status !== 'Created in SAP' &&
-    !apri.status?.includes('Failed');
+  const canCreateInSap = apri.canCreateInSap === true;
+  const canEditQuantities = apri.canEditQuantities === true;
+  const canRetry = apri.canRetrySap === true;
+
+  const waitingForWarehouse =
+    normStatus === APRI_STATUS.PENDING_WAREHOUSE && !canApprove && hasPermission('apinvoice.create');
 
   const tabs = [
     { id: 'details', label: common.details },
@@ -121,10 +179,20 @@ export default function ApriDetailView({ id }) {
               {common.approveReject}
             </Link>
           )}
-          {waitingForApproval && (
-            <span className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              {common.waitingForApproval}: {currentWorkflowStep.stepName}
+          {waitingForWarehouse && (
+            <span className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
+              {apriI18n.waitingForWarehouse}
             </span>
+          )}
+          {normStatus === APRI_STATUS.CREATING_IN_SAP && (
+            <span className="rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-800 dark:bg-blue-500/10 dark:text-blue-200">
+              {apriI18n.creatingInSap}
+            </span>
+          )}
+          {canCreateInSap && (
+            <Button type="button" variant="primary" loading={creatingSap} onClick={createInSap}>
+              {creatingSap ? apriI18n.creatingInSap : apriI18n.createInSap}
+            </Button>
           )}
           {canRetry && (
             <button type="button" className="btn-secondary" onClick={retrySap} disabled={retrying}>
@@ -133,6 +201,17 @@ export default function ApriDetailView({ id }) {
           )}
         </div>
       </div>
+
+      {normStatus === APRI_STATUS.WAREHOUSE_APPROVED && (
+        <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-900 dark:text-emerald-200">
+          {apriI18n.warehouseApproved}
+        </p>
+      )}
+      {normStatus === APRI_STATUS.WAREHOUSE_REJECTED && (
+        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
+          {apriI18n.warehouseRejected}
+        </p>
+      )}
 
       {displayError && <p className="text-sm text-red-600">{displayError}</p>}
 
@@ -189,7 +268,14 @@ export default function ApriDetailView({ id }) {
           </section>
 
           <section className="card overflow-x-auto">
-            <h2 className="mb-4 text-lg font-semibold">{detail.lineItems}</h2>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold">{detail.lineItems}</h2>
+              {canEditQuantities && (
+                <Button type="button" variant="secondary" loading={savingQty} onClick={saveQuantities}>
+                  {apriI18n.saveQuantities}
+                </Button>
+              )}
+            </div>
             <table className="min-w-full text-sm">
               <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
@@ -207,7 +293,22 @@ export default function ApriDetailView({ id }) {
                       <span className="ml-2 text-muted-foreground">{line.itemName}</span>
                     </td>
                     <td className="py-2 pr-4">{line.relatedPOLineNum ?? '—'}</td>
-                    <td className="py-2 pr-4">{line.quantity}</td>
+                    <td className="py-2 pr-4">
+                      {canEditQuantities && line._id ? (
+                        <input
+                          type="number"
+                          min="0.0001"
+                          step="any"
+                          className="input-field h-9 w-28"
+                          value={lineQty[line._id] ?? line.quantity}
+                          onChange={(e) =>
+                            setLineQty((prev) => ({ ...prev, [line._id]: e.target.value }))
+                          }
+                        />
+                      ) : (
+                        line.quantity
+                      )}
+                    </td>
                     <td className="py-2">{line.lineTotal ?? '—'}</td>
                   </tr>
                 ))}
@@ -218,20 +319,12 @@ export default function ApriDetailView({ id }) {
       )}
 
       {activeTab === 'attachments' && (
-        <AttachmentPanel
-          documentType="APRI"
-          documentId={id}
-          canUpload={canUploadAttachments}
-        />
+        <AttachmentPanel documentType="APRI" documentId={id} canUpload={canUploadAttachments} />
       )}
 
-      {activeTab === 'comments' && (
-        <CommentsPanel documentType="APRI" documentId={id} />
-      )}
+      {activeTab === 'comments' && <CommentsPanel documentType="APRI" documentId={id} />}
 
-      {activeTab === 'history' && (
-        <ApprovalTimeline documentType="APRI" documentId={id} />
-      )}
+      {activeTab === 'history' && <ApprovalTimeline documentType="APRI" documentId={id} />}
 
       {activeTab === 'emails' && (
         <section className="card overflow-x-auto">

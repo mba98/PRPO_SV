@@ -29,6 +29,6 @@ export const DEFAULT_ROLES = [
   },
   {
     name: 'Procurement',
-    permissions: ['po.create', 'apinvoice.create', 'items.create'],
+    permissions: ['po.create', 'apinvoice.create', 'apri.create.sap', 'items.create'],
   },
 ];

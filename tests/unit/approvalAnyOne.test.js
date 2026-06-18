@@ -250,7 +250,7 @@ describe('ANY_ONE documentApprovalAuth', () => {
   });
 
   it('APRI warehouse regression', () => {
-    const apri = { status: 'Pending Warehouse Approval', currentApprovalStep: 1 };
+    const apri = { status: 'pending_warehouse', currentApprovalStep: 1 };
     const whs = {
       permissions: ['pr.approve.whs'],
       role: { _id: 'role-whs', name: 'WHS Approver' },

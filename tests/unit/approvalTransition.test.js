@@ -64,7 +64,7 @@ describe('approvalTransition', () => {
   it('maps rejected status by document type', () => {
     expect(rejectedStatusForDocumentType('PO')).toBe(PO_STATUS.REJECTED);
     expect(rejectedStatusForDocumentType('PR')).toBe('Rejected');
-    expect(rejectedStatusForDocumentType('APRI')).toBe('Rejected');
+    expect(rejectedStatusForDocumentType('APRI')).toBe('warehouse_rejected');
   });
 });
 
