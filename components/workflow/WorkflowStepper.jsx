@@ -7,6 +7,7 @@ import { useMotionSafe } from '@/components/ui/useMotionSafe';
 
 const STEP_NAME_RULES = [
   { pattern: /warehouse/i, key: 'warehouseApproval' },
+  { pattern: /returned to procurement/i, key: 'returnedToProcurement' },
   { pattern: /project manager|pm approval/i, key: 'projectManagerApproval' },
   { pattern: /finance/i, key: 'financeApproval' },
   { pattern: /^created$/i, key: 'created' },
@@ -21,6 +22,9 @@ function resolveStepTitle(step, workflow, documentType) {
     if (documentType === 'PO') return workflow.sapPoCreated;
     if (documentType === 'APRI') return workflow.sapApriCreated;
     return workflow.sapCreated;
+  }
+  if (step.kind === 'procurement' && workflow.returnedToProcurement) {
+    return workflow.returnedToProcurement;
   }
   const name = step.stepName || '';
   for (const rule of STEP_NAME_RULES) {

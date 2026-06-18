@@ -16,5 +16,6 @@ describe('ApriDetailView source', () => {
 
   it('uses API canCreateInSap for Create in SAP button visibility', () => {
     expect(source).toContain('const canCreateInSap = apri.canCreateInSap === true');
+    expect(source).toContain('applyApriUpdatePayload');
   });
 });

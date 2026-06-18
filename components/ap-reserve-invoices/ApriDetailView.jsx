@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
@@ -14,8 +14,35 @@ import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
 import { primePortalDocument } from '@/lib/documentClientCache';
 import { APRI_STATUS, normalizeApriStatus } from '@/lib/apriStatus.js';
 
+function parseQuantity(raw) {
+  if (raw === '' || raw == null) return null;
+  const qty = Number(raw);
+  return Number.isFinite(qty) ? qty : null;
+}
+
+function quantitiesEqual(a, b) {
+  const left = parseQuantity(a);
+  const right = parseQuantity(b);
+  if (left == null && right == null) return true;
+  if (left == null || right == null) return false;
+  return left === right;
+}
+
+function applyApriUpdatePayload(setDocument, payload, userId, id) {
+  const doc = payload?.document || payload;
+  const merged = {
+    ...doc,
+    canCreateInSap: payload?.canCreateInSap ?? doc?.canCreateInSap,
+    canEditQuantities: payload?.canEditQuantities ?? doc?.canEditQuantities,
+    canRetrySap: payload?.canRetrySap ?? doc?.canRetrySap,
+  };
+  setDocument(merged);
+  primePortalDocument('APRI', id, merged, userId);
+  return merged;
+}
+
 export default function ApriDetailView({ id }) {
-  const { common, detail, apri: apriI18n } = useI18n();
+  const { common, detail, apri: apriI18n, locale } = useI18n();
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const userId = useAuthStore((s) => s.user?.id);
   const { doc: apri, loading, error, refresh, setDocument } = usePortalDocument(
@@ -24,11 +51,13 @@ export default function ApriDetailView({ id }) {
     'ApriDetailView',
   );
   const [actionError, setActionError] = useState('');
+  const [lineFieldErrors, setLineFieldErrors] = useState({});
   const [activeTab, setActiveTab] = useState('details');
   const [retrying, setRetrying] = useState(false);
   const [creatingSap, setCreatingSap] = useState(false);
   const [savingQty, setSavingQty] = useState(false);
   const [lineQty, setLineQty] = useState({});
+  const [savedLineQty, setSavedLineQty] = useState({});
   const [emailLogs, setEmailLogs] = useState([]);
   const [emailLogsLoading, setEmailLogsLoading] = useState(false);
 
@@ -39,6 +68,8 @@ export default function ApriDetailView({ id }) {
       if (line._id) next[line._id] = line.quantity;
     }
     setLineQty(next);
+    setSavedLineQty(next);
+    setLineFieldErrors({});
   }, [apri?.lines, apri?.__v]);
 
   useEffect(() => {
@@ -55,6 +86,53 @@ export default function ApriDetailView({ id }) {
       setEmailLogsLoading(false);
     })();
   }, [activeTab, emailLogs.length, emailLogsLoading, id]);
+
+  const lineValidations = useMemo(() => {
+    if (!apri?.lines?.length) return {};
+    const next = {};
+    for (const line of apri.lines) {
+      if (!line._id) continue;
+      const raw = lineQty[line._id] ?? line.quantity;
+      const qty = parseQuantity(raw);
+      const max = Number(line.remainingPoQuantity ?? line.poQuantity ?? 0);
+      let message = '';
+      if (raw === '' || qty == null) {
+        message = apriI18n.invalidQuantity;
+      } else if (qty <= 0) {
+        message = apriI18n.quantityMustBePositive;
+      } else if (Number.isFinite(max) && qty > max) {
+        message = apriI18n.quantityExceedsMaximum.replace('{max}', String(max));
+      }
+      next[line._id] = { qty, max, valid: !message, message };
+    }
+    return next;
+  }, [apri?.lines, lineQty, apriI18n]);
+
+  const hasUnsavedQtyChanges = useMemo(() => {
+    if (!apri?.lines?.length) return false;
+    return apri.lines.some(
+      (line) => line._id && !quantitiesEqual(lineQty[line._id], savedLineQty[line._id]),
+    );
+  }, [apri?.lines, lineQty, savedLineQty]);
+
+  const allLinesValid = useMemo(
+    () => Object.values(lineValidations).every((v) => v.valid),
+    [lineValidations],
+  );
+
+  const displayDocumentTotal = useMemo(() => {
+    if (!apri?.lines?.length) return 0;
+    return apri.lines.reduce((sum, line) => {
+      const validation = lineValidations[line._id];
+      const qty = validation?.qty ?? Number(line.quantity);
+      const unitPrice = Number(line.unitPrice);
+      if (Number.isFinite(qty) && Number.isFinite(unitPrice)) {
+        return sum + qty * unitPrice;
+      }
+      const total = Number(line.lineTotal);
+      return sum + (Number.isFinite(total) ? total : 0);
+    }, 0);
+  }, [apri?.lines, lineValidations]);
 
   async function retrySap() {
     setRetrying(true);
@@ -75,7 +153,7 @@ export default function ApriDetailView({ id }) {
   }
 
   async function createInSap() {
-    if (creatingSap) return;
+    if (creatingSap || hasUnsavedQtyChanges) return;
     setCreatingSap(true);
     setActionError('');
     const { json, status } = await apiFetch(`/api/ap-reserve-invoices/${id}/create-in-sap`, {
@@ -86,7 +164,7 @@ export default function ApriDetailView({ id }) {
     });
     setCreatingSap(false);
     if (json.success) {
-      const next = json.data?.apri;
+      const next = json.data?.apri || json.data?.document || json.data;
       if (next) setDocument(next);
       else await refresh();
     } else if (status === 409 && json.error === 'APRI_ALREADY_CREATING_OR_CREATED') {
@@ -95,14 +173,15 @@ export default function ApriDetailView({ id }) {
     } else {
       setActionError(json.message || common.errorLoad);
       if (json.data?.apri) setDocument(json.data.apri);
-      else await refresh();
+      else if (json.data?.document) setDocument(json.data.document);
     }
   }
 
   async function saveQuantities() {
-    if (savingQty) return;
+    if (savingQty || !allLinesValid) return;
     setSavingQty(true);
     setActionError('');
+    setLineFieldErrors({});
     const lines = (apri.lines || []).map((line) => ({
       _id: line._id,
       quantity: Number(lineQty[line._id] ?? line.quantity),
@@ -114,10 +193,21 @@ export default function ApriDetailView({ id }) {
     });
     setSavingQty(false);
     if (json.success) {
-      setDocument(json.data);
-      primePortalDocument('APRI', id, json.data, userId);
+      const merged = applyApriUpdatePayload(setDocument, json.data, userId, id);
+      const nextSaved = {};
+      for (const line of merged.lines || []) {
+        if (line._id) nextSaved[line._id] = line.quantity;
+      }
+      setSavedLineQty(nextSaved);
+      setLineQty(nextSaved);
+      setLineFieldErrors({});
     } else {
       setActionError(json.message || common.errorLoad);
+      const nextLineErrors = {};
+      for (const err of json.errors || []) {
+        if (err.lineId) nextLineErrors[err.lineId] = err.message;
+      }
+      setLineFieldErrors(nextLineErrors);
     }
   }
 
@@ -132,6 +222,15 @@ export default function ApriDetailView({ id }) {
   const canCreateInSap = apri.canCreateInSap === true;
   const canEditQuantities = apri.canEditQuantities === true;
   const canRetry = apri.canRetrySap === true;
+
+  const showCreateInSap =
+    canCreateInSap || (canEditQuantities && normStatus === APRI_STATUS.WAREHOUSE_REJECTED);
+  const createInSapDisabled =
+    creatingSap ||
+    savingQty ||
+    hasUnsavedQtyChanges ||
+    !canCreateInSap ||
+    !allLinesValid;
 
   const waitingForWarehouse =
     normStatus === APRI_STATUS.PENDING_WAREHOUSE && !canApprove && hasPermission('apinvoice.create');
@@ -189,8 +288,14 @@ export default function ApriDetailView({ id }) {
               {apriI18n.creatingInSap}
             </span>
           )}
-          {canCreateInSap && (
-            <Button type="button" variant="primary" loading={creatingSap} onClick={createInSap}>
+          {showCreateInSap && (
+            <Button
+              type="button"
+              variant="primary"
+              loading={creatingSap}
+              disabled={createInSapDisabled}
+              onClick={createInSap}
+            >
               {creatingSap ? apriI18n.creatingInSap : apriI18n.createInSap}
             </Button>
           )}
@@ -210,6 +315,12 @@ export default function ApriDetailView({ id }) {
       {normStatus === APRI_STATUS.WAREHOUSE_REJECTED && (
         <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
           {apriI18n.warehouseRejected}
+        </p>
+      )}
+
+      {hasUnsavedQtyChanges && canEditQuantities && (
+        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
+          {apriI18n.saveBeforeCreateInSap}
         </p>
       )}
 
@@ -242,6 +353,7 @@ export default function ApriDetailView({ id }) {
               [detail.sapPoDocNum, apri.relatedSAPPODocNum],
               [detail.sapApDocNum, apri.sapAPDocNum],
               [detail.sapApDocEntry, apri.sapAPDocEntry],
+              [detail.total, displayDocumentTotal.toLocaleString(locale === 'ar' ? 'ar' : 'en')],
             ].map(([label, val]) => (
               <div key={label}>
                 <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
@@ -271,9 +383,28 @@ export default function ApriDetailView({ id }) {
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold">{detail.lineItems}</h2>
               {canEditQuantities && (
-                <Button type="button" variant="secondary" loading={savingQty} onClick={saveQuantities}>
-                  {apriI18n.saveQuantities}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    loading={savingQty}
+                    disabled={!allLinesValid || !hasUnsavedQtyChanges}
+                    onClick={saveQuantities}
+                  >
+                    {apriI18n.saveQuantities}
+                  </Button>
+                  {showCreateInSap && (
+                    <Button
+                      type="button"
+                      variant="primary"
+                      loading={creatingSap}
+                      disabled={createInSapDisabled}
+                      onClick={createInSap}
+                    >
+                      {creatingSap ? apriI18n.creatingInSap : apriI18n.createInSap}
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
             <table className="min-w-full text-sm">
@@ -286,32 +417,63 @@ export default function ApriDetailView({ id }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {(apri.lines || []).map((line, i) => (
-                  <tr key={line._id || i}>
-                    <td className="py-2 pr-4">
-                      <span className="font-medium">{line.itemCode}</span>
-                      <span className="ml-2 text-muted-foreground">{line.itemName}</span>
-                    </td>
-                    <td className="py-2 pr-4">{line.relatedPOLineNum ?? '—'}</td>
-                    <td className="py-2 pr-4">
-                      {canEditQuantities && line._id ? (
-                        <input
-                          type="number"
-                          min="0.0001"
-                          step="any"
-                          className="input-field h-9 w-28"
-                          value={lineQty[line._id] ?? line.quantity}
-                          onChange={(e) =>
-                            setLineQty((prev) => ({ ...prev, [line._id]: e.target.value }))
-                          }
-                        />
-                      ) : (
-                        line.quantity
-                      )}
-                    </td>
-                    <td className="py-2">{line.lineTotal ?? '—'}</td>
-                  </tr>
-                ))}
+                {(apri.lines || []).map((line, i) => {
+                  const validation = lineValidations[line._id] || {};
+                  const lineError = lineFieldErrors[line._id] || validation.message;
+                  const maxQty = line.remainingPoQuantity ?? line.poQuantity;
+                  const qty = validation.qty ?? Number(line.quantity);
+                  const unitPrice = Number(line.unitPrice);
+                  const displayTotal =
+                    Number.isFinite(qty) && Number.isFinite(unitPrice)
+                      ? qty * unitPrice
+                      : line.lineTotal;
+
+                  return (
+                    <tr
+                      key={line._id || i}
+                      className={lineError ? 'bg-red-50/60 dark:bg-red-500/5' : undefined}
+                    >
+                      <td className="py-2 pr-4">
+                        <span className="font-medium">{line.itemCode}</span>
+                        <span className="ml-2 text-muted-foreground">{line.itemName}</span>
+                      </td>
+                      <td className="py-2 pr-4">{line.relatedPOLineNum ?? '—'}</td>
+                      <td className="py-2 pr-4 align-top">
+                        {canEditQuantities && line._id ? (
+                          <div className="space-y-1">
+                            <input
+                              type="number"
+                              min={0.000001}
+                              max={maxQty}
+                              step="any"
+                              className={`input-field h-9 w-28 ${lineError ? 'border-red-500' : ''}`}
+                              value={lineQty[line._id] ?? line.quantity}
+                              onChange={(e) => {
+                                setLineQty((prev) => ({ ...prev, [line._id]: e.target.value }));
+                                setLineFieldErrors((prev) => {
+                                  const next = { ...prev };
+                                  delete next[line._id];
+                                  return next;
+                                });
+                              }}
+                            />
+                            {maxQty != null && (
+                              <p className="text-xs text-muted-foreground">
+                                {apriI18n.maximumAvailable}: {maxQty}
+                              </p>
+                            )}
+                            {lineError && (
+                              <p className="text-xs text-red-600">{lineError}</p>
+                            )}
+                          </div>
+                        ) : (
+                          line.quantity
+                        )}
+                      </td>
+                      <td className="py-2">{displayTotal ?? '—'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </section>

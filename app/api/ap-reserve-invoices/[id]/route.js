@@ -25,8 +25,8 @@ async function putHandler(request, { params }, user) {
     const body = (await parseJsonBody(request)) || {};
     const parsed = updateApriSchema.safeParse(body);
     if (!parsed.success) return jsonValidation(parsed.error);
-    const apri = await updateApriQuantities(params.id, parsed.data, user);
-    return jsonSuccess(apri);
+    const result = await updateApriQuantities(params.id, parsed.data, user);
+    return jsonSuccess(result);
   } catch (err) {
     return handleServiceError(err);
   }

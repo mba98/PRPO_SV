@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildDocumentWorkflow,
+  buildReturnedToProcurementStep,
   canApproveCurrentWorkflowStep,
+  loadApriWorkflow,
 } from '@/lib/workflowSteps';
 import { PO_STATUS } from '@/lib/poStatus';
+import { APRI_STATUS } from '@/lib/apriStatus';
 
 const STEPS = [
   { stepOrder: 1, stepName: 'Warehouse Approval', requiredPermission: 'pr.approve.whs' },
@@ -101,5 +104,28 @@ describe('APRI workflow', () => {
     });
     const sapStep = workflow.find((s) => s.kind === 'sap');
     expect(sapStep.state).toBe('sap_created');
+  });
+
+  it('shows returned to procurement current and SAP pending for warehouse rejected APRI', async () => {
+    const doc = {
+      status: APRI_STATUS.WAREHOUSE_REJECTED,
+      currentApprovalStep: 0,
+      sapAPDocEntry: null,
+    };
+    const workflow = await loadApriWorkflow(doc, { permissions: [] }, APRI_STEPS);
+    const warehouse = workflow.find((s) => s.stepName === 'Warehouse Approval');
+    const returned = workflow.find((s) => s.kind === 'procurement');
+    const sap = workflow.find((s) => s.kind === 'sap');
+    expect(warehouse.state).toBe('rejected');
+    expect(returned.state).toBe('current');
+    expect(sap.state).toBe('pending');
+  });
+
+  it('buildReturnedToProcurementStep is completed after SAP creation starts', () => {
+    const step = buildReturnedToProcurementStep(
+      { status: APRI_STATUS.CREATING_IN_SAP },
+      2,
+    );
+    expect(step.state).toBe('completed');
   });
 });

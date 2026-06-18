@@ -23,7 +23,13 @@ const ADMIN_USER = { _id: 'admin2', permissions: ['admin.settings', 'apri.create
 const WHS_USER = { _id: 'whs1', permissions: ['pr.approve.whs'] };
 
 function readyApri(status, createdBy = 'proc1') {
-  return { status, createdBy, sapAPDocEntry: null };
+  return {
+    status,
+    createdBy,
+    sapAPDocEntry: null,
+    sapAPDocNum: null,
+    lines: [{ _id: 'l1', quantity: 1, remainingPoQuantity: 5, poQuantity: 5 }],
+  };
 }
 
 describe('apriStatus', () => {
