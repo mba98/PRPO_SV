@@ -11,6 +11,7 @@ const EMPTY = {
   pendingStatus: '',
   requiredPermission: '',
   approverRole: '',
+  completionPolicy: 'ANY_ONE',
   isActive: true,
 };
 
@@ -114,6 +115,7 @@ export default function ApprovalMatrixManager() {
       pendingStatus: step.pendingStatus || '',
       requiredPermission: step.requiredPermission,
       approverRole: step.approverRole?.id || '',
+      completionPolicy: step.completionPolicy || 'ANY_ONE',
       isActive: step.isActive,
     });
     setModalError('');
@@ -133,6 +135,7 @@ export default function ApprovalMatrixManager() {
       pendingStatus: form.pendingStatus || undefined,
       requiredPermission: form.requiredPermission,
       approverRole: form.approverRole,
+      completionPolicy: form.completionPolicy || 'ANY_ONE',
       isActive: form.isActive,
     };
 
@@ -222,6 +225,11 @@ export default function ApprovalMatrixManager() {
       key: 'approverRole',
       label: 'Role',
       render: (s) => s.approverRole?.name || '—',
+    },
+    {
+      key: 'completionPolicy',
+      label: 'Completion policy',
+      render: (s) => (s.completionPolicy === 'ANY_ONE' ? 'Any one approver' : s.completionPolicy || 'Any one approver'),
     },
     {
       key: 'isActive',
@@ -440,6 +448,19 @@ export default function ApprovalMatrixManager() {
                 ))}
               </select>
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Completion policy</label>
+              <select
+                value={form.completionPolicy || 'ANY_ONE'}
+                onChange={(e) => setForm({ ...form, completionPolicy: e.target.value })}
+                className="input-field"
+              >
+                <option value="ANY_ONE">Any one approver</option>
+              </select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Any authorized user with the required permission and role may complete this step.
+              </p>
+            </div>
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -479,6 +500,9 @@ export default function ApprovalMatrixManager() {
                   <p className="font-medium text-foreground">{step.stepName}</p>
                   <p className="text-xs text-muted-foreground">
                     {step.approverRole?.name} · {step.requiredPermission}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Any one authorized approver
                   </p>
                 </div>
                 {idx < previewSteps.length - 1 && (

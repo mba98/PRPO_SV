@@ -9,6 +9,13 @@ const approvalMatrixSchema = new mongoose.Schema(
     pendingStatus: { type: String, trim: true },
     requiredPermission: { type: String, required: true },
     approverRole: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },
+    completionPolicy: {
+      type: String,
+      enum: ['ANY_ONE', 'ALL', 'MINIMUM_COUNT'],
+      default: 'ANY_ONE',
+      required: true,
+    },
+    minimumApprovalCount: { type: Number, default: null },
     isActive: { type: Boolean, default: true },
   },
   schemaOptions,

@@ -18,7 +18,8 @@
     "seed": "node seed/index.js",
     "seed:users": "node seed/users.js",
     "seed:settings": "node seed/settings.js",
-    "db:check": "node scripts/check-mongodb.js"
+    "db:check": "node scripts/check-mongodb.js",
+    "migrate:approval-matrix-policy": "node scripts/migrate-approval-matrix-completion-policy.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.700.0",

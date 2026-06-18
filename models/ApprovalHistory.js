@@ -6,6 +6,9 @@ const approvalHistorySchema = new mongoose.Schema(
     documentType: { type: String, enum: ['PR', 'PO', 'APRI'], required: true },
     documentId: { type: mongoose.Schema.Types.ObjectId, required: true },
     stepName: String,
+    stepOrder: Number,
+    completionPolicy: String,
+    requiredPermission: String,
     action: {
       type: String,
       enum: [

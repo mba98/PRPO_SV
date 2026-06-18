@@ -32,13 +32,26 @@ describe('createApprovalMatrixSchema', () => {
     }
   });
 
-  it('rejects non-positive step order', () => {
+  it('defaults completionPolicy to ANY_ONE', () => {
     const result = createApprovalMatrixSchema.safeParse({
       documentType: 'PO',
-      stepOrder: 0,
-      stepName: 'Step',
+      stepName: 'PM',
       requiredPermission: 'po.approve.pm',
       approverRole: validRoleId,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.completionPolicy).toBe('ANY_ONE');
+    }
+  });
+
+  it('rejects unimplemented completion policies in admin UI', () => {
+    const result = createApprovalMatrixSchema.safeParse({
+      documentType: 'PO',
+      stepName: 'PM',
+      requiredPermission: 'po.approve.pm',
+      approverRole: validRoleId,
+      completionPolicy: 'ALL',
     });
     expect(result.success).toBe(false);
   });

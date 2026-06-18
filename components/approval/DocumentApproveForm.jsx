@@ -47,7 +47,7 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
   const router = useRouter();
   const userId = useAuthStore((s) => s.user?.id);
   const { approval: appr, attachments: att, pr: prI18n, common, approve: approveNs, detail } = useI18n();
-  const { doc, loading, error: loadError, setDocument } = usePortalDocument(
+  const { doc, loading, error: loadError, setDocument, refresh } = usePortalDocument(
     kind,
     id,
     'DocumentApproveForm',
@@ -77,7 +77,7 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
     const endpoint = action === 'approve' ? 'approve' : 'reject';
 
     try {
-      const { json } = await apiFetch(`${config.apiBase}/${id}/${endpoint}`, {
+      const { json, status } = await apiFetch(`${config.apiBase}/${id}/${endpoint}`, {
         method: 'POST',
         body: JSON.stringify({ comment, __v: doc.__v }),
         source: `DocumentApproveForm:${kind}:${endpoint}`,
@@ -85,6 +85,12 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
       });
 
       if (!json.success) {
+        if (status === 409 && json.error === 'APPROVAL_STEP_ALREADY_COMPLETED') {
+          setError(json.message || approveNs.stepAlreadyCompleted);
+          await refresh();
+          setSubmittingAction(null);
+          return;
+        }
         setError(json.message || appr.submitError);
         setSubmittingAction(null);
         return;
@@ -184,6 +190,9 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
         </div>
       ) : (
         <div className="space-y-4 rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5 sm:p-5">
+          <p className="text-sm text-muted-foreground">
+            {doc.completionPolicyDescription || approveNs.anyOnePolicy}
+          </p>
           <FormField label={appr.comment} htmlFor={config.commentId}>
             <Textarea
               id={config.commentId}

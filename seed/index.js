@@ -40,6 +40,7 @@ async function seedApprovalMatrix(roleByName) {
     stepName: row.stepName,
     requiredPermission: row.requiredPermission,
     approverRole: roleByName[row.approverRoleName]._id,
+    completionPolicy: 'ANY_ONE',
     isActive: true,
   }));
   await ApprovalMatrix.insertMany(rows);
