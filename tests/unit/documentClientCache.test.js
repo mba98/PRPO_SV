@@ -33,6 +33,28 @@ describe('documentClientCache', () => {
     expect(getPortalDocument('PO', 'po1', USER_A).canApproveCurrentStep).toBe(false);
     expect(getPortalDocument('PO', 'po1', USER_B).canApproveCurrentStep).toBe(true);
   });
+
+  it('treats APRI cache without action flags as stale', () => {
+    primePortalDocument('APRI', 'apri1', { id: 'apri1', status: 'warehouse_approved' }, USER_A);
+    expect(getPortalDocument('APRI', 'apri1', USER_A)).toBeNull();
+  });
+
+  it('keeps APRI cache when action flags are present', () => {
+    primePortalDocument(
+      'APRI',
+      'apri1',
+      {
+        id: 'apri1',
+        status: 'warehouse_approved',
+        canCreateInSap: true,
+        canEditQuantities: false,
+        canRetrySap: false,
+        createInSapBlockReason: null,
+      },
+      USER_A,
+    );
+    expect(getPortalDocument('APRI', 'apri1', USER_A)?.canCreateInSap).toBe(true);
+  });
 });
 
 describe('fetchPortalDocument', () => {

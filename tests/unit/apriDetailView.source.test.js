@@ -16,8 +16,11 @@ describe('ApriDetailView source', () => {
 
   it('uses API canCreateInSap for Create in SAP button visibility', () => {
     expect(source).toContain('const canCreateInSap = apri?.canCreateInSap === true');
+    expect(source).toContain('const showCreateInSap = canCreateInSap === true && showProcurementSapArea');
+    expect(source).not.toContain('hasSapCreatePermission');
     expect(source).toContain('handleCreateInSap');
     expect(source).toContain('createInSapEnabled');
+    expect(source).toContain('createInSapBlockReason');
   });
 
   it('uses a single handleCreateInSap handler in the header', () => {

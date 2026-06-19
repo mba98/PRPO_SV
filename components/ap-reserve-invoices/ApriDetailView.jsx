@@ -27,6 +27,8 @@ function applyApriUpdatePayload(setDocument, payload, userId, id) {
     canCreateInSap: payload?.canCreateInSap ?? doc?.canCreateInSap ?? false,
     canEditQuantities: payload?.canEditQuantities ?? doc?.canEditQuantities ?? false,
     canRetrySap: payload?.canRetrySap ?? doc?.canRetrySap ?? false,
+    createInSapBlockReason:
+      payload?.createInSapBlockReason ?? doc?.createInSapBlockReason ?? null,
   };
   setDocument(merged);
   primePortalDocument('APRI', id, merged, userId);
@@ -142,39 +144,40 @@ export default function ApriDetailView({ id }) {
   const canCreateInSap = apri?.canCreateInSap === true;
   const canEditQuantities = apri?.canEditQuantities === true;
   const canRetry = apri?.canRetrySap === true;
-  const hasSapCreatePermission = hasPermission('apri.create.sap');
+  const createInSapBlockReason = apri?.createInSapBlockReason ?? null;
 
-  const showCreateInSap =
-    isSapCreatableStatus(normStatus) &&
-    hasSapCreatePermission &&
-    (canCreateInSap || canEditQuantities);
+  const showProcurementSapArea = isSapCreatableStatus(normStatus);
+  const showCreateInSap = canCreateInSap === true && showProcurementSapArea;
 
   const createInSapEnabled =
-    canCreateInSap &&
-    isSapCreatableStatus(normStatus) &&
+    showCreateInSap &&
     !hasUnsavedQtyChanges &&
     !hasQuantityErrors &&
     !savingQty &&
     !creatingSap;
 
+  const createInSapBlockMessage = useMemo(() => {
+    if (!createInSapBlockReason) return '';
+    const reasonKey = `createInSapBlocked_${createInSapBlockReason}`;
+    if (apriI18n[reasonKey]) return apriI18n[reasonKey];
+    if (process.env.NODE_ENV === 'development') {
+      return `Create in SAP unavailable: ${createInSapBlockReason}.`;
+    }
+    return apriI18n.createInSapUnavailable;
+  }, [createInSapBlockReason, apriI18n]);
+
   const createInSapDisabledReason = useMemo(() => {
     if (!showCreateInSap) return '';
     if (creatingSap) return apriI18n.creatingInSap;
     if (savingQty) return common.loading;
-    if (!hasSapCreatePermission) return apriI18n.noCreateSapPermission;
-    if (!canCreateInSap && !canEditQuantities) return apriI18n.noCreateSapPermission;
     if (hasUnsavedQtyChanges) return apriI18n.saveBeforeCreateInSap;
     if (hasQuantityErrors) return apriI18n.invalidQuantitySaveFirst;
     if (normStatus === APRI_STATUS.CREATING_IN_SAP) return apriI18n.alreadyCreatingInSap;
-    if (!canCreateInSap) return apriI18n.createInSapNotReady;
     return '';
   }, [
     showCreateInSap,
     creatingSap,
     savingQty,
-    hasSapCreatePermission,
-    canCreateInSap,
-    canEditQuantities,
     hasUnsavedQtyChanges,
     hasQuantityErrors,
     normStatus,
@@ -189,12 +192,14 @@ export default function ApriDetailView({ id }) {
       normalizedStatus: normStatus,
       canCreateInSap,
       canEditQuantities,
+      createInSapBlockReason,
       hasUnsavedQtyChanges,
       isSavingQuantities: savingQty,
       isCreatingInSap: creatingSap,
       hasQuantityErrors,
-      hasSapCreatePermission,
       documentVersion: apri.__v,
+      showProcurementSapArea,
+      showCreateInSap,
       createInSapEnabled,
       createInSapDisabledReason,
       lineQty,
@@ -205,11 +210,13 @@ export default function ApriDetailView({ id }) {
     normStatus,
     canCreateInSap,
     canEditQuantities,
+    createInSapBlockReason,
     hasUnsavedQtyChanges,
     savingQty,
     creatingSap,
     hasQuantityErrors,
-    hasSapCreatePermission,
+    showProcurementSapArea,
+    showCreateInSap,
     createInSapEnabled,
     createInSapDisabledReason,
     lineQty,
@@ -380,6 +387,11 @@ export default function ApriDetailView({ id }) {
               >
                 {creatingSap ? apriI18n.creatingInSap : apriI18n.createInSap}
               </Button>
+            )}
+            {showProcurementSapArea && !showCreateInSap && createInSapBlockMessage && (
+              <span className="max-w-md rounded-md bg-muted px-3 py-2 text-right text-sm text-muted-foreground">
+                {createInSapBlockMessage}
+              </span>
             )}
             {canRetry && (
               <button type="button" className="btn-secondary" onClick={retrySap} disabled={retrying}>

@@ -12,6 +12,11 @@ import {
   userCanCreateApriInSap,
   userCanEditApriQuantities,
 } from '@/lib/apReserveInvoicesService.js';
+import {
+  CREATE_IN_SAP_BLOCK_REASON,
+  resolveApriSapCreationAccess,
+  userIsApriOwner,
+} from '@/lib/apriSapAuthorization.js';
 import { rejectedStatusForDocumentType } from '@/lib/approvalTransition.js';
 import { getStateAfterApproval } from '@/lib/approvalEngine.js';
 
@@ -26,6 +31,7 @@ function readyApri(status, createdBy = 'proc1') {
   return {
     status,
     createdBy,
+    relatedPOId: 'po1',
     sapAPDocEntry: null,
     sapAPDocNum: null,
     lines: [{ _id: 'l1', quantity: 1, remainingPoQuantity: 5, poQuantity: 5 }],
@@ -117,5 +123,25 @@ describe('APRI Phase 2 workflow helpers', () => {
       createdBy: 'proc1',
     };
     expect(userCanEditApriQuantities(PROC_USER, apri)).toBe(false);
+  });
+
+  it('returns block reason when permission is missing', () => {
+    const apri = readyApri(APRI_STATUS.WAREHOUSE_APPROVED);
+    const access = resolveApriSapCreationAccess(WHS_USER, apri);
+    expect(access.canCreateInSap).toBe(false);
+    expect(access.createInSapBlockReason).toBe(CREATE_IN_SAP_BLOCK_REASON.MISSING_PERMISSION);
+  });
+
+  it('returns block reason when user is not document owner', () => {
+    const apri = readyApri(APRI_STATUS.WAREHOUSE_APPROVED, 'proc1');
+    const access = resolveApriSapCreationAccess(OTHER_PROC, apri);
+    expect(access.canCreateInSap).toBe(false);
+    expect(access.createInSapBlockReason).toBe(CREATE_IN_SAP_BLOCK_REASON.NOT_DOCUMENT_OWNER);
+  });
+
+  it('normalizes owner comparison for populated createdBy', () => {
+    const apri = readyApri(APRI_STATUS.WAREHOUSE_APPROVED, { _id: 'proc1', name: 'Proc User' });
+    expect(userIsApriOwner({ _id: 'proc1' }, apri)).toBe(true);
+    expect(userIsApriOwner({ id: 'proc1' }, apri)).toBe(true);
   });
 });

@@ -26,4 +26,14 @@ describe('effectivePermissions', () => {
     expect(userHasEffectivePermission(user, 'pr.approve.pm')).toBe(true);
     expect(userHasEffectivePermission(user, 'view.all')).toBe(false);
   });
+
+  it('extracts permission keys from populated permission objects', () => {
+    const user = {
+      permissions: [{ key: 'apri.create.sap' }],
+      role: { permissions: [{ key: 'apinvoice.create' }, 'po.create'] },
+    };
+    expect(getEffectivePermissions(user).sort()).toEqual(
+      ['apri.create.sap', 'apinvoice.create', 'po.create'].sort(),
+    );
+  });
 });
