@@ -15,7 +15,13 @@ describe('ApriDetailView source', () => {
   });
 
   it('uses API canCreateInSap for Create in SAP button visibility', () => {
-    expect(source).toContain('const canCreateInSap = apri.canCreateInSap === true');
-    expect(source).toContain('applyApriUpdatePayload');
+    expect(source).toContain('const canCreateInSap = apri?.canCreateInSap === true');
+    expect(source).toContain('handleCreateInSap');
+    expect(source).toContain('createInSapEnabled');
+  });
+
+  it('uses a single handleCreateInSap handler in the header', () => {
+    expect(source.match(/onClick=\{handleCreateInSap\}/g)?.length).toBe(1);
+    expect(source).not.toMatch(/saveQuantities[\s\S]{0,400}apriI18n\.createInSap/);
   });
 });
