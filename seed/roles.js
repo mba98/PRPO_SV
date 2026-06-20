@@ -17,7 +17,7 @@ export const DEFAULT_ROLES = [
   },
   {
     name: 'Project Manager',
-    permissions: ['po.create', 'po.approve.pm'],
+    permissions: ['po.create', 'po.approve.pm', 'lp.approve.pm'],
   },
   {
     name: 'Operation Manager',
@@ -25,10 +25,10 @@ export const DEFAULT_ROLES = [
   },
   {
     name: 'Finance',
-    permissions: ['po.approve.finance', 'apinvoice.create'],
+    permissions: ['po.approve.finance', 'apinvoice.create', 'lp.approve.finance'],
   },
   {
     name: 'Procurement',
-    permissions: ['po.create', 'apinvoice.create', 'apri.create.sap', 'items.create'],
+    permissions: ['po.create', 'apinvoice.create', 'apri.create.sap', 'lp.create', 'items.create'],
   },
 ];

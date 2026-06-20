@@ -9,6 +9,7 @@ import ApprovalHistory from './ApprovalHistory.js';
 import PurchaseRequest from './PurchaseRequest.js';
 import PurchaseOrder from './PurchaseOrder.js';
 import APReserveInvoice from './APReserveInvoice.js';
+import LocalPurchase from './LocalPurchase.js';
 import Attachment from './Attachment.js';
 import Comment from './Comment.js';
 import EmailLog from './EmailLog.js';
@@ -31,6 +32,7 @@ export {
   PurchaseRequest,
   PurchaseOrder,
   APReserveInvoice,
+  LocalPurchase,
   Attachment,
   Comment,
   EmailLog,

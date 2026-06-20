@@ -42,4 +42,18 @@ export const DEFAULT_APPROVAL_MATRIX = [
     requiredPermission: 'pr.approve.whs',
     approverRoleName: 'WHS Approver',
   },
+  {
+    documentType: 'LOCAL_PURCHASE',
+    stepOrder: 1,
+    stepName: 'Project Manager Approval',
+    requiredPermission: 'lp.approve.pm',
+    approverRoleName: 'Project Manager',
+  },
+  {
+    documentType: 'LOCAL_PURCHASE',
+    stepOrder: 2,
+    stepName: 'Finance Approval',
+    requiredPermission: 'lp.approve.finance',
+    approverRoleName: 'Finance',
+  },
 ];

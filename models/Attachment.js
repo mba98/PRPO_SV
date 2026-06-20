@@ -3,7 +3,7 @@ import { schemaOptions } from './schemaOptions.js';
 
 const attachmentSchema = new mongoose.Schema(
   {
-    documentType: { type: String, enum: ['PR', 'PO', 'APRI'], required: true },
+    documentType: { type: String, enum: ['PR', 'PO', 'APRI', 'LOCAL_PURCHASE'], required: true },
     documentId: { type: mongoose.Schema.Types.ObjectId, required: true },
     approvalStep: Number,
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

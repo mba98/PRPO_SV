@@ -11,19 +11,20 @@ describe('seed data definitions', () => {
     expect(admin.permissions).toEqual(ALL_PERMISSIONS);
 
     const pm = DEFAULT_ROLES.find((r) => r.name === 'Project Manager');
-    expect(pm.permissions).toEqual(['po.create', 'po.approve.pm']);
+    expect(pm.permissions).toEqual(['po.create', 'po.approve.pm', 'lp.approve.pm']);
 
     const om = DEFAULT_ROLES.find((r) => r.name === 'Operation Manager');
     expect(om.permissions).toEqual(['po.approve.om']);
 
     const finance = DEFAULT_ROLES.find((r) => r.name === 'Finance');
-    expect(finance.permissions).toEqual(['po.approve.finance', 'apinvoice.create']);
+    expect(finance.permissions).toEqual(['po.approve.finance', 'apinvoice.create', 'lp.approve.finance']);
 
     const procurement = DEFAULT_ROLES.find((r) => r.name === 'Procurement');
     expect(procurement.permissions).toEqual([
       'po.create',
       'apinvoice.create',
       'apri.create.sap',
+      'lp.create',
       'items.create',
     ]);
   });
@@ -38,13 +39,15 @@ describe('seed data definitions', () => {
     }
   });
 
-  it('defines PR, PO and APRI approval matrix steps', () => {
+  it('defines PR, PO, APRI and LOCAL_PURCHASE approval matrix steps', () => {
     const prSteps = DEFAULT_APPROVAL_MATRIX.filter((s) => s.documentType === 'PR');
     const poSteps = DEFAULT_APPROVAL_MATRIX.filter((s) => s.documentType === 'PO');
     const apriSteps = DEFAULT_APPROVAL_MATRIX.filter((s) => s.documentType === 'APRI');
+    const lpSteps = DEFAULT_APPROVAL_MATRIX.filter((s) => s.documentType === 'LOCAL_PURCHASE');
     expect(prSteps).toHaveLength(1);
     expect(poSteps).toHaveLength(3);
     expect(apriSteps).toHaveLength(1);
+    expect(lpSteps).toHaveLength(2);
   });
 
   it('exports syncDefaultRolePermissions for dev role updates', () => {

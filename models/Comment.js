@@ -3,7 +3,7 @@ import { schemaOptions } from './schemaOptions.js';
 
 const commentSchema = new mongoose.Schema(
   {
-    documentType: { type: String, enum: ['PR', 'PO', 'APRI'], required: true },
+    documentType: { type: String, enum: ['PR', 'PO', 'APRI', 'LOCAL_PURCHASE'], required: true },
     documentId: { type: mongoose.Schema.Types.ObjectId, required: true },
     comment: { type: String, required: true },
     attachments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Attachment' }],

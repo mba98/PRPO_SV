@@ -3,7 +3,7 @@ import { schemaOptions } from './schemaOptions.js';
 
 const approvalHistorySchema = new mongoose.Schema(
   {
-    documentType: { type: String, enum: ['PR', 'PO', 'APRI'], required: true },
+    documentType: { type: String, enum: ['PR', 'PO', 'APRI', 'LOCAL_PURCHASE'], required: true },
     documentId: { type: mongoose.Schema.Types.ObjectId, required: true },
     stepName: String,
     stepOrder: Number,
@@ -22,6 +22,7 @@ const approvalHistorySchema = new mongoose.Schema(
         'Attachment Uploaded',
         'Comment Added',
         'Updated',
+        'Cancelled',
       ],
       required: true,
     },

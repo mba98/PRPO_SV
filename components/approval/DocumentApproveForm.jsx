@@ -40,6 +40,15 @@ const KIND_CONFIG = {
     backLabel: 'backToApri',
     commentId: 'apri-approve-comment',
   },
+  LOCAL_PURCHASE: {
+    apiBase: '/api/local-purchases',
+    documentType: 'LOCAL_PURCHASE',
+    detailPath: (id) => `/local-purchases/${id}`,
+    numberField: 'portalLPNumber',
+    titleFromApprove: 'lpTitle',
+    backLabel: 'backToLp',
+    commentId: 'lp-approve-comment',
+  },
 };
 
 export default function DocumentApproveForm({ id, kind = 'PR' }) {
@@ -96,7 +105,12 @@ export default function DocumentApproveForm({ id, kind = 'PR' }) {
         return;
       }
 
-      const updatedDoc = json.data?.document || json.data?.pr || json.data?.po || json.data?.apri;
+      const updatedDoc =
+        json.data?.document ||
+        json.data?.pr ||
+        json.data?.po ||
+        json.data?.apri ||
+        json.data?.localPurchase;
 
       if (files.length) {
         const { failures } = await uploadDocumentAttachments({
