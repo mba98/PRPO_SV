@@ -21,8 +21,6 @@ import { LP_APPROVAL_PERMISSIONS } from '@/lib/permissions.js';
 
 const EMPTY_FILTERS = {
   portalLPNumber: '',
-  projectCode: '',
-  vendorName: '',
   status: '',
   from: '',
   to: '',
@@ -59,8 +57,6 @@ export default function LpListManager() {
   const [filters, setFilters] = useState({
     ...EMPTY_FILTERS,
     portalLPNumber: searchParams.get('portalLPNumber') || '',
-    projectCode: searchParams.get('projectCode') || '',
-    vendorName: searchParams.get('vendorName') || '',
     status: searchParams.get('status') || '',
     from: searchParams.get('from') || '',
     to: searchParams.get('to') || '',
@@ -141,8 +137,6 @@ export default function LpListManager() {
         }}
         fields={[
           ['portalLPNumber', lpI18n.portalNumber],
-          ['projectCode', common.project],
-          ['vendorName', lpI18n.vendorName],
           ['status', common.status],
           ['from', filterLabels.from],
           ['to', filterLabels.to],
@@ -161,13 +155,11 @@ export default function LpListManager() {
           <thead>
             <tr>
               <th>{lpI18n.portalNumber}</th>
-              <th>{common.documentDate}</th>
-              <th>{common.project}</th>
-              <th>{lpI18n.vendorName}</th>
-              <th>{common.total}</th>
-              <th>{lpI18n.currency}</th>
+              <th>{lpI18n.requestDate}</th>
+              <th>{lpI18n.budget}</th>
+              <th>{lpI18n.documentTotal}</th>
+              <th>{lpI18n.numberOfItems}</th>
               <th>{common.status}</th>
-              <th>{lpI18n.currentStep}</th>
               <th>{lpI18n.createdBy}</th>
               <th>{common.createdAt}</th>
               <th>{common.actions}</th>
@@ -182,14 +174,12 @@ export default function LpListManager() {
                   </Link>
                 </td>
                 <td>{row.documentDate ? new Date(row.documentDate).toLocaleDateString() : '—'}</td>
-                <td>{row.projectCode || '—'}</td>
-                <td>{row.vendorName || '—'}</td>
+                <td>{Number(row.budget ?? 0).toFixed(2)}</td>
                 <td>{Number(row.documentTotal || 0).toFixed(2)}</td>
-                <td>{row.currency || '—'}</td>
+                <td>{row.lineCount ?? 0}</td>
                 <td>
                   <AnimatedStatusBadge status={row.status} />
                 </td>
-                <td>{row.currentApprovalStep || '—'}</td>
                 <td>{row.createdByName || '—'}</td>
                 <td>{row.createdAt ? new Date(row.createdAt).toLocaleString() : '—'}</td>
                 <td className="flex gap-2">

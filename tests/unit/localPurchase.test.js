@@ -9,6 +9,8 @@ import {
 import {
   recalculateLpDocumentTotal,
   recalculateLpLines,
+  sanitizeLocalPurchase,
+  sanitizeLpLine,
 } from '@/lib/localPurchasesService.js';
 import {
   userCanEditLocalPurchase,
@@ -69,13 +71,86 @@ describe('local purchase calculations', () => {
     expect(recalculateLpDocumentTotal(lines)).toBe(30);
   });
 
+  it('keeps document total independent from header budget', () => {
+    const lines = recalculateLpLines([{ description: 'A', quantity: 2, unitPrice: 10 }]);
+    const documentTotal = recalculateLpDocumentTotal(lines);
+    expect(documentTotal).toBe(20);
+    const parsed = createLocalPurchaseSchema.safeParse({
+      documentDate: new Date(),
+      budget: 5000,
+      lines,
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data.budget).toBe(5000);
+    expect(documentTotal).not.toBe(parsed.data.budget);
+  });
+
+  it('stores budget once at document header level', () => {
+    const sanitized = sanitizeLocalPurchase({
+      _id: 'lp1',
+      portalLPNumber: 'LP-20260101-0001',
+      documentDate: new Date('2026-01-01'),
+      budget: 2500,
+      remarks: 'Test',
+      lines: [{ description: 'Widget', quantity: 1, unitPrice: 100, lineTotal: 100 }],
+      documentTotal: 100,
+      status: LP_STATUS.DRAFT,
+    });
+    expect(sanitized.budget).toBe(2500);
+    expect(sanitized.lines).toHaveLength(1);
+    expect(sanitized.lines[0].budget).toBeUndefined();
+  });
+
+  it('ignores legacy line-level budget on read', () => {
+    const line = sanitizeLpLine({
+      description: 'Legacy item',
+      quantity: 1,
+      unitPrice: 50,
+      budget: 999,
+      uom: 'EA',
+    });
+    expect(line.budget).toBeUndefined();
+    expect(line.uom).toBeUndefined();
+    expect(line.lineTotal).toBe(50);
+  });
+
+  it('requires budget in schema', () => {
+    const parsed = createLocalPurchaseSchema.safeParse({
+      documentDate: new Date(),
+      lines: [{ description: 'X', quantity: 1, unitPrice: 1 }],
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects negative budget in schema', () => {
+    const parsed = createLocalPurchaseSchema.safeParse({
+      documentDate: new Date(),
+      budget: -1,
+      lines: [{ description: 'X', quantity: 1, unitPrice: 1 }],
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('accepts zero budget in schema', () => {
+    const parsed = createLocalPurchaseSchema.safeParse({
+      documentDate: new Date(),
+      budget: 0,
+      lines: [{ description: 'X', quantity: 1, unitPrice: 1 }],
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('line payloads do not include budget field', () => {
+    const lines = recalculateLpLines([
+      { description: 'A', quantity: 1, unitPrice: 10, budget: 100 },
+    ]);
+    expect(lines[0]).not.toHaveProperty('budget');
+  });
+
   it('rejects invalid quantity in schema', () => {
     const parsed = createLocalPurchaseSchema.safeParse({
       documentDate: new Date(),
-      projectCode: 'P1',
-      vendorName: 'Vendor',
-      currency: 'USD',
-      exchangeRate: 1,
+      budget: 100,
       lines: [{ description: 'X', quantity: 0, unitPrice: 1 }],
     });
     expect(parsed.success).toBe(false);
@@ -84,10 +159,7 @@ describe('local purchase calculations', () => {
   it('rejects negative unit price in schema', () => {
     const parsed = createLocalPurchaseSchema.safeParse({
       documentDate: new Date(),
-      projectCode: 'P1',
-      vendorName: 'Vendor',
-      currency: 'USD',
-      exchangeRate: 1,
+      budget: 100,
       lines: [{ description: 'X', quantity: 1, unitPrice: -1 }],
     });
     expect(parsed.success).toBe(false);

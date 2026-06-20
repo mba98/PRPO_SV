@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
 import { PortalLoader, AnimatedStatusBadge, Button } from '@/components/ui';
@@ -13,8 +12,7 @@ import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 import { useI18n } from '@/lib/hooks/useI18n';
 
 export default function LpDetailView({ id }) {
-  const router = useRouter();
-  const { common, detail, lp: lpI18n } = useI18n();
+  const { common, lp: lpI18n } = useI18n();
   const { doc, loading, error, refresh } = usePortalDocument('LOCAL_PURCHASE', id, 'LpDetailView');
   const [activeTab, setActiveTab] = useState('details');
   const [actionError, setActionError] = useState('');
@@ -115,37 +113,30 @@ export default function LpDetailView({ id }) {
         <div className="space-y-6">
           <dl className="grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-sm text-muted-foreground">{common.documentDate}</dt>
+              <dt className="text-sm text-muted-foreground">{lpI18n.requestDate}</dt>
               <dd>{doc.documentDate ? new Date(doc.documentDate).toLocaleDateString() : '—'}</dd>
             </div>
             <div>
-              <dt className="text-sm text-muted-foreground">{lpI18n.requiredDate}</dt>
-              <dd>{doc.requiredDate ? new Date(doc.requiredDate).toLocaleDateString() : '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">{common.project}</dt>
-              <dd>
-                {doc.projectCode}
-                {doc.projectName ? ` — ${doc.projectName}` : ''}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">{lpI18n.vendorName}</dt>
-              <dd>{doc.vendorName}</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">{lpI18n.vendorReference}</dt>
-              <dd>{doc.vendorReference || '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">{lpI18n.currency}</dt>
-              <dd>
-                {doc.currency} ({lpI18n.exchangeRate}: {doc.exchangeRate})
-              </dd>
+              <dt className="text-sm text-muted-foreground">{lpI18n.budget}</dt>
+              <dd>{Number(doc.budget ?? 0).toFixed(2)}</dd>
             </div>
             <div className="sm:col-span-2">
-              <dt className="text-sm text-muted-foreground">{detail.remarks}</dt>
+              <dt className="text-sm text-muted-foreground">{lpI18n.generalRemarks}</dt>
               <dd>{doc.remarks || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">{common.status}</dt>
+              <dd>
+                <AnimatedStatusBadge status={doc.status} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">{lpI18n.createdBy}</dt>
+              <dd>{doc.createdByName || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">{common.createdAt}</dt>
+              <dd>{doc.createdAt ? new Date(doc.createdAt).toLocaleString() : '—'}</dd>
             </div>
           </dl>
 
@@ -153,30 +144,28 @@ export default function LpDetailView({ id }) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>{lpI18n.lineDescription}</th>
-                  <th>{lpI18n.uom}</th>
+                  <th>{lpI18n.item}</th>
                   <th>{lpI18n.quantity}</th>
-                  <th>{lpI18n.unitPrice}</th>
-                  <th>{common.total}</th>
-                  <th>{lpI18n.notes}</th>
+                  <th>{lpI18n.estimatedPrice}</th>
+                  <th>{lpI18n.lineNotes}</th>
+                  <th>{lpI18n.lineTotal}</th>
                 </tr>
               </thead>
               <tbody>
                 {(doc.lines || []).map((line) => (
                   <tr key={line._id}>
                     <td>{line.description}</td>
-                    <td>{line.uom || '—'}</td>
                     <td>{line.quantity}</td>
                     <td>{Number(line.unitPrice).toFixed(2)}</td>
-                    <td>{Number(line.lineTotal).toFixed(2)}</td>
                     <td>{line.notes || '—'}</td>
+                    <td>{Number(line.lineTotal).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <p className="text-right font-semibold">
-            {common.total}: {Number(doc.documentTotal || 0).toFixed(2)} {doc.currency}
+            {lpI18n.documentTotal}: {Number(doc.documentTotal || 0).toFixed(2)}
           </p>
         </div>
       )}

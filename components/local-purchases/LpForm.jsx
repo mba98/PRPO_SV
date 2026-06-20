@@ -2,14 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ProjectSelect from '@/components/lookups/ProjectSelect';
 import { apiFetch } from '@/lib/apiClient';
-import { Button, FormField, PortalLoader, Textarea } from '@/components/ui';
+import { Button, FormField, Textarea } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 
 const EMPTY_LINE = () => ({
   description: '',
-  uom: '',
   quantity: 1,
   unitPrice: 0,
   notes: '',
@@ -30,15 +28,7 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
     documentDate: initialDoc?.documentDate
       ? new Date(initialDoc.documentDate).toISOString().slice(0, 10)
       : todayInputValue(),
-    requiredDate: initialDoc?.requiredDate
-      ? new Date(initialDoc.requiredDate).toISOString().slice(0, 10)
-      : '',
-    projectCode: initialDoc?.projectCode || '',
-    projectName: initialDoc?.projectName || '',
-    vendorName: initialDoc?.vendorName || '',
-    vendorReference: initialDoc?.vendorReference || '',
-    currency: initialDoc?.currency || 'USD',
-    exchangeRate: initialDoc?.exchangeRate ?? 1,
+    budget: initialDoc?.budget ?? 0,
     remarks: initialDoc?.remarks || '',
   }));
 
@@ -47,7 +37,6 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
       ? initialDoc.lines.map((line) => ({
           _id: line._id,
           description: line.description || '',
-          uom: line.uom || '',
           quantity: line.quantity ?? 1,
           unitPrice: line.unitPrice ?? 0,
           notes: line.notes || '',
@@ -83,15 +72,17 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
 
   function buildPayload() {
     return {
-      ...header,
-      exchangeRate: Number(header.exchangeRate) || 1,
+      documentDate: header.documentDate,
+      budget: Number(header.budget),
+      remarks: header.remarks || undefined,
       lines: lines.map(({ _id, ...line }) => ({
         ...(_id ? { _id } : {}),
-        ...line,
+        description: line.description,
         quantity: Number(line.quantity),
         unitPrice: Number(line.unitPrice),
+        notes: line.notes || undefined,
       })),
-      ...(mode === 'edit' ? { __v: initialDoc.__v } : {}),
+      ...(mode === 'edit' && initialDoc?.__v != null ? { __v: initialDoc.__v } : {}),
     };
   }
 
@@ -101,7 +92,7 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
     setFieldErrors({});
     const payload = buildPayload();
     const isEdit = mode === 'edit';
-    const { json, status } = await apiFetch(
+    const { json } = await apiFetch(
       isEdit ? `/api/local-purchases/${initialDoc.id}` : '/api/local-purchases',
       {
         method: isEdit ? 'PATCH' : 'POST',
@@ -169,7 +160,7 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
       }}
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={common.documentDate}>
+        <FormField label={lpI18n.requestDate}>
           <input
             type="date"
             className="input-field"
@@ -178,57 +169,15 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
             required
           />
         </FormField>
-        <FormField label={lpI18n.requiredDate}>
-          <input
-            type="date"
-            className="input-field"
-            value={header.requiredDate}
-            onChange={(e) => updateHeader({ requiredDate: e.target.value })}
-          />
-        </FormField>
-        <FormField label={common.project} className="sm:col-span-2">
-          <ProjectSelect
-            valueCode={header.projectCode}
-            valueLabel={header.projectName || header.projectCode}
-            onSelect={(code, label) =>
-              updateHeader({ projectCode: code, projectName: label || code })
-            }
-          />
-        </FormField>
-        <FormField label={lpI18n.vendorName}>
-          <input
-            className="input-field"
-            value={header.vendorName}
-            onChange={(e) => updateHeader({ vendorName: e.target.value })}
-            required
-          />
-        </FormField>
-        <FormField label={lpI18n.vendorReference}>
-          <input
-            className="input-field"
-            value={header.vendorReference}
-            onChange={(e) => updateHeader({ vendorReference: e.target.value })}
-          />
-        </FormField>
-        <FormField label={lpI18n.currency}>
-          <select
-            className="input-field"
-            value={header.currency}
-            onChange={(e) => updateHeader({ currency: e.target.value })}
-          >
-            <option value="USD">USD</option>
-            <option value="EGP">EGP</option>
-            <option value="SAR">SAR</option>
-          </select>
-        </FormField>
-        <FormField label={lpI18n.exchangeRate}>
+        <FormField label={lpI18n.budget}>
           <input
             type="number"
             min="0"
-            step="0.0001"
+            step="any"
             className="input-field"
-            value={header.exchangeRate}
-            onChange={(e) => updateHeader({ exchangeRate: e.target.value })}
+            value={header.budget}
+            onChange={(e) => updateHeader({ budget: e.target.value })}
+            required
           />
         </FormField>
         <FormField label={lpI18n.remarks} className="sm:col-span-2">
@@ -250,12 +199,12 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
           <table className="data-table">
             <thead>
               <tr>
-                <th>{lpI18n.lineDescription}</th>
-                <th>{lpI18n.uom}</th>
+                <th>#</th>
+                <th>{lpI18n.item}</th>
                 <th>{lpI18n.quantity}</th>
-                <th>{lpI18n.unitPrice}</th>
-                <th>{common.total}</th>
-                <th>{lpI18n.notes}</th>
+                <th>{lpI18n.estimatedPrice}</th>
+                <th>{lpI18n.lineNotes}</th>
+                <th>{lpI18n.lineTotal}</th>
                 <th />
               </tr>
             </thead>
@@ -265,19 +214,13 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
                   (Number(line.quantity) || 0) * (Number(line.unitPrice) || 0);
                 return (
                   <tr key={line._id || index}>
+                    <td>{index + 1}</td>
                     <td>
                       <input
                         className="input-field min-w-[12rem]"
                         value={line.description}
                         onChange={(e) => updateLine(index, { description: e.target.value })}
                         required
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="input-field w-24"
-                        value={line.uom}
-                        onChange={(e) => updateLine(index, { uom: e.target.value })}
                       />
                     </td>
                     <td>
@@ -302,7 +245,6 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
                         required
                       />
                     </td>
-                    <td>{lineTotal.toFixed(2)}</td>
                     <td>
                       <input
                         className="input-field min-w-[8rem]"
@@ -310,6 +252,7 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
                         onChange={(e) => updateLine(index, { notes: e.target.value })}
                       />
                     </td>
+                    <td>{lineTotal.toFixed(2)}</td>
                     <td>
                       <Button type="button" variant="ghost" onClick={() => removeLine(index)}>
                         {common.delete}
@@ -322,7 +265,7 @@ export default function LpForm({ mode = 'create', initialDoc = null }) {
           </table>
         </div>
         <p className="text-right text-sm font-medium">
-          {common.total}: {documentTotal.toFixed(2)} {header.currency}
+          {lpI18n.documentTotal}: {documentTotal.toFixed(2)}
         </p>
       </div>
 

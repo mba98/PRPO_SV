@@ -5,26 +5,19 @@ import { LP_MODEL_STATUS_ENUM, LP_STATUS } from '../lib/localPurchaseStatus.js';
 const lpLineSchema = new mongoose.Schema(
   {
     description: { type: String, required: true },
-    uom: String,
     quantity: { type: Number, required: true },
     unitPrice: { type: Number, required: true },
     lineTotal: { type: Number, default: 0 },
     notes: String,
   },
-  { _id: true },
+  { _id: true, strict: false },
 );
 
 const localPurchaseSchema = new mongoose.Schema(
   {
     portalLPNumber: { type: String, sparse: true },
     documentDate: { type: Date, required: true },
-    requiredDate: Date,
-    projectCode: { type: String, required: true },
-    projectName: String,
-    vendorName: { type: String, required: true },
-    vendorReference: String,
-    currency: { type: String, required: true },
-    exchangeRate: { type: Number, default: 1 },
+    budget: { type: Number, required: true, default: 0, min: 0 },
     remarks: String,
     lines: { type: [lpLineSchema], default: [] },
     documentTotal: { type: Number, default: 0 },
@@ -38,8 +31,17 @@ const localPurchaseSchema = new mongoose.Schema(
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     submittedAt: Date,
     completedAt: Date,
-    cancelledAt: Date,
+    rejectedAt: Date,
     rejectionReason: String,
+    cancelledAt: Date,
+    // Legacy optional fields — ignored by new forms, kept for older records.
+    requiredDate: Date,
+    projectCode: String,
+    projectName: String,
+    vendorName: String,
+    vendorReference: String,
+    currency: String,
+    exchangeRate: Number,
   },
   schemaOptions,
 );
@@ -47,8 +49,6 @@ const localPurchaseSchema = new mongoose.Schema(
 localPurchaseSchema.index({ portalLPNumber: 1 }, { unique: true, sparse: true });
 localPurchaseSchema.index({ status: 1, currentApprovalStep: 1 });
 localPurchaseSchema.index({ createdBy: 1, createdAt: -1 });
-localPurchaseSchema.index({ projectCode: 1, createdAt: -1 });
-localPurchaseSchema.index({ vendorName: 1 });
 localPurchaseSchema.index({ createdAt: -1 });
 
 export default mongoose.models.LocalPurchase ||
