@@ -23,4 +23,4 @@ async function getHandler(request, _ctx, user) {
   }
 }
 
-export const GET = withAuth(getHandler, ['admin.settings', 'view.all']);
+export const GET = withAuth(getHandler);

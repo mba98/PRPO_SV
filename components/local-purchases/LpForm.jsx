@@ -261,6 +261,10 @@ export default function LpForm({ mode = 'create', initialDoc = null, onDocumentC
     if (submittedDocument) {
       applyDocumentUpdate(submittedDocument);
     }
+    const notification = submitRes.json.data?.notification;
+    if (notification?.warning) {
+      setError(notification.warning);
+    }
     router.push(`/local-purchases/${docId}`);
   }
 

@@ -7,6 +7,7 @@ import {
 import { updateLocalPurchaseSchema } from '@/lib/validators/localPurchase';
 import {
   jsonSuccess,
+  jsonSuccessNoStore,
   jsonError,
   jsonValidation,
   parseJsonBody,
@@ -19,7 +20,7 @@ async function getHandler(_request, { params }, user) {
   try {
     const doc = await getLocalPurchaseById(params.id, user);
     if (!doc) return jsonError('Local Purchase not found', 'NOT_FOUND', 404);
-    return jsonSuccess(doc);
+    return jsonSuccessNoStore(doc);
   } catch (err) {
     return handleServiceError(err);
   }

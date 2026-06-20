@@ -4,8 +4,11 @@ import { describe, expect, it } from 'vitest';
 import {
   LP_STATUS,
   lpStatusLabel,
+  normalizeLpDocumentState,
+  normalizeLocalPurchaseStatus,
   pendingLpStatusForStep,
 } from '@/lib/localPurchaseStatus.js';
+import { buildApprovalWorkflowSteps } from '@/lib/workflowSteps.js';
 import {
   recalculateLpDocumentTotal,
   recalculateLpLines,
@@ -279,6 +282,44 @@ describe('local purchase workflow transitions', () => {
 
   it('rejection uses local purchase rejected status', () => {
     expect(rejectedStatusForDocumentType('LOCAL_PURCHASE')).toBe(LP_STATUS.REJECTED);
+  });
+});
+
+describe('local purchase status consistency', () => {
+  it('normalizes completed documents to currentApprovalStep 0', () => {
+    const normalized = normalizeLpDocumentState({
+      status: LP_STATUS.COMPLETED,
+      currentApprovalStep: 2,
+    });
+    expect(normalized.status).toBe(LP_STATUS.COMPLETED);
+    expect(normalized.currentApprovalStep).toBe(0);
+  });
+
+  it('exposes normalizeLocalPurchaseStatus alias', () => {
+    expect(normalizeLocalPurchaseStatus('pending_pm')).toBe(LP_STATUS.PENDING_PM);
+    expect(normalizeLocalPurchaseStatus(LP_STATUS.COMPLETED)).toBe(LP_STATUS.COMPLETED);
+  });
+
+  it('marks all approval steps completed when status is completed', () => {
+    const steps = buildApprovalWorkflowSteps(
+      [
+        { stepOrder: 1, stepName: 'Project Manager Approval', requiredPermission: 'lp.approve.pm' },
+        { stepOrder: 2, stepName: 'Finance Approval', requiredPermission: 'lp.approve.finance' },
+      ],
+      {
+        status: LP_STATUS.COMPLETED,
+        currentApprovalStep: 1,
+      },
+      'LOCAL_PURCHASE',
+      { permissions: [] },
+    );
+    expect(steps.every((step) => step.state === 'completed')).toBe(true);
+    expect(steps.some((step) => step.state === 'current')).toBe(false);
+  });
+
+  it('list and detail labels use the same canonical status key', () => {
+    expect(lpStatusLabel(LP_STATUS.COMPLETED, 'en')).toBe('Completed');
+    expect(lpStatusLabel(LP_STATUS.PENDING_PM, 'en')).toContain('Project Manager');
   });
 });
 

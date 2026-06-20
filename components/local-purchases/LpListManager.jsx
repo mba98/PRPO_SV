@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
+import { useI18n } from '@/lib/hooks/useI18n';
 import { formatMoneyWithCurrency } from '@/lib/lpMoney';
 import { LP_APPROVAL_PERMISSIONS } from '@/lib/permissions.js';
 

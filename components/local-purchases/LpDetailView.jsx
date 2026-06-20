@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
@@ -9,18 +9,73 @@ import { WorkflowStepper } from '@/components/workflow';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
+import { useI18n } from '@/lib/hooks/useI18n';
 import { formatMoneyWithCurrency } from '@/lib/lpMoney';
 import { extractLocalPurchaseDocument } from '@/lib/localPurchaseDocument.js';
 import { primePortalDocument } from '@/lib/documentClientCache';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function LpDetailView({ id }) {
-  const { common, lp: lpI18n } = useI18n();
+  const { common, lp: lpI18n, detail } = useI18n();
   const userId = useAuthStore((s) => s.user?.id);
   const { doc, loading, error, refresh, setDocument } = usePortalDocument('LOCAL_PURCHASE', id, 'LpDetailView');
   const [activeTab, setActiveTab] = useState('details');
   const [actionError, setActionError] = useState('');
   const [acting, setActing] = useState(false);
+  const [emailLogs, setEmailLogs] = useState([]);
+  const [emailLogsLoading, setEmailLogsLoading] = useState(false);
+  const [emailLogsError, setEmailLogsError] = useState('');
+  const emailFetchStateRef = useRef('idle');
+
+  useEffect(() => {
+    emailFetchStateRef.current = 'idle';
+    setEmailLogs([]);
+    setEmailLogsError('');
+    setEmailLogsLoading(false);
+  }, [id]);
+
+  useEffect(() => {
+    if (activeTab !== 'emails') return;
+    if (emailFetchStateRef.current !== 'idle') return;
+
+    emailFetchStateRef.current = 'loading';
+    setEmailLogsLoading(true);
+    setEmailLogsError('');
+
+    (async () => {
+      try {
+        const params = new URLSearchParams({
+          relatedDocumentType: 'LOCAL_PURCHASE',
+          relatedDocumentId: id,
+          limit: '50',
+        });
+        const { json, status } = await apiFetch(`/api/email/logs?${params}`, {
+          source: 'LpDetailView:emails',
+        });
+
+        if (status === 403 || json.error === 'FORBIDDEN' || json.error === 'INSUFFICIENT_PERMISSION') {
+          emailFetchStateRef.current = 'forbidden';
+          setEmailLogsError(detail.emailLogsForbidden);
+          return;
+        }
+
+        if (json.success) {
+          setEmailLogs(Array.isArray(json.data) ? json.data : []);
+          emailFetchStateRef.current = 'done';
+        } else {
+          setEmailLogsError(json.message || common.errorLoad);
+          emailFetchStateRef.current = 'done';
+        }
+      } catch {
+        setEmailLogsError(common.errorLoad);
+        emailFetchStateRef.current = 'done';
+      } finally {
+        setEmailLogsLoading(false);
+      }
+    })();
+    // Intentionally depend only on tab + document id to avoid refetch loops from i18n object identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, id]);
 
   if (loading) return <PortalLoader />;
   if (error || !doc) return <p className="text-sm text-red-600">{error || common.errorLoad}</p>;
@@ -30,6 +85,7 @@ export default function LpDetailView({ id }) {
     { id: 'attachments', label: common.attachments },
     { id: 'comments', label: common.comments },
     { id: 'history', label: common.approvalHistory },
+    { id: 'emails', label: common.emails },
   ];
 
   async function handleCancel() {
@@ -192,6 +248,46 @@ export default function LpDetailView({ id }) {
       {activeTab === 'comments' && <CommentsPanel documentType="LOCAL_PURCHASE" documentId={id} />}
       {activeTab === 'history' && (
         <ApprovalTimeline documentType="LOCAL_PURCHASE" documentId={id} />
+      )}
+
+      {activeTab === 'emails' && (
+        <section className="card overflow-x-auto">
+          {emailLogsLoading ? (
+            <p className="text-sm text-muted-foreground">{common.loading}</p>
+          ) : emailLogsError ? (
+            <p className="text-sm text-red-600">{emailLogsError}</p>
+          ) : emailLogs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{detail.noEmailLogs}</p>
+          ) : (
+            <table className="min-w-full text-sm">
+              <thead className="text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="pb-2 pr-4">{detail.emailEvent || 'Event'}</th>
+                  <th className="pb-2 pr-4">{detail.emailTo}</th>
+                  <th className="pb-2 pr-4">{detail.emailSubject}</th>
+                  <th className="pb-2 pr-4">{detail.emailStatus}</th>
+                  <th className="pb-2">{detail.emailSent}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {emailLogs.map((e) => (
+                  <tr key={e.id}>
+                    <td className="py-2 pr-4">{e.eventKey || '—'}</td>
+                    <td className="py-2 pr-4">{e.to}</td>
+                    <td className="py-2 pr-4">{e.subject}</td>
+                    <td className="py-2 pr-4">{e.emailStatus}</td>
+                    <td className="py-2">
+                      {e.sentAt ? new Date(e.sentAt).toLocaleString() : '—'}
+                      {e.errorMessage ? (
+                        <span className="mt-1 block text-xs text-red-600">{e.errorMessage}</span>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
       )}
     </div>
   );

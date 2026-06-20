@@ -5,6 +5,7 @@ import { useI18n } from '@/lib/hooks/useI18n';
 import { useMotionSafe } from './useMotionSafe';
 import { PO_STATUS, normalizePoStatus } from '@/lib/poStatus.js';
 import { APRI_STATUS, normalizeApriStatus } from '@/lib/apriStatus.js';
+import { LP_STATUS, normalizeLpStatus } from '@/lib/localPurchaseStatus.js';
 
 const STATUS_STYLES = {
   Draft: 'bg-muted text-muted-foreground',
@@ -48,16 +49,27 @@ const STATUS_STYLES = {
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
   failed_sap:
     'bg-red-100 text-red-800 dark:bg-destructive/25 dark:text-rose-300',
+  [LP_STATUS.DRAFT]: 'bg-muted text-muted-foreground',
+  [LP_STATUS.PENDING_PM]: 'bg-amber-100 text-amber-800 dark:bg-amber-500/25 dark:text-amber-300',
+  [LP_STATUS.PENDING_FINANCE]: 'bg-amber-100 text-amber-800 dark:bg-amber-500/25 dark:text-amber-300',
+  [LP_STATUS.COMPLETED]:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300',
+  [LP_STATUS.REJECTED]: 'bg-red-100 text-red-800 dark:bg-destructive/25 dark:text-rose-300',
+  [LP_STATUS.CANCELLED]: 'bg-muted text-muted-foreground',
 };
 
 function getStatusClass(status) {
   const normalizedPo = normalizePoStatus(status);
   const normalizedApri = normalizeApriStatus(status);
+  const normalizedLp = normalizeLpStatus(status);
   if (STATUS_STYLES[normalizedPo]) {
     return STATUS_STYLES[normalizedPo];
   }
   if (STATUS_STYLES[normalizedApri]) {
     return STATUS_STYLES[normalizedApri];
+  }
+  if (STATUS_STYLES[normalizedLp]) {
+    return STATUS_STYLES[normalizedLp];
   }
   if (STATUS_STYLES[status]) {
     return STATUS_STYLES[status];

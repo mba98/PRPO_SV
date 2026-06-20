@@ -2,8 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getPortalDocument,
   invalidatePortalDocument,
+  lpDocumentHasDetailFlags,
+  pickNewerPortalDocument,
   primePortalDocument,
   readPortalDocument,
+  shouldBypassPortalDocumentCache,
 } from '@/lib/documentClientCache';
 
 const USER_A = 'user-a';
@@ -54,6 +57,48 @@ describe('documentClientCache', () => {
       USER_A,
     );
     expect(getPortalDocument('APRI', 'apri1', USER_A)?.canCreateInSap).toBe(true);
+  });
+
+  it('treats LOCAL_PURCHASE cache without detail flags as stale', () => {
+    primePortalDocument(
+      'LOCAL_PURCHASE',
+      'lp1',
+      { id: 'lp1', status: 'pending_pm', __v: 1 },
+      USER_A,
+    );
+    expect(getPortalDocument('LOCAL_PURCHASE', 'lp1', USER_A)).toBeNull();
+  });
+
+  it('keeps LOCAL_PURCHASE cache when detail flags are present', () => {
+    const payload = {
+      id: 'lp1',
+      status: 'completed',
+      __v: 3,
+      canApproveCurrentStep: false,
+      workflowSteps: [{ state: 'completed' }],
+    };
+    primePortalDocument('LOCAL_PURCHASE', 'lp1', payload, USER_A);
+    expect(lpDocumentHasDetailFlags(payload)).toBe(true);
+    expect(getPortalDocument('LOCAL_PURCHASE', 'lp1', USER_A)?.status).toBe('completed');
+  });
+
+  it('always bypasses LOCAL_PURCHASE cache for network refresh', () => {
+    expect(
+      shouldBypassPortalDocumentCache('LOCAL_PURCHASE', {
+        id: 'lp1',
+        status: 'completed',
+        __v: 3,
+        canApproveCurrentStep: false,
+        workflowSteps: [],
+      }),
+    ).toBe(true);
+  });
+
+  it('prefers the newer document version when resolving cache', () => {
+    const cached = { id: 'lp1', status: 'pending_pm', __v: 1 };
+    const fresh = { id: 'lp1', status: 'completed', __v: 3, updatedAt: '2026-06-20T06:15:53.806Z' };
+    expect(pickNewerPortalDocument(cached, fresh).status).toBe('completed');
+    expect(pickNewerPortalDocument(fresh, cached).status).toBe('completed');
   });
 });
 

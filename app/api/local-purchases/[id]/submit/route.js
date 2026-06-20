@@ -10,7 +10,10 @@ async function postHandler(request, { params }, user) {
     const parsed = submitLocalPurchaseSchema.safeParse(body);
     if (!parsed.success) return jsonValidation(parsed.error);
     const doc = await submitLocalPurchase(params.id, user, parsed.data);
-    return jsonSuccess(wrapLocalPurchaseResponse(doc));
+    return jsonSuccess({
+      ...wrapLocalPurchaseResponse(doc.document),
+      notification: doc.notification,
+    });
   } catch (err) {
     return handleServiceError(err);
   }
