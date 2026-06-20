@@ -16,7 +16,7 @@ import {
 } from '@/components/ui';
 import ListPagination from '@/components/lists/ListPagination';
 import ApprovalHistoryDrawer from '@/components/approval-history/ApprovalHistoryDrawer';
-import { useI18n } from '@/lib/hooks/useI18n';
+import { formatMoneyWithCurrency } from '@/lib/lpMoney';
 import { LP_APPROVAL_PERMISSIONS } from '@/lib/permissions.js';
 
 const EMPTY_FILTERS = {
@@ -174,8 +174,8 @@ export default function LpListManager() {
                   </Link>
                 </td>
                 <td>{row.documentDate ? new Date(row.documentDate).toLocaleDateString() : '—'}</td>
-                <td>{Number(row.budget ?? 0).toFixed(2)}</td>
-                <td>{Number(row.documentTotal || 0).toFixed(2)}</td>
+                <td>{formatMoneyWithCurrency(row.budget ?? 0, row.currency || 'IQD')}</td>
+                <td>{formatMoneyWithCurrency(row.documentTotal || 0, row.currency || 'IQD')}</td>
                 <td>{row.lineCount ?? 0}</td>
                 <td>
                   <AnimatedStatusBadge status={row.status} />

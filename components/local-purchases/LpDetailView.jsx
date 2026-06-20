@@ -9,11 +9,15 @@ import { WorkflowStepper } from '@/components/workflow';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
-import { useI18n } from '@/lib/hooks/useI18n';
+import { formatMoneyWithCurrency } from '@/lib/lpMoney';
+import { extractLocalPurchaseDocument } from '@/lib/localPurchaseDocument.js';
+import { primePortalDocument } from '@/lib/documentClientCache';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function LpDetailView({ id }) {
   const { common, lp: lpI18n } = useI18n();
-  const { doc, loading, error, refresh } = usePortalDocument('LOCAL_PURCHASE', id, 'LpDetailView');
+  const userId = useAuthStore((s) => s.user?.id);
+  const { doc, loading, error, refresh, setDocument } = usePortalDocument('LOCAL_PURCHASE', id, 'LpDetailView');
   const [activeTab, setActiveTab] = useState('details');
   const [actionError, setActionError] = useState('');
   const [acting, setActing] = useState(false);
@@ -42,8 +46,16 @@ export default function LpDetailView({ id }) {
       setActionError(json.message || lpI18n.cancelFailed);
       return;
     }
-    await refresh();
+    const updated = extractLocalPurchaseDocument(json.data);
+    if (updated) {
+      setDocument(updated);
+      primePortalDocument('LOCAL_PURCHASE', id, updated, userId);
+    } else {
+      await refresh();
+    }
   }
+
+  const currency = doc.currency || 'IQD';
 
   return (
     <div className="space-y-6">
@@ -117,8 +129,12 @@ export default function LpDetailView({ id }) {
               <dd>{doc.documentDate ? new Date(doc.documentDate).toLocaleDateString() : '—'}</dd>
             </div>
             <div>
+              <dt className="text-sm text-muted-foreground">{lpI18n.currency}</dt>
+              <dd>{currency}</dd>
+            </div>
+            <div>
               <dt className="text-sm text-muted-foreground">{lpI18n.budget}</dt>
-              <dd>{Number(doc.budget ?? 0).toFixed(2)}</dd>
+              <dd>{formatMoneyWithCurrency(doc.budget ?? 0, currency)}</dd>
             </div>
             <div className="sm:col-span-2">
               <dt className="text-sm text-muted-foreground">{lpI18n.generalRemarks}</dt>
@@ -156,16 +172,16 @@ export default function LpDetailView({ id }) {
                   <tr key={line._id}>
                     <td>{line.description}</td>
                     <td>{line.quantity}</td>
-                    <td>{Number(line.unitPrice).toFixed(2)}</td>
+                    <td>{formatMoneyWithCurrency(line.unitPrice, currency)}</td>
                     <td>{line.notes || '—'}</td>
-                    <td>{Number(line.lineTotal).toFixed(2)}</td>
+                    <td>{formatMoneyWithCurrency(line.lineTotal, currency)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <p className="text-right font-semibold">
-            {lpI18n.documentTotal}: {Number(doc.documentTotal || 0).toFixed(2)}
+            {lpI18n.documentTotal}: {formatMoneyWithCurrency(doc.documentTotal || 0, currency)}
           </p>
         </div>
       )}

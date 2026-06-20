@@ -164,6 +164,49 @@ describe('local purchase calculations', () => {
     });
     expect(parsed.success).toBe(false);
   });
+
+  it('defaults currency to IQD in schema', () => {
+    const parsed = createLocalPurchaseSchema.safeParse({
+      documentDate: new Date(),
+      budget: 100,
+      lines: [{ description: 'X', quantity: 1, unitPrice: 1 }],
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data.currency).toBe('IQD');
+  });
+
+  it('accepts only IQD and USD currency values', () => {
+    expect(
+      createLocalPurchaseSchema.safeParse({
+        documentDate: new Date(),
+        currency: 'USD',
+        budget: 100,
+        lines: [{ description: 'X', quantity: 1, unitPrice: 1 }],
+      }).success,
+    ).toBe(true);
+    expect(
+      createLocalPurchaseSchema.safeParse({
+        documentDate: new Date(),
+        currency: 'EUR',
+        budget: 100,
+        lines: [{ description: 'X', quantity: 1, unitPrice: 1 }],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('includes currency on sanitized documents', () => {
+    const sanitized = sanitizeLocalPurchase({
+      _id: 'lp1',
+      documentDate: new Date(),
+      currency: 'USD',
+      budget: 1000,
+      lines: [],
+      documentTotal: 0,
+      status: LP_STATUS.DRAFT,
+    });
+    expect(sanitized.currency).toBe('USD');
+    expect(typeof sanitized.budget).toBe('number');
+  });
 });
 
 describe('local purchase permissions', () => {

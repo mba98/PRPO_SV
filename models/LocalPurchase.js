@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import { schemaOptions } from './schemaOptions.js';
 import { LP_MODEL_STATUS_ENUM, LP_STATUS } from '../lib/localPurchaseStatus.js';
 
+const LP_CURRENCIES = ['IQD', 'USD'];
+
 const lpLineSchema = new mongoose.Schema(
   {
     description: { type: String, required: true },
@@ -15,8 +17,9 @@ const lpLineSchema = new mongoose.Schema(
 
 const localPurchaseSchema = new mongoose.Schema(
   {
-    portalLPNumber: { type: String, sparse: true },
+    portalLPNumber: { type: String },
     documentDate: { type: Date, required: true },
+    currency: { type: String, enum: LP_CURRENCIES, default: 'IQD', required: true },
     budget: { type: Number, required: true, default: 0, min: 0 },
     remarks: String,
     lines: { type: [lpLineSchema], default: [] },
@@ -40,7 +43,6 @@ const localPurchaseSchema = new mongoose.Schema(
     projectName: String,
     vendorName: String,
     vendorReference: String,
-    currency: String,
     exchangeRate: Number,
   },
   schemaOptions,

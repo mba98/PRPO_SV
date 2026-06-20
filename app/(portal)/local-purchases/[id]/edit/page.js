@@ -6,7 +6,7 @@ import LpForm from '@/components/local-purchases/LpForm';
 import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
 
 export default function LocalPurchaseEditPage({ params }) {
-  const { doc, loading, error } = usePortalDocument(
+  const { doc, loading, error, setDocument } = usePortalDocument(
     'LOCAL_PURCHASE',
     params.id,
     'LocalPurchaseEditPage',
@@ -19,7 +19,7 @@ export default function LocalPurchaseEditPage({ params }) {
   return (
     <div>
       <SectionPageHeader section="lp" titleKey="editTitle" descriptionKey="editDescription" />
-      <LpForm mode="edit" initialDoc={doc} />
+      <LpForm mode="edit" initialDoc={doc} onDocumentChange={setDocument} />
     </div>
   );
 }

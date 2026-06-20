@@ -1,6 +1,7 @@
 import { withAuth } from '@/lib/auth';
 import { resubmitLocalPurchase } from '@/lib/localPurchasesService';
 import { submitLocalPurchaseSchema } from '@/lib/validators/localPurchase';
+import { wrapLocalPurchaseResponse } from '@/lib/localPurchaseDocument.js';
 import { jsonSuccess, jsonValidation, parseJsonBody, handleServiceError } from '@/lib/apiHelpers';
 
 async function postHandler(request, { params }, user) {
@@ -9,7 +10,7 @@ async function postHandler(request, { params }, user) {
     const parsed = submitLocalPurchaseSchema.safeParse(body);
     if (!parsed.success) return jsonValidation(parsed.error);
     const doc = await resubmitLocalPurchase(params.id, user, parsed.data);
-    return jsonSuccess(doc);
+    return jsonSuccess(wrapLocalPurchaseResponse(doc));
   } catch (err) {
     return handleServiceError(err);
   }

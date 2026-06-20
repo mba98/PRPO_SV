@@ -12,6 +12,7 @@ import {
   parseJsonBody,
   handleServiceError,
 } from '@/lib/apiHelpers';
+import { wrapLocalPurchaseResponse } from '@/lib/localPurchaseDocument.js';
 import { LP_LIST_PERMISSIONS } from '@/lib/permissions.js';
 
 async function getHandler(_request, { params }, user) {
@@ -30,7 +31,7 @@ async function patchHandler(request, { params }, user) {
     const parsed = updateLocalPurchaseSchema.safeParse(body);
     if (!parsed.success) return jsonValidation(parsed.error);
     const doc = await updateLocalPurchase(params.id, parsed.data, user);
-    return jsonSuccess(doc);
+    return jsonSuccess(wrapLocalPurchaseResponse(doc));
   } catch (err) {
     return handleServiceError(err);
   }

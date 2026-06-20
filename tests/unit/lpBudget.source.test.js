@@ -13,6 +13,7 @@ describe('LpForm source', () => {
     expect(source).toContain('budget: Number(header.budget)');
     expect(source).toContain('lpI18n.budget');
     expect(source).toContain('lpI18n.requestDate');
+    expect(source).toContain('lpI18n.currency');
     expect(source).toContain('lpI18n.remarks');
   });
 
@@ -33,8 +34,9 @@ describe('LpForm source', () => {
 
   it('save draft uses buildPayload without throwing', () => {
     expect(source).toContain('function buildPayload()');
-    expect(source).toContain('async function saveDraft()');
+    expect(source).toContain('handleSaveDraft');
     expect(source).toContain('budget: Number(header.budget)');
+    expect(source).toContain('extractLocalPurchaseDocument');
   });
 });
 
@@ -43,6 +45,8 @@ describe('LpDetailView source', () => {
 
   it('shows budget in header section', () => {
     expect(source).toContain('lpI18n.budget');
+    expect(source).toContain('lpI18n.currency');
+    expect(source).toContain('formatMoneyWithCurrency');
     expect(source).toContain('lpI18n.generalRemarks');
     expect(source).toContain('lpI18n.requestDate');
   });
@@ -62,6 +66,7 @@ describe('LpListManager source', () => {
 
   it('shows request-level budget and document total columns', () => {
     expect(source).toContain('lpI18n.budget');
+    expect(source).toContain('formatMoneyWithCurrency');
     expect(source).toContain('lpI18n.documentTotal');
     expect(source).toContain('lpI18n.numberOfItems');
     expect(source).toContain('lpI18n.requestDate');
