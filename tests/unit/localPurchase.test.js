@@ -240,8 +240,22 @@ describe('local purchase permissions', () => {
     expect(
       userCanViewLocalPurchase(PM_USER, {
         status: LP_STATUS.PENDING_PM,
+        currentApprovalStep: 1,
         createdBy: 'u1',
       }),
+    ).toBe(true);
+  });
+
+  it('allows Finance to view pending finance documents', () => {
+    expect(
+      userCanViewLocalPurchase(
+        { _id: 'fin', permissions: ['lp.approve.finance'] },
+        {
+          status: LP_STATUS.PENDING_FINANCE,
+          currentApprovalStep: 2,
+          createdBy: 'u1',
+        },
+      ),
     ).toBe(true);
   });
 

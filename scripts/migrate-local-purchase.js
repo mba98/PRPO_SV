@@ -96,31 +96,57 @@ async function ensureMatrixSteps(matrixCollection, rolesCollection) {
   ];
 
   for (const step of steps) {
-    const existing = await matrixCollection.findOne({
-      documentType: step.documentType,
-      stepOrder: step.stepOrder,
-    });
-    if (existing) {
-      console.log(`Matrix ${step.documentType} step ${step.stepOrder}: already present`);
-      continue;
-    }
     const role = await rolesCollection.findOne({ name: step.approverRoleName });
     if (!role) {
       console.log(`Matrix step ${step.stepOrder}: role ${step.approverRoleName} not found — skipped`);
       continue;
     }
-    await matrixCollection.insertOne({
+
+    const existing = await matrixCollection.findOne({
       documentType: step.documentType,
       stepOrder: step.stepOrder,
-      stepName: step.stepName,
-      requiredPermission: step.requiredPermission,
-      approverRole: role._id,
-      completionPolicy: 'ANY_ONE',
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
-    console.log(`Matrix ${step.documentType} step ${step.stepOrder}: created`);
+
+    if (!existing) {
+      await matrixCollection.insertOne({
+        documentType: step.documentType,
+        stepOrder: step.stepOrder,
+        stepName: step.stepName,
+        requiredPermission: step.requiredPermission,
+        approverRole: role._id,
+        completionPolicy: 'ANY_ONE',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      console.log(`Matrix ${step.documentType} step ${step.stepOrder}: created`);
+      continue;
+    }
+
+    const updates = {};
+    if (existing.requiredPermission !== step.requiredPermission) {
+      updates.requiredPermission = step.requiredPermission;
+    }
+    if (existing.stepName !== step.stepName) {
+      updates.stepName = step.stepName;
+    }
+    if (existing.approverRole?.toString?.() !== role._id.toString()) {
+      updates.approverRole = role._id;
+    }
+    if (existing.isActive === false) {
+      updates.isActive = true;
+    }
+    if (existing.completionPolicy !== 'ANY_ONE') {
+      updates.completionPolicy = 'ANY_ONE';
+    }
+
+    if (Object.keys(updates).length) {
+      updates.updatedAt = new Date();
+      await matrixCollection.updateOne({ _id: existing._id }, { $set: updates });
+      console.log(`Matrix ${step.documentType} step ${step.stepOrder}: updated ${Object.keys(updates).join(', ')}`);
+    } else {
+      console.log(`Matrix ${step.documentType} step ${step.stepOrder}: already present`);
+    }
   }
 }
 
