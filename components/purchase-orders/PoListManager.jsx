@@ -38,6 +38,7 @@ export default function PoListManager() {
     () => [
       { id: 'pending', label: poI18n.pendingTab },
       { id: 'approved', label: poI18n.approvedTab },
+      { id: 'failed-sap', label: poI18n.failedSapTab },
       { id: 'rejected', label: poI18n.rejectedTab },
       { id: 'sap', label: poI18n.inSapTab },
       { id: 'all', label: poI18n.allTab, perm: 'view.all' },

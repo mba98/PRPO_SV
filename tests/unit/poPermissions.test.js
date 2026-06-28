@@ -52,12 +52,12 @@ describe('PO permissions and navigation', () => {
     expect(isPrEligibleForPoCreation({ status: 'Approved', sapPRDocEntry: null })).toBe(false);
   });
 
-  it('allows SAP retry for finance approver and admins only', () => {
+  it('allows SAP retry for admin via legacy helper only', () => {
     const finance = { permissions: [], role: { permissions: ['po.approve.finance'] } };
     const pm = { permissions: [], role: { permissions: ['po.approve.pm'] } };
     const admin = { permissions: ['admin.settings'] };
     const viewAll = { permissions: ['view.all'] };
-    expect(canRetrySapPurchaseOrder(finance)).toBe(true);
+    expect(canRetrySapPurchaseOrder(finance)).toBe(false);
     expect(canRetrySapPurchaseOrder(admin)).toBe(true);
     expect(canRetrySapPurchaseOrder(viewAll)).toBe(true);
     expect(canRetrySapPurchaseOrder(pm)).toBe(false);

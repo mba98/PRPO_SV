@@ -14,7 +14,7 @@ import PoEditForm from '@/components/purchase-orders/PoEditForm';
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
-import { isPendingPoApprovalStatus } from '@/lib/poStatus.js';
+import { isPendingPoApprovalStatus, PO_STATUS } from '@/lib/poStatus.js';
 import { PO_VIEW_PERMISSIONS } from '@/lib/poPermissions.js';
 
 export default function PoDetailView({ id }) {
@@ -22,9 +22,10 @@ export default function PoDetailView({ id }) {
   const searchParams = useSearchParams();
   const attachmentWarning = searchParams.get('attachmentWarning');
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
-  const { doc: po, loading, error, refresh, setDocument } = usePortalDocument('PO', id, 'PoDetailView');
   const userId = useAuthStore((s) => s.user?.id);
+  const { doc: po, loading, error, refresh, setDocument } = usePortalDocument('PO', id, 'PoDetailView');
   const [retryingSap, setRetryingSap] = useState(false);
+  const [resubmitting, setResubmitting] = useState(false);
   const [actionError, setActionError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
   const [editing, setEditing] = useState(false);
@@ -43,13 +44,40 @@ export default function PoDetailView({ id }) {
         dedupe: false,
       });
       if (json.success) {
-        if (json.data) setDocument(json.data);
+        if (json.data?.po) setDocument(json.data.po);
         else await refresh();
       } else {
         setActionError(json.message || common.errorLoad);
       }
     } finally {
       setRetryingSap(false);
+    }
+  }
+
+  async function resubmitForApproval() {
+    if (resubmitting) return;
+    setResubmitting(true);
+    setActionError('');
+    try {
+      const { json } = await apiFetch(`/api/purchase-orders/${id}/resubmit`, {
+        method: 'POST',
+        body: JSON.stringify({ __v: po.__v }),
+        dedupe: false,
+      });
+      if (json.success) {
+        const updated = json.data;
+        if (updated) {
+          setDocument(updated);
+          primePortalDocument('PO', id, updated, userId);
+        } else {
+          await refresh();
+        }
+        setEditing(false);
+      } else {
+        setActionError(json.message || poI18n.resubmitFailed);
+      }
+    } finally {
+      setResubmitting(false);
     }
   }
 
@@ -65,6 +93,9 @@ export default function PoDetailView({ id }) {
     !canApprove &&
     isPendingPoApprovalStatus(po.status) &&
     currentWorkflowStep?.stepName;
+  const showRetryDeniedNote =
+    (po.status === PO_STATUS.FAILED_SAP || po.status === 'failed_sap') && !po.canRetrySap;
+  const showSapFailurePanel = Boolean(po.sapErrorMessage) && !po.sapPODocEntry;
 
   const tabs = [
     { id: 'details', label: common.details },
@@ -88,6 +119,27 @@ export default function PoDetailView({ id }) {
           {displayError}
         </p>
       )}
+      {po.rejectionReason && (
+        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">
+          {poI18n.rejectionReason}: {po.rejectionReason}
+          {po.rejectionStepName ? ` (${po.rejectionStepName})` : ''}
+        </p>
+      )}
+      {showSapFailurePanel && (
+        <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {detail.sapFailed}: {po.sapErrorMessage}
+        </p>
+      )}
+      {po.showEditLockedMessage && !editing && (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-muted-foreground">
+          {detail.editLockedAfterApproval}
+        </p>
+      )}
+      {showRetryDeniedNote && (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-muted-foreground">
+          {detail.sapRetryAdmin}
+        </p>
+      )}
       {po.workflowSteps?.length > 0 && (
         <WorkflowStepper steps={po.workflowSteps} documentType="PO" />
       )}
@@ -106,11 +158,23 @@ export default function PoDetailView({ id }) {
             <AnimatedStatusBadge status={po.status} />
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {po.canEdit && !editing && (
             <button type="button" className="btn-secondary min-h-10" onClick={() => setEditing(true)}>
               {common.edit}
             </button>
+          )}
+          {po.canResubmit && !editing && (
+            <Button
+              type="button"
+              variant="secondary"
+              className="min-h-10"
+              loading={resubmitting}
+              disabled={resubmitting}
+              onClick={resubmitForApproval}
+            >
+              {resubmitting ? poI18n.resubmitting : poI18n.resubmit}
+            </Button>
           )}
           {canApprove && (
             <Link
@@ -184,12 +248,6 @@ export default function PoDetailView({ id }) {
                 >
                   {detail.viewPr}
                 </Link>
-              </div>
-            )}
-            {po.sapErrorMessage && (
-              <div className="sm:col-span-2">
-                <p className="text-xs font-medium uppercase text-destructive">{detail.sapError}</p>
-                <p className="mt-1 text-sm text-destructive">{po.sapErrorMessage}</p>
               </div>
             )}
             {po.sapWarnings && (
