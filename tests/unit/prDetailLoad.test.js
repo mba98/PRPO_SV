@@ -33,6 +33,11 @@ describe('PR detail load regression', () => {
   it('PrDetailView consumes API-resolved retry flag', () => {
     expect(prDetailSource).toContain('pr.canRetrySap');
   });
+
+  it('PrDetailView consumes API-resolved edit and resubmit flags', () => {
+    expect(prDetailSource).toContain('pr.canEdit');
+    expect(prDetailSource).toContain('pr.canResubmit');
+  });
 });
 
 describe('getPurchaseRequestById', () => {
@@ -253,5 +258,8 @@ describe('getPurchaseRequestById', () => {
 
     expect(result.status).toBe('Rejected');
     expect(result.portalPRNumber).toBe('PR-REJ-1');
+    expect(result.canEdit).toBe(true);
+    expect(result.canResubmit).toBe(true);
+    expect(result.rejectionReason).toBe('Fix vendor');
   });
 });

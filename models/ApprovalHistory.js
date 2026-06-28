@@ -23,6 +23,7 @@ const approvalHistorySchema = new mongoose.Schema(
         'Comment Added',
         'Updated',
         'Cancelled',
+        'Resubmitted',
       ],
       required: true,
     },

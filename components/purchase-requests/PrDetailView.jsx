@@ -14,6 +14,7 @@ import CreatePoFromPrPanel from '@/components/purchase-requests/CreatePoFromPrPa
 import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
+import PrEditForm from '@/components/purchase-requests/PrEditForm';
 
 export default function PrDetailView({ id }) {
   const { common, detail, pr: prI18n } = useI18n();
@@ -23,8 +24,10 @@ export default function PrDetailView({ id }) {
   const userId = useAuthStore((s) => s.user?.id);
   const { doc: pr, loading, error, refresh, setDocument } = usePortalDocument('PR', id, 'PrDetailView');
   const [retryingSap, setRetryingSap] = useState(false);
+  const [resubmitting, setResubmitting] = useState(false);
   const [actionError, setActionError] = useState('');
   const [activeTab, setActiveTab] = useState('details');
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (attachmentWarning) setActiveTab('attachments');
@@ -47,6 +50,33 @@ export default function PrDetailView({ id }) {
       }
     } finally {
       setRetryingSap(false);
+    }
+  }
+
+  async function resubmitForApproval() {
+    if (resubmitting) return;
+    setResubmitting(true);
+    setActionError('');
+    try {
+      const { json } = await apiFetch(`/api/purchase-requests/${id}/submit`, {
+        method: 'POST',
+        body: JSON.stringify({ __v: pr.__v }),
+        dedupe: false,
+      });
+      if (json.success) {
+        const updated = json.data;
+        if (updated) {
+          setDocument(updated);
+          primePortalDocument('PR', id, updated, userId);
+        } else {
+          await refresh();
+        }
+        setEditing(false);
+      } else {
+        setActionError(json.message || prI18n.resubmitFailed);
+      }
+    } finally {
+      setResubmitting(false);
     }
   }
 
@@ -86,6 +116,18 @@ export default function PrDetailView({ id }) {
           {displayError}
         </p>
       )}
+      {pr.rejectionReason && (
+        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">
+          {prI18n.rejectionReason}: {pr.rejectionReason}
+          {pr.rejectedByName ? ` — ${pr.rejectedByName}` : ''}
+          {pr.rejectionStepName ? ` (${pr.rejectionStepName})` : ''}
+        </p>
+      )}
+      {pr.canResubmit && !editing && (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-muted-foreground">
+          {prI18n.returnedForCorrection}
+        </p>
+      )}
       {pr.workflowSteps?.length > 0 && (
         <WorkflowStepper steps={pr.workflowSteps} documentType="PR" />
       )}
@@ -104,7 +146,24 @@ export default function PrDetailView({ id }) {
             <AnimatedStatusBadge status={pr.status} />
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {pr.canEdit && !editing && (
+            <button type="button" className="btn-secondary min-h-10" onClick={() => setEditing(true)}>
+              {common.edit}
+            </button>
+          )}
+          {pr.canResubmit && !editing && (
+            <Button
+              type="button"
+              variant="secondary"
+              className="min-h-10"
+              loading={resubmitting}
+              disabled={resubmitting}
+              onClick={resubmitForApproval}
+            >
+              {resubmitting ? prI18n.resubmitting : prI18n.resubmit}
+            </Button>
+          )}
           {canApprove && (
             <Link
               href={approveHref}
@@ -136,7 +195,19 @@ export default function PrDetailView({ id }) {
 
       <AnimatedTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} className="max-w-2xl" />
 
-      {activeTab === 'details' && (
+      {activeTab === 'details' && editing && pr.canEdit && (
+        <PrEditForm
+          pr={pr}
+          onSaved={(data) => {
+            setEditing(false);
+            if (data) setDocument(data);
+            else refresh();
+          }}
+          onCancel={() => setEditing(false)}
+        />
+      )}
+
+      {activeTab === 'details' && !editing && (
         <>
           {pr.canCreatePo && <CreatePoFromPrPanel pr={pr} />}
 
