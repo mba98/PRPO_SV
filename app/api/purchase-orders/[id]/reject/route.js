@@ -24,5 +24,4 @@ export const POST = withAuth(postHandler, [
   'po.approve.pm',
   'po.approve.om',
   'po.approve.finance',
-  'view.all',
 ]);

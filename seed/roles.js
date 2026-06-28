@@ -1,34 +1,62 @@
-import { ALL_PERMISSIONS } from '../lib/permissions.js';
+import { ACTIVE_PERMISSION_KEYS, ALL_REGISTRY_KEYS } from '../lib/permissionRegistry.js';
 
-export { ALL_PERMISSIONS };
+export { ALL_REGISTRY_KEYS as ALL_PERMISSIONS, ACTIVE_PERMISSION_KEYS };
 
 export const DEFAULT_ROLES = [
   {
     name: 'Admin',
-    permissions: [...ALL_PERMISSIONS],
+    permissions: [...ACTIVE_PERMISSION_KEYS],
   },
   {
     name: 'Requester',
-    permissions: ['pr.create'],
+    permissions: ['pr.view', 'pr.create', 'pr.submit'],
   },
   {
     name: 'WHS Approver',
-    permissions: ['pr.approve.whs'],
+    permissions: ['pr.view', 'pr.approve.whs', 'apri.view', 'apri.approve.whs'],
   },
   {
     name: 'Project Manager',
-    permissions: ['po.create', 'po.approve.pm', 'lp.approve.pm'],
+    permissions: ['po.view', 'po.approve.pm', 'lp.view', 'lp.approve.pm'],
   },
   {
     name: 'Operation Manager',
-    permissions: ['po.approve.om'],
+    permissions: ['po.view', 'po.approve.om'],
   },
   {
     name: 'Finance',
-    permissions: ['po.approve.finance', 'apinvoice.create', 'lp.approve.finance'],
+    permissions: [
+      'po.view',
+      'po.approve.finance',
+      'apri.view',
+      'apri.create',
+      'apri.create.sap',
+      'lp.view',
+      'lp.approve.finance',
+    ],
   },
   {
     name: 'Procurement',
-    permissions: ['po.create', 'apinvoice.create', 'apri.create.sap', 'lp.create', 'items.create'],
+    permissions: [
+      'pr.view',
+      'pr.create',
+      'pr.edit',
+      'pr.submit',
+      'pr.resubmit',
+      'po.view',
+      'po.create',
+      'po.edit',
+      'po.submit',
+      'po.resubmit',
+      'apri.view',
+      'apri.create',
+      'apri.create.sap',
+      'lp.view',
+      'lp.create',
+      'lp.edit',
+      'lp.submit',
+      'lp.resubmit',
+      'items.create',
+    ],
   },
 ];

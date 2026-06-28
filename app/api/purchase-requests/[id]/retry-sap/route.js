@@ -25,6 +25,7 @@ export const POST = withAuth(postHandler, [
   'pr.create',
   'pr.approve.whs',
   'pr.approve.pm',
+  'pr.retry.sap',
+  'sap.pr.retry',
   'admin.settings',
-  'view.all',
 ]);

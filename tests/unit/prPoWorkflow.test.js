@@ -250,7 +250,7 @@ describe('SAP retry authorization', () => {
     permissions: [],
     role: { _id: 'role-pm', name: 'Project Manager', permissions: ['po.approve.pm'] },
   };
-  const admin = { _id: 'admin', permissions: ['view.all'] };
+  const admin = { _id: 'admin', permissions: ['admin.settings'] };
 
   it('identifies final matrix step dynamically', () => {
     expect(getFinalApprovalStep(PO_STEPS)?.requiredPermission).toBe('po.approve.finance');
@@ -280,7 +280,7 @@ describe('SAP retry authorization', () => {
     ).toBe(false);
   });
 
-  it('allows admin and view.all to retry', () => {
+  it('allows admin.settings to retry via override', () => {
     expect(
       canUserRetrySapDocument({
         user: admin,

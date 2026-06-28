@@ -41,7 +41,7 @@ describe('approvalEngine', () => {
     expect(userCanApproveStep(whsUser, STEPS[0])).toBe(true);
     expect(userCanApproveStep(whsUser, STEPS[1])).toBe(false);
     expect(userCanApproveStep(pmUser, STEPS[1])).toBe(true);
-    expect(userCanApproveStep({ permissions: ['view.all'] }, STEPS[0])).toBe(true);
+    expect(userCanApproveStep({ permissions: ['view.all'] }, STEPS[0])).toBe(false);
   });
 
   it('uses role permissions when user.permissions is empty', () => {

@@ -54,4 +54,4 @@ async function postHandler(request, { params }, user) {
   }
 }
 
-export const POST = withAuth(postHandler, ['po.create', 'view.all']);
+export const POST = withAuth(postHandler, ['po.create']);

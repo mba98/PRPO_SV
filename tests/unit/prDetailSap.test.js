@@ -13,11 +13,13 @@ describe('PR detail SAP fields', () => {
     expect(out.requesterSapRequesterCode).toBe('EMP-REQ');
   });
 
-  it('allows retry for admin only via legacy helper', () => {
-    const admin = { permissions: ['view.all'] };
+  it('allows retry for admin.settings only (view.all is read-only)', () => {
+    const admin = { permissions: ['admin.settings'] };
+    const viewAll = { permissions: ['view.all'] };
     const pm = { permissions: [], role: { permissions: ['pr.approve.pm'] } };
     const whs = { permissions: [], role: { permissions: ['pr.approve.whs'] } };
     expect(canRetrySapPurchaseRequest(admin)).toBe(true);
+    expect(canRetrySapPurchaseRequest(viewAll)).toBe(false);
     expect(canRetrySapPurchaseRequest(pm)).toBe(false);
     expect(canRetrySapPurchaseRequest(whs)).toBe(false);
   });

@@ -22,4 +22,4 @@ async function postHandler(request, { params }, user) {
   }
 }
 
-export const POST = withAuth(postHandler, ['pr.approve.whs', 'pr.approve.pm', 'view.all']);
+export const POST = withAuth(postHandler, ['pr.approve.whs', 'pr.approve.pm']);

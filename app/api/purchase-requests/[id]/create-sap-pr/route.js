@@ -32,4 +32,4 @@ async function postHandler(_request, { params }, user) {
   }
 }
 
-export const POST = withAuth(postHandler, ['admin.settings', 'view.all']);
+export const POST = withAuth(postHandler, ['admin.settings', 'sap.pr.create']);

@@ -3,30 +3,40 @@ import { ALL_PERMISSIONS, DEFAULT_ROLES } from '@/seed/roles';
 import { DEFAULT_APPROVAL_MATRIX } from '@/seed/approvalMatrix';
 import { DEFAULT_EMAIL_GROUPS } from '@/seed/emailGroups';
 import { DEFAULT_TEST_USERS, syncDefaultRolePermissions } from '@/seed/users';
+import { ACTIVE_PERMISSION_KEYS } from '@/lib/permissionRegistry.js';
 
 describe('seed data definitions', () => {
-  it('defines default roles including Admin with all permissions', () => {
+  it('defines default roles including Admin with all active permissions', () => {
     expect(DEFAULT_ROLES.length).toBeGreaterThanOrEqual(7);
     const admin = DEFAULT_ROLES.find((r) => r.name === 'Admin');
-    expect(admin.permissions).toEqual(ALL_PERMISSIONS);
+    expect(admin.permissions).toEqual(ACTIVE_PERMISSION_KEYS);
 
     const pm = DEFAULT_ROLES.find((r) => r.name === 'Project Manager');
-    expect(pm.permissions).toEqual(['po.create', 'po.approve.pm', 'lp.approve.pm']);
+    expect(pm.permissions).toEqual(['po.view', 'po.approve.pm', 'lp.view', 'lp.approve.pm']);
 
     const om = DEFAULT_ROLES.find((r) => r.name === 'Operation Manager');
-    expect(om.permissions).toEqual(['po.approve.om']);
+    expect(om.permissions).toEqual(['po.view', 'po.approve.om']);
 
     const finance = DEFAULT_ROLES.find((r) => r.name === 'Finance');
-    expect(finance.permissions).toEqual(['po.approve.finance', 'apinvoice.create', 'lp.approve.finance']);
+    expect(finance.permissions).toEqual([
+      'po.view',
+      'po.approve.finance',
+      'apri.view',
+      'apri.create',
+      'apri.create.sap',
+      'lp.view',
+      'lp.approve.finance',
+    ]);
+
+    const whs = DEFAULT_ROLES.find((r) => r.name === 'WHS Approver');
+    expect(whs.permissions).toEqual(['pr.view', 'pr.approve.whs', 'apri.view', 'apri.approve.whs']);
+    expect(whs.permissions).not.toContain('view.all');
+    expect(whs.permissions).not.toContain('po.approve.pm');
 
     const procurement = DEFAULT_ROLES.find((r) => r.name === 'Procurement');
-    expect(procurement.permissions).toEqual([
-      'po.create',
-      'apinvoice.create',
-      'apri.create.sap',
-      'lp.create',
-      'items.create',
-    ]);
+    expect(procurement.permissions).toContain('po.create');
+    expect(procurement.permissions).toContain('pr.edit');
+    expect(procurement.permissions).not.toContain('po.approve.pm');
   });
 
   it('defines default test users with unique usernames and role names', () => {
@@ -58,5 +68,10 @@ describe('seed data definitions', () => {
     expect(DEFAULT_EMAIL_GROUPS.length).toBeGreaterThanOrEqual(16);
     const keys = DEFAULT_EMAIL_GROUPS.map((g) => g.eventKey);
     expect(new Set(keys).size).toBe(16);
+  });
+
+  it('ALL_PERMISSIONS export includes legacy migration keys', () => {
+    expect(ALL_PERMISSIONS).toContain('apinvoice.create');
+    expect(ALL_PERMISSIONS.length).toBeGreaterThanOrEqual(ACTIVE_PERMISSION_KEYS.length);
   });
 });

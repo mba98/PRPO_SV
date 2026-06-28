@@ -33,4 +33,4 @@ async function putHandler(request, { params }, user) {
 }
 
 export const GET = withAuth(getHandler, APRI_VIEW_PERMISSIONS);
-export const PUT = withAuth(putHandler, ['apinvoice.create', 'view.all']);
+export const PUT = withAuth(putHandler, ['apinvoice.create', 'apri.create', 'apri.edit']);

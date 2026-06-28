@@ -47,4 +47,4 @@ async function putHandler(request, { params }, user) {
 }
 
 export const GET = withAuth(getHandler, VIEW_PERMS);
-export const PUT = withAuth(putHandler, ['pr.create', 'view.all']);
+export const PUT = withAuth(putHandler, ['pr.create', 'pr.edit']);

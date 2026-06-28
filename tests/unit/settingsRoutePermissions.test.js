@@ -9,10 +9,10 @@ describe('settingsRoutePermissions', () => {
     expect(getSettingsPermissionForPath('/settings/users')).toEqual(['admin.users']);
   });
 
-  it('maps system logs to admin.settings or view.all', () => {
+  it('maps system logs to admin.system_logs or legacy admin.settings', () => {
     expect(getSettingsPermissionForPath('/settings/system-logs')).toEqual([
+      'admin.system_logs',
       'admin.settings',
-      'view.all',
     ]);
   });
 
@@ -24,7 +24,11 @@ describe('settingsRoutePermissions', () => {
     expect(canAccessSettingsPath(['admin.users'], '/settings/users')).toBe(true);
   });
 
-  it('allows view.all for system logs', () => {
-    expect(canAccessSettingsPath(['view.all'], '/settings/system-logs')).toBe(true);
+  it('allows admin.system_logs for system logs', () => {
+    expect(canAccessSettingsPath(['admin.system_logs'], '/settings/system-logs')).toBe(true);
+  });
+
+  it('does not allow view.all for system logs', () => {
+    expect(canAccessSettingsPath(['view.all'], '/settings/system-logs')).toBe(false);
   });
 });

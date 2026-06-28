@@ -18,4 +18,6 @@ async function getHandler(request, _ctx, user) {
   }
 }
 
-export const GET = withAuth(getHandler, ['admin.settings', 'view.all']);
+import { SYSTEM_LOGS_PERMISSIONS } from '@/lib/permissions.js';
+
+export const GET = withAuth(getHandler, SYSTEM_LOGS_PERMISSIONS);

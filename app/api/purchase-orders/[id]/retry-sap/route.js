@@ -23,11 +23,6 @@ async function postHandler(_request, { params }, user) {
   }
 }
 
-export const POST = withAuth(postHandler, [
-  'po.create',
-  'po.approve.pm',
-  'po.approve.om',
-  'po.approve.finance',
-  'admin.settings',
-  'view.all',
-]);
+import { PO_RETRY_SAP_ROUTE_PERMISSIONS } from '@/lib/permissions.js';
+
+export const POST = withAuth(postHandler, PO_RETRY_SAP_ROUTE_PERMISSIONS);

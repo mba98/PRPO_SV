@@ -39,7 +39,7 @@ describe('PO permissions and navigation', () => {
     expect(canShowCreatePoAction(user, pr, { poReady: true })).toBe(true);
   });
 
-  it('hides Create PO action without po.create or view.all', () => {
+  it('hides Create PO action without po.create', () => {
     const pr = { status: 'Created in SAP', sapPRDocEntry: 42 };
     const user = { permissions: [], role: { permissions: ['pr.create'] } };
     expect(canShowCreatePoAction(user, pr, { poReady: true })).toBe(false);
@@ -52,14 +52,14 @@ describe('PO permissions and navigation', () => {
     expect(isPrEligibleForPoCreation({ status: 'Approved', sapPRDocEntry: null })).toBe(false);
   });
 
-  it('allows SAP retry for admin via legacy helper only', () => {
+  it('allows SAP retry for admin.settings only (view.all is read-only)', () => {
     const finance = { permissions: [], role: { permissions: ['po.approve.finance'] } };
     const pm = { permissions: [], role: { permissions: ['po.approve.pm'] } };
     const admin = { permissions: ['admin.settings'] };
     const viewAll = { permissions: ['view.all'] };
     expect(canRetrySapPurchaseOrder(finance)).toBe(false);
     expect(canRetrySapPurchaseOrder(admin)).toBe(true);
-    expect(canRetrySapPurchaseOrder(viewAll)).toBe(true);
+    expect(canRetrySapPurchaseOrder(viewAll)).toBe(false);
     expect(canRetrySapPurchaseOrder(pm)).toBe(false);
   });
 });

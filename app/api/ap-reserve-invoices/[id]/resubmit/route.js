@@ -20,4 +20,4 @@ async function postHandler(request, { params }, user) {
   }
 }
 
-export const POST = withAuth(postHandler, ['apinvoice.create', 'view.all']);
+export const POST = withAuth(postHandler, ['apinvoice.create', 'apri.create', 'apri.resubmit']);

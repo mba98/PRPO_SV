@@ -7,8 +7,8 @@ import {
 } from '@/lib/prPermissions';
 
 describe('prPermissions', () => {
-  it('allows SAP retry for admin via legacy helper only', () => {
-    expect(canRetrySapPurchaseRequest({ permissions: ['view.all'] })).toBe(true);
+  it('allows SAP retry for admin.settings only (view.all is read-only)', () => {
+    expect(canRetrySapPurchaseRequest({ permissions: ['view.all'] })).toBe(false);
     expect(canRetrySapPurchaseRequest({ permissions: ['admin.settings'] })).toBe(true);
     expect(
       canRetrySapPurchaseRequest({
