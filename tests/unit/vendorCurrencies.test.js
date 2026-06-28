@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { clearLookupCache } from '@/lib/sapLookupCache.js';
 import {
   SAP_ALL_CURRENCIES_TOKEN,
   extractBpCurrencyCollection,
   isSapAllCurrenciesToken,
   normalizeCurrencyCode,
   normalizeVendorCurrencyConfig,
+  readField,
   validatePoDocCurrencyAndRateForVendor,
   validatePoDocCurrencyForVendor,
 } from '@/lib/sap/vendorCurrencies.js';
@@ -158,6 +160,108 @@ describe('vendorCurrencies normalization', () => {
     });
     expect(config.error).toBe('NO_CURRENCIES');
     expect(config.allowedCurrencies).toEqual([]);
+  });
+});
+
+describe('readField ODBC aliases', () => {
+  it('reads lowercase camelCase aliases', () => {
+    expect(readField({ currencyCode: 'USD' }, 'currencyCode')).toBe('USD');
+    expect(readField({ included: 'Y' }, 'included')).toBe('Y');
+    expect(readField({ locked: 'N' }, 'locked')).toBe('N');
+  });
+
+  it('reads uppercase ODBC aliases', () => {
+    expect(readField({ CURRENCYCODE: 'EUR' }, 'currencyCode')).toBe('EUR');
+    expect(readField({ INCLUDE: 'Y' }, 'INCLUDE')).toBe('Y');
+    expect(readField({ LOCKED: 'Y' }, 'locked')).toBe('Y');
+  });
+
+  it('maps uppercase ODBC CRD13 rows through normalizeIncludedFlag', () => {
+    const row = { CURRENCYCODE: 'USD', INCLUDE: 'Y', LOCKED: 'N', CURRENCYNAME: 'US Dollar' };
+    expect(
+      normalizeVendorCurrencyConfig({
+        vendorCode: 'V000096',
+        bpCurrency: '##',
+        currencyRows: [row],
+        companyLocalCurrency: 'IQD',
+      }).allowedCurrencies,
+    ).toEqual([{ code: 'USD', name: 'US Dollar' }]);
+  });
+});
+
+describe('getVendorCurrencyConfig ## fallback', () => {
+  beforeEach(() => {
+    clearLookupCache();
+    vi.resetModules();
+  });
+
+  it('returns single-currency Service Layer result without HANA', async () => {
+    vi.doMock('@/lib/sapServiceLayer.js', () => ({
+      getBusinessPartner: vi.fn().mockResolvedValue({
+        CardCode: 'V000074',
+        CardName: 'Vendor IQD',
+        Currency: 'IQD',
+      }),
+    }));
+    vi.doMock('@/lib/sapHana.js', () => ({
+      listVendorCrd13CurrencyRows: vi.fn(),
+      getVendorHeaderFromHana: vi.fn(),
+      getCompanyLocalCurrency: vi.fn().mockResolvedValue('IQD'),
+    }));
+
+    const { getVendorCurrencyConfig } = await import('@/lib/sap/vendorCurrencies.js');
+    const hana = await import('@/lib/sapHana.js');
+
+    const config = await getVendorCurrencyConfig('V000074');
+    expect(config.currencyMode).toBe('single');
+    expect(config.defaultCurrency).toBe('IQD');
+    expect(hana.listVendorCrd13CurrencyRows).not.toHaveBeenCalled();
+  });
+
+  it('falls back to CRD13 when Service Layer collection is empty for ## vendor', async () => {
+    vi.doMock('@/lib/sapServiceLayer.js', () => ({
+      getBusinessPartner: vi.fn().mockResolvedValue({
+        CardCode: 'V000096',
+        CardName: 'Multi Vendor',
+        Currency: '##',
+        BPCurrenciesCollection: [],
+      }),
+    }));
+    vi.doMock('@/lib/sapHana.js', () => ({
+      getCompanyLocalCurrency: vi.fn().mockResolvedValue('IQD'),
+      getVendorHeaderFromHana: vi.fn().mockResolvedValue({
+        cardCode: 'V000096',
+        cardName: 'Multi Vendor',
+        bpCurrency: '##',
+      }),
+      listVendorCrd13CurrencyRows: vi.fn().mockResolvedValue(V000018_HANA_ROWS),
+    }));
+
+    const { getVendorCurrencyConfig } = await import('@/lib/sap/vendorCurrencies.js');
+    const config = await getVendorCurrencyConfig('V000096');
+    expect(config.currencyMode).toBe('all');
+    expect(config.allowedCurrencies.map((c) => c.code)).toEqual(['EUR', 'GBP', 'IQD', 'USD']);
+    expect(config.defaultCurrency).toBe('IQD');
+  });
+
+  it('returns 503 only when Service Layer and HANA both fail', async () => {
+    vi.doMock('@/lib/sapServiceLayer.js', () => ({
+      getBusinessPartner: vi.fn().mockRejectedValue(new Error('SL unavailable')),
+    }));
+    vi.doMock('@/lib/sapHana.js', () => ({
+      getCompanyLocalCurrency: vi.fn().mockResolvedValue('IQD'),
+      getVendorHeaderFromHana: vi.fn().mockResolvedValue({
+        cardCode: 'V000096',
+        bpCurrency: '##',
+      }),
+      listVendorCrd13CurrencyRows: vi.fn().mockRejectedValue(new Error('CRD13 query failed')),
+    }));
+
+    const { getVendorCurrencyConfig } = await import('@/lib/sap/vendorCurrencies.js');
+    await expect(getVendorCurrencyConfig('V000096')).rejects.toMatchObject({
+      code: 'VENDOR_CURRENCY_CONFIG',
+      message: 'Failed to load Vendor currencies from SAP.',
+    });
   });
 });
 

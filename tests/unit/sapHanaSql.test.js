@@ -4,6 +4,8 @@ import {
   buildItemDetailSql,
   buildUomGroupsSql,
   buildWarehousesSql,
+  buildVendorCrd13CurrencySql,
+  buildVendorHeaderCurrencySql,
   buildVendorCurrencySql,
   buildLimitClause,
   quoteSchema,
@@ -66,13 +68,25 @@ describe('sap HANA SQL builders', () => {
     expect(sql).toContain('AS "price"');
   });
 
-  it('builds vendor currency SQL from CRD13 CurrCode and INCLUDE', () => {
-    const sql = buildVendorCurrencySql('DB');
-    expect(sql).toContain('"DB"."CRD13" T1');
-    expect(sql).toContain('T1."CurrCode" AS "currencyCode"');
-    expect(sql).toContain('T1."INCLUDE" AS "included"');
-    expect(sql).toContain('T1."Locked" AS "locked"');
-    expect(sql).toContain('T1."INCLUDE" = \'Y\'');
+  it('builds CRD13-only vendor currency SQL', () => {
+    const sql = buildVendorCrd13CurrencySql('DB');
+    expect(sql).toContain('"DB"."CRD13" T0');
+    expect(sql).toContain('T0."CurrCode" AS "currencyCode"');
+    expect(sql).toContain('T0."INCLUDE" AS "included"');
+    expect(sql).toContain('T0."Locked" AS "locked"');
+    expect(sql).toContain('T0."INCLUDE" = \'Y\'');
     expect(sql).toContain('T0."CardCode" = ?');
+    expect(sql).not.toContain('"OCRD"');
+  });
+
+  it('builds OCRD header currency SQL', () => {
+    const sql = buildVendorHeaderCurrencySql('DB');
+    expect(sql).toContain('"DB"."OCRD" T0');
+    expect(sql).toContain('T0."Currency" AS "bpCurrency"');
+    expect(sql).toContain('T0."CardCode" = ?');
+  });
+
+  it('keeps buildVendorCurrencySql as CRD13 alias', () => {
+    expect(buildVendorCurrencySql('DB')).toBe(buildVendorCrd13CurrencySql('DB'));
   });
 });
