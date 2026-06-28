@@ -4,15 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
 import VendorSelect from '@/components/lookups/VendorSelect';
+import PoBusinessFields from '@/components/purchase-orders/PoBusinessFields';
 import { PortalLoader, AnimatedStatusBadge, Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
-import {
-  applyCurrencyChangeToHeader,
-  applyVendorCurrencyToHeader,
-  isUsdPoCurrency,
-  PO_DOC_CURRENCIES,
-  resolveFormDocRateFromPo,
-} from '@/lib/poCurrency.js';
+import { buildPoDraftFromPr } from '@/lib/poFromPrDraft.js';
+import { isUsdPoCurrency } from '@/lib/poCurrency.js';
 
 function formatTemplate(template, vars) {
   return Object.entries(vars).reduce(
@@ -25,15 +21,13 @@ export default function ApprovedForPoManager() {
   const { pr, po: poI18n } = useI18n();
   const t = pr.approvedForPo;
   const c = poI18n.create;
-  const e = poI18n.edit;
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [vendor, setVendor] = useState('');
   const [vendorLabel, setVendorLabel] = useState('');
-  const [docCurrency, setDocCurrency] = useState('USD');
-  const [docRate, setDocRate] = useState(() => resolveFormDocRateFromPo({}));
+  const [draft, setDraft] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -64,33 +58,96 @@ export default function ApprovedForPoManager() {
   }, [load]);
 
   useEffect(() => {
-    if (!selected) return;
+    if (!selected) {
+      setVendor('');
+      setVendorLabel('');
+      setDraft(null);
+      return;
+    }
     const defaultVendor =
       selected.pendingVendors?.[0] || selected.suggestedVendors?.[0] || '';
     setVendor(defaultVendor);
     setVendorLabel(defaultVendor);
+    setDraft(null);
   }, [selectedId, selected]);
 
+  function initializeDraft(prItem, vendorCode, vendorRow = null) {
+    const nextDraft = buildPoDraftFromPr(prItem, vendorCode, vendorRow);
+    setDraft({
+      header: {
+        vendor: nextDraft.vendor,
+        vendorLabel: nextDraft.vendorLabel,
+        postingDate: nextDraft.postingDate,
+        documentDate: nextDraft.documentDate,
+        requiredDate: nextDraft.requiredDate,
+        dueDate: nextDraft.dueDate,
+        docCurrency: nextDraft.docCurrency,
+        docRate: nextDraft.docRate,
+        remarks: nextDraft.remarks,
+      },
+      lines: nextDraft.lines,
+    });
+  }
+
+  function handleVendorSelect(code, label, vendorRow) {
+    const trimmed = (code || '').trim();
+    if (!trimmed || !selected) return;
+
+    if (draft && draft.header.vendor && draft.header.vendor !== trimmed) {
+      const confirmed = window.confirm(c.poVendorChangeConfirm);
+      if (!confirmed) return;
+    }
+
+    setVendor(trimmed);
+    setVendorLabel(label || trimmed);
+    initializeDraft(selected, trimmed, vendorRow);
+    setError('');
+  }
+
   async function handleCreatePo() {
-    if (submitting) return;
-    if (!selectedId || !vendor.trim()) {
+    if (submitting || !draft || !selectedId) return;
+    const vendorCode = draft.header.vendor.trim();
+    if (!vendorCode) {
       setError(c.vendorRequired);
       return;
     }
+    if (!draft.lines.length) {
+      setError(c.noLinesForVendor);
+      return;
+    }
+
     setSubmitting(true);
     setError('');
     setMessage('');
+
+    const { header, lines } = draft;
     const { json } = await apiFetch(`/api/purchase-orders/from-pr/${selectedId}`, {
       method: 'POST',
       body: JSON.stringify({
-        vendor: vendor.trim(),
-        docCurrency,
+        vendor: vendorCode,
+        postingDate: header.postingDate || undefined,
+        documentDate: header.documentDate || undefined,
+        requiredDate: header.requiredDate || undefined,
+        dueDate: header.dueDate || undefined,
+        docCurrency: header.docCurrency,
         docRate:
-          docRate === '' || !isUsdPoCurrency(docCurrency)
+          header.docRate === '' || !isUsdPoCurrency(header.docCurrency)
             ? null
-            : Number(docRate),
+            : Number(header.docRate),
+        remarks: header.remarks || undefined,
+        lines: lines.map((line) => ({
+          relatedPRLineId: line.relatedPRLineId,
+          itemCode: line.itemCode,
+          itemName: line.itemName || undefined,
+          quantity: Number(line.quantity),
+          unitPrice: Number(line.unitPrice),
+          warehouseCode: line.warehouseCode || undefined,
+          uomCode: line.uomCode?.trim() || undefined,
+          remarks: line.remarks || undefined,
+        })),
       }),
     });
+
     if (json.success) {
       const poId = json.data.po?.id;
       const poNumber = json.data.po?.portalPONumber;
@@ -196,7 +253,7 @@ export default function ApprovedForPoManager() {
             </table>
           </div>
 
-          <div className="space-y-4 rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5 sm:p-5">
+          <div className="max-h-[calc(100vh-8rem)] space-y-4 overflow-y-auto rounded-3xl border border-border bg-card p-4 shadow-xl shadow-black/5 sm:p-5">
             <h2 className="text-lg font-semibold text-foreground">{t.createTitle}</h2>
             <p className="text-xs text-muted-foreground">{t.createHint}</p>
             {!selected ? (
@@ -240,57 +297,84 @@ export default function ApprovedForPoManager() {
                       failedMessage={c.failedLoadVendors}
                       debounceMs={250}
                       listLimit={100}
-                      onSelect={(code, label, vendorRow) => {
-                        setVendor(code);
-                        setVendorLabel(label || code);
-                        const next = applyVendorCurrencyToHeader(vendorRow, { docCurrency, docRate });
-                        setDocCurrency(next.docCurrency);
-                        setDocRate(next.docRate);
-                      }}
+                      onSelect={handleVendorSelect}
                     />
                   </div>
                 </label>
-                <label className="block text-sm">
-                  <span className="form-label">{e.docCurrency}</span>
-                  <select
-                    className="input-field mt-1 w-full"
-                    value={docCurrency}
-                    disabled={submitting}
-                    onChange={(ev) => {
-                      const next = applyCurrencyChangeToHeader(ev.target.value, { docCurrency, docRate });
-                      setDocCurrency(next.docCurrency);
-                      setDocRate(next.docRate);
-                    }}
-                  >
-                    {PO_DOC_CURRENCIES.map((code) => (
-                      <option key={code} value={code}>
-                        {code}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-sm">
-                  <span className="form-label">{e.docRate}</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    className="input-field mt-1 w-full"
-                    value={docRate}
-                    disabled={submitting || !isUsdPoCurrency(docCurrency)}
-                    onChange={(ev) => setDocRate(ev.target.value)}
-                  />
-                </label>
-                <Button
-                  type="button"
-                  variant="primary"
-                  className="w-full"
-                  loading={submitting}
-                  disabled={submitting || !vendor.trim()}
-                  onClick={handleCreatePo}
-                >
-                  {submitting ? c.creatingPurchaseOrder : c.createPurchaseOrder}
-                </Button>
+                {draft && (
+                  <div className="space-y-4 pt-2">
+                    <PoBusinessFields
+                      header={draft.header}
+                      setHeader={(updater) =>
+                        setDraft((prev) => {
+                          if (!prev) return prev;
+                          return {
+                            ...prev,
+                            header: typeof updater === 'function' ? updater(prev.header) : updater,
+                          };
+                        })
+                      }
+                      lines={draft.lines}
+                      setLines={(updater) =>
+                        setDraft((prev) => {
+                          if (!prev) return prev;
+                          return {
+                            ...prev,
+                            lines: typeof updater === 'function' ? updater(prev.lines) : updater,
+                          };
+                        })
+                      }
+                      vendorEditable
+                      disabled={submitting}
+                      showDocumentTotal
+                      onVendorChange={(code, label) => {
+                        setVendor(code);
+                        setVendorLabel(label || code);
+                        setDraft((prev) => {
+                          if (!prev || !selected) return prev;
+                          const refreshed = buildPoDraftFromPr(selected, code, null);
+                          return {
+                            header: {
+                              ...prev.header,
+                              vendor: refreshed.vendor,
+                              vendorLabel: label || refreshed.vendorLabel,
+                              postingDate: prev.header.postingDate || refreshed.postingDate,
+                              documentDate: prev.header.documentDate || refreshed.documentDate,
+                              requiredDate: prev.header.requiredDate || refreshed.requiredDate,
+                              dueDate: prev.header.dueDate || refreshed.dueDate,
+                              remarks: prev.header.remarks || refreshed.remarks,
+                            },
+                            lines: prev.lines.map((line) => {
+                              const match = refreshed.lines.find(
+                                (l) =>
+                                  l.relatedPRLineId === line.relatedPRLineId ||
+                                  l.itemCode === line.itemCode,
+                              );
+                              return match
+                                ? {
+                                    ...line,
+                                    itemCode: match.itemCode,
+                                    itemName: match.itemName || line.itemName,
+                                    uomCode: line.uomCode || match.uomCode,
+                                  }
+                                : line;
+                            }),
+                          };
+                        });
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="primary"
+                      className="w-full"
+                      loading={submitting}
+                      disabled={submitting || !draft.header.vendor.trim()}
+                      onClick={handleCreatePo}
+                    >
+                      {submitting ? c.creatingPurchaseOrder : c.createPurchaseOrder}
+                    </Button>
+                  </div>
+                )}
               </>
             )}
           </div>
