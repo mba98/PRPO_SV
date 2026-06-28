@@ -42,7 +42,8 @@ describe('PoEditForm compact layout', () => {
   it('includes currency field and USD docRate defaults from poCurrency helpers', () => {
     expect(editForm).toContain('resolveFormDocRateFromPo');
     expect(editForm).toContain('resolveFormDocCurrencyFromPo');
-    expect(businessFields).toContain('applyVendorCurrencyToHeader');
+    expect(businessFields).toContain('fetchVendorCurrencyConfig');
+    expect(businessFields).toContain('applyVendorCurrencyConfigToHeader');
     expect(businessFields).toContain('t.docCurrency');
     expect(businessFields).toContain('isUsdPoCurrency(header.docCurrency)');
   });

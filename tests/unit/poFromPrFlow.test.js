@@ -50,6 +50,33 @@ vi.mock('@/lib/approvalEngine.js', () => ({
   })),
 }));
 
+vi.mock('@/lib/sap/vendorCurrencies.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    getVendorCurrencyConfig: vi.fn(async (vendorCode) => ({
+      vendorCode,
+      currencyMode: 'single',
+      currency: 'USD',
+      defaultCurrency: 'USD',
+      allowedCurrencies: [{ code: 'USD', name: 'USD' }],
+    })),
+    validatePoDocCurrencyForVendor: vi.fn((docCurrency, config) => {
+      const normalized = String(docCurrency || config.defaultCurrency || 'USD').toUpperCase();
+      if (normalized === '##') {
+        return { ok: false, code: 'INVALID_CURRENCY', message: 'Selected currency is not allowed for this Vendor' };
+      }
+      const allowed = new Set((config.allowedCurrencies || []).map((c) => c.code));
+      if (config.currencyMode === 'single') allowed.add(config.currency || config.defaultCurrency);
+      if (!allowed.has(normalized)) {
+        return { ok: false, code: 'INVALID_CURRENCY', message: 'Selected currency is not allowed for this Vendor' };
+      }
+      return { ok: true, currency: normalized };
+    }),
+    assertPoDocCurrencyAllowedForVendor: vi.fn(),
+  };
+});
+
 import { createPortalPoFromPr, findDuplicatePo } from '@/lib/sap/poFromPrSap';
 
 function makePr() {
@@ -193,6 +220,17 @@ describe('portal PO from PR', () => {
   });
 
   it('saves docCurrency and omits docRate for IQD on create from PR', async () => {
+    const vendorCurrencies = await import('@/lib/sap/vendorCurrencies.js');
+    vendorCurrencies.getVendorCurrencyConfig.mockResolvedValueOnce({
+      vendorCode: 'VENDOR1',
+      currencyMode: 'all',
+      defaultCurrency: 'IQD',
+      allowedCurrencies: [
+        { code: 'IQD', name: 'Iraqi Dinar' },
+        { code: 'USD', name: 'US Dollar' },
+      ],
+    });
+
     const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
       vendor: 'VENDOR1',
       docCurrency: 'IQD',
@@ -203,6 +241,43 @@ describe('portal PO from PR', () => {
     const created = mocks.poCreate.mock.calls[0][0];
     expect(created.docCurrency).toBe('IQD');
     expect(created.docRate).toBeUndefined();
+  });
+
+  it('rejects docCurrency ## on create from PR', async () => {
+    const vendorCurrencies = await import('@/lib/sap/vendorCurrencies.js');
+    vendorCurrencies.getVendorCurrencyConfig.mockResolvedValueOnce({
+      vendorCode: 'VENDOR1',
+      currencyMode: 'all',
+      defaultCurrency: 'IQD',
+      allowedCurrencies: [{ code: 'IQD', name: 'Iraqi Dinar' }],
+    });
+
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
+      vendor: 'VENDOR1',
+      docCurrency: '##',
+      lines: defaultLines,
+    });
+    expect(result.error).toBe('INVALID_CURRENCY');
+    expect(mocks.poCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects currency not allowed for vendor', async () => {
+    const vendorCurrencies = await import('@/lib/sap/vendorCurrencies.js');
+    vendorCurrencies.getVendorCurrencyConfig.mockResolvedValueOnce({
+      vendorCode: 'VENDOR1',
+      currencyMode: 'single',
+      currency: 'USD',
+      defaultCurrency: 'USD',
+      allowedCurrencies: [{ code: 'USD', name: 'USD' }],
+    });
+
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
+      vendor: 'VENDOR1',
+      docCurrency: 'IQD',
+      lines: defaultLines,
+    });
+    expect(result.error).toBe('INVALID_CURRENCY');
+    expect(mocks.poCreate).not.toHaveBeenCalled();
   });
 
   it('rejects PRs not in Created in SAP status', async () => {

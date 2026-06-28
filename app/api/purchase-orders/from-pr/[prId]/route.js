@@ -39,7 +39,10 @@ async function postHandler(request, { params }, user) {
       result.error === 'INVALID_LINE' ||
       result.error === 'INVALID_QUANTITY' ||
       result.error === 'INVALID_PRICE' ||
-      result.error === 'INVALID_WAREHOUSE'
+      result.error === 'INVALID_WAREHOUSE' ||
+      result.error === 'INVALID_CURRENCY' ||
+      result.error === 'VENDOR_CURRENCY_CONFIG' ||
+      result.error === 'NO_CURRENCIES'
     ) {
       return jsonError(result.message, result.error, 400);
     }

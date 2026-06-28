@@ -22,7 +22,7 @@ describe('purchaseOrder validators', () => {
     expect(createPoFromPrSchema.safeParse({ lines: [sampleLine] }).success).toBe(false);
   });
 
-  it('accepts docCurrency USD or IQD on create from PR', () => {
+  it('accepts valid docCurrency codes and rejects ## on create from PR', () => {
     expect(
       createPoFromPrSchema.safeParse({
         vendor: 'V1',
@@ -41,6 +41,10 @@ describe('purchaseOrder validators', () => {
     ).toBe(true);
     expect(
       createPoFromPrSchema.safeParse({ vendor: 'V1', docCurrency: 'EUR', lines: [sampleLine] })
+        .success,
+    ).toBe(true);
+    expect(
+      createPoFromPrSchema.safeParse({ vendor: 'V1', docCurrency: '##', lines: [sampleLine] })
         .success,
     ).toBe(false);
   });

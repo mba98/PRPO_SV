@@ -29,6 +29,7 @@ describe('buildPoDraftFromPr', () => {
   it('maps PR header and line values into an unsaved draft', () => {
     const draft = buildPoDraftFromPr(samplePr, 'V001');
     expect(draft.vendor).toBe('V001');
+    expect(draft.docCurrency).toBe('');
     expect(draft.requiredDate).toBe('2026-06-01');
     expect(draft.remarks).toContain('PR-001');
     expect(draft.lines).toHaveLength(1);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/hooks/useI18n';
 import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
@@ -9,10 +9,12 @@ import { DateInput, FormField, Input } from '@/components/ui';
 import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
 import {
   applyCurrencyChangeToHeader,
-  applyVendorCurrencyToHeader,
+  applyVendorCurrencyConfigToHeader,
+  getAllowedCurrencyCodes,
+  isCurrencyDropdownReadOnly,
   isUsdPoCurrency,
-  PO_DOC_CURRENCIES,
 } from '@/lib/poCurrency.js';
+import { fetchVendorCurrencyConfig } from '@/lib/vendorCurrencyClient.js';
 import {
   PO_COMPACT_INPUT,
   PO_LINE_GRID,
@@ -34,6 +36,52 @@ export default function PoBusinessFields({
   const t = poI18n.edit;
   const c = poI18n.create;
   const [lineDetailLoading, setLineDetailLoading] = useState({});
+  const [vendorCurrencyConfig, setVendorCurrencyConfig] = useState(null);
+  const [currencyLoading, setCurrencyLoading] = useState(false);
+  const [currencyError, setCurrencyError] = useState('');
+  const fetchIdRef = useRef(0);
+
+  useEffect(() => {
+    const vendorCode = (header.vendor || '').trim();
+    if (!vendorCode) {
+      setVendorCurrencyConfig(null);
+      setCurrencyLoading(false);
+      setCurrencyError('');
+      return undefined;
+    }
+
+    let cancelled = false;
+    const fetchId = ++fetchIdRef.current;
+    setCurrencyLoading(true);
+    setCurrencyError('');
+
+    fetchVendorCurrencyConfig(vendorCode)
+      .then((config) => {
+        if (cancelled || fetchId !== fetchIdRef.current) return;
+        setVendorCurrencyConfig(config);
+        setHeader((prev) => {
+          if ((prev.vendor || '').trim() !== vendorCode) return prev;
+          return {
+            ...prev,
+            ...applyVendorCurrencyConfigToHeader(config, prev),
+          };
+        });
+      })
+      .catch((err) => {
+        if (cancelled || fetchId !== fetchIdRef.current) return;
+        setVendorCurrencyConfig(null);
+        setCurrencyError(err.message || c.failedLoadVendorCurrencies);
+      })
+      .finally(() => {
+        if (!cancelled && fetchId === fetchIdRef.current) {
+          setCurrencyLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [header.vendor, setHeader, c.failedLoadVendorCurrencies]);
 
   function updateLine(idx, patch) {
     setLines((prev) =>
@@ -71,6 +119,15 @@ export default function PoBusinessFields({
   }
 
   const documentTotal = sumPoLineTotals(lines);
+  const allowedCurrencies = vendorCurrencyConfig?.allowedCurrencies || [];
+  const currencyOptions =
+    allowedCurrencies.length > 0
+      ? allowedCurrencies
+      : getAllowedCurrencyCodes(vendorCurrencyConfig).map((code) => ({ code, name: code }));
+  const currencyReadOnly =
+    !currencyLoading && !currencyError && isCurrencyDropdownReadOnly(vendorCurrencyConfig);
+  const showMultiCurrencyHint =
+    vendorCurrencyConfig?.currencyMode === 'all' && currencyOptions.length > 1;
 
   return (
     <>
@@ -95,7 +152,6 @@ export default function PoBusinessFields({
                     ...header,
                     vendor: code,
                     vendorLabel: label || code,
-                    ...applyVendorCurrencyToHeader(vendor, header),
                   };
                   setHeader(nextHeader);
                   onVendorChange?.(code, label, vendor, nextHeader);
@@ -109,7 +165,7 @@ export default function PoBusinessFields({
             <select
               className={`${PO_COMPACT_INPUT} w-full`}
               value={header.docCurrency}
-              disabled={disabled}
+              disabled={disabled || currencyLoading || Boolean(currencyError) || currencyReadOnly}
               onChange={(e) =>
                 setHeader((h) => ({
                   ...h,
@@ -117,12 +173,33 @@ export default function PoBusinessFields({
                 }))
               }
             >
-              {PO_DOC_CURRENCIES.map((code) => (
-                <option key={code} value={code}>
-                  {code}
+              {currencyLoading && (
+                <option value={header.docCurrency || ''}>
+                  {header.docCurrency || c.loadingVendorCurrencies}
                 </option>
-              ))}
+              )}
+              {!currencyLoading && currencyError && (
+                <option value="">{currencyError}</option>
+              )}
+              {!currencyLoading && !currencyError && currencyOptions.length === 0 && (
+                <option value="">{c.noVendorCurrencies}</option>
+              )}
+              {!currencyLoading &&
+                !currencyError &&
+                currencyOptions.map(({ code, name }) => (
+                  <option key={code} value={code}>
+                    {name && name !== code ? `${code} — ${name}` : code}
+                  </option>
+                ))}
             </select>
+            {currencyError && (
+              <p className="mt-1 text-xs text-destructive" role="alert">
+                {currencyError}
+              </p>
+            )}
+            {showMultiCurrencyHint && (
+              <p className="mt-1 text-xs text-muted-foreground">{c.multiCurrencyVendorHint}</p>
+            )}
           </FormField>
           <FormField label={t.docRate}>
             <Input

@@ -202,39 +202,40 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
                 vendorEditable
                 disabled={submitting}
                 showDocumentTotal
-                onVendorChange={(code, label, vendorRow) => {
+                onVendorChange={(code, label) => {
                   setVendor(code);
                   setVendorLabel(label || code);
-                  if (vendorRow) {
-                    setDraft((prev) => {
-                      if (!prev) return prev;
-                      const refreshed = buildPoDraftFromPr(pr, code, vendorRow);
-                      return {
-                        header: {
-                          ...prev.header,
-                          vendor: refreshed.vendor,
-                          vendorLabel: refreshed.vendorLabel,
-                          docCurrency: refreshed.docCurrency,
-                          docRate: refreshed.docRate,
-                        },
-                        lines: prev.lines.map((line) => {
-                          const match = refreshed.lines.find(
-                            (l) =>
-                              l.relatedPRLineId === line.relatedPRLineId ||
-                              l.itemCode === line.itemCode,
-                          );
-                          return match
-                            ? {
-                                ...line,
-                                itemCode: match.itemCode,
-                                itemName: match.itemName || line.itemName,
-                                uomCode: line.uomCode || match.uomCode,
-                              }
-                            : line;
-                        }),
-                      };
-                    });
-                  }
+                  setDraft((prev) => {
+                    if (!prev) return prev;
+                    const refreshed = buildPoDraftFromPr(pr, code, null);
+                    return {
+                      header: {
+                        ...prev.header,
+                        vendor: refreshed.vendor,
+                        vendorLabel: label || refreshed.vendorLabel,
+                        postingDate: prev.header.postingDate || refreshed.postingDate,
+                        documentDate: prev.header.documentDate || refreshed.documentDate,
+                        requiredDate: prev.header.requiredDate || refreshed.requiredDate,
+                        dueDate: prev.header.dueDate || refreshed.dueDate,
+                        remarks: prev.header.remarks || refreshed.remarks,
+                      },
+                      lines: prev.lines.map((line) => {
+                        const match = refreshed.lines.find(
+                          (l) =>
+                            l.relatedPRLineId === line.relatedPRLineId ||
+                            l.itemCode === line.itemCode,
+                        );
+                        return match
+                          ? {
+                              ...line,
+                              itemCode: match.itemCode,
+                              itemName: match.itemName || line.itemName,
+                              uomCode: line.uomCode || match.uomCode,
+                            }
+                          : line;
+                      }),
+                    };
+                  });
                 }}
               />
               {error && (

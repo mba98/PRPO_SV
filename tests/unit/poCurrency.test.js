@@ -1,20 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyCurrencyChangeToHeader,
+  applyVendorCurrencyConfigToHeader,
   applyVendorCurrencyToHeader,
+  isBlockedSapCurrencyToken,
   normalizePoDocCurrency,
   normalizePoDocRateForStorage,
   resolveFormDocRateFromPo,
   resolveFormDocCurrencyFromPo,
 } from '@/lib/poCurrency.js';
 import { DEV_DEFAULT_PO_DOC_RATE } from '@/lib/sap/sapPoConfig.js';
+import { normalizeVendorCurrencyConfig } from '@/lib/sap/vendorCurrencies.js';
 
 describe('poCurrency', () => {
-  it('normalizes doc currency to USD or IQD', () => {
+  it('normalizes doc currency and rejects ##', () => {
     expect(normalizePoDocCurrency('iqd')).toBe('IQD');
     expect(normalizePoDocCurrency('usd')).toBe('USD');
-    expect(normalizePoDocCurrency('EUR', 'IQD')).toBe('IQD');
+    expect(normalizePoDocCurrency('EUR', 'IQD')).toBe('EUR');
+    expect(normalizePoDocCurrency('##', 'IQD')).toBe('IQD');
     expect(normalizePoDocCurrency('', 'USD')).toBe('USD');
+    expect(isBlockedSapCurrencyToken('##')).toBe(true);
   });
 
   it('stores docRate only for USD', () => {
@@ -62,6 +67,28 @@ describe('poCurrency', () => {
     expect(applyCurrencyChangeToHeader('USD', { docCurrency: 'IQD', docRate: '' })).toEqual({
       docCurrency: 'USD',
       docRate: String(DEV_DEFAULT_PO_DOC_RATE),
+    });
+  });
+
+  it('defers ## vendor currency until SAP config loads', () => {
+    expect(applyVendorCurrencyToHeader({ currency: '##' }, { docCurrency: 'USD', docRate: '1200' })).toEqual({
+      docCurrency: 'USD',
+      docRate: '1200',
+    });
+  });
+
+  it('applies vendor currency config with allowed list', () => {
+    const config = normalizeVendorCurrencyConfig({
+      vendorCode: 'V2',
+      bpCurrency: '##',
+      currencyRows: [
+        { CurrencyCode: 'IQD', Include: 'Y', Default: 'Y' },
+        { CurrencyCode: 'USD', Include: 'Y' },
+      ],
+    });
+    expect(applyVendorCurrencyConfigToHeader(config, {})).toEqual({
+      docCurrency: 'IQD',
+      docRate: '',
     });
   });
 });
