@@ -71,15 +71,14 @@ describe('Create PO from PR vendor suggestions', () => {
     expect(manager).toContain('if (submitting) return');
   });
 
-  it('CreatePoFromPrPanel uses searchable VendorSelect and shared create i18n', () => {
+  it('CreatePoFromPrPanel uses searchable VendorSelect and full draft form', () => {
     expect(createPoPanel).toContain('VendorSelect');
-    expect(createPoPanel).toContain('loadAllOnFocus');
-    expect(createPoPanel).not.toContain('datalist');
-    expect(createPoPanel).toContain('setVendor(code)');
-    expect(createPoPanel).toContain('setVendorLabel');
+    expect(createPoPanel).toContain('PoBusinessFields');
+    expect(createPoPanel).toContain('buildPoDraftFromPr');
     expect(createPoPanel).toContain('loading={submitting}');
-    expect(createPoPanel).toContain('if (submitting) return');
-    expect(createPoPanel).toContain('vendor: vendorCode');
+    expect(createPoPanel).toContain('if (submitting || !draft) return');
+    expect(createPoPanel).toContain('handleCreate');
+    expect(createPoPanel).toContain('relatedPRLineId');
   });
 
   it('PrDetailView retry SAP button has loading guard', () => {

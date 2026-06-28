@@ -106,7 +106,7 @@ describe('submitPurchaseRequest resubmit', () => {
     const { submitPurchaseRequest } = await import('@/lib/purchaseRequestsService.js');
     const user = {
       _id: 'user1',
-      roleName: 'Requester',
+      roleName: 'Procurement',
       permissions: ['pr.create'],
       role: { permissions: ['pr.create'] },
     };
@@ -157,7 +157,7 @@ describe('submitPurchaseRequest resubmit', () => {
     vi.doMock('@/lib/emailNotify.js', () => ({ notifyWorkflowEmailSafe: vi.fn() }));
 
     const { submitPurchaseRequest } = await import('@/lib/purchaseRequestsService.js');
-    const otherUser = { _id: 'user2', roleName: 'Requester' };
+    const otherUser = { _id: 'user2', roleName: 'Approver', role: { permissions: ['pr.approve.whs'] } };
 
     await expect(
       submitPurchaseRequest('507f1f77bcf86cd799439011', otherUser, { __v: 1 }),

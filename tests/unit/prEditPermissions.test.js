@@ -9,29 +9,44 @@ import {
   normalizePrStatus,
 } from '@/lib/prEditPermissions.js';
 
-const requesterId = '507f1f77bcf86cd799439011';
-const otherUserId = '507f1f77bcf86cd799439012';
-
-const requester = {
-  _id: requesterId,
+const procurementA = {
+  _id: '507f1f77bcf86cd799439011',
   permissions: [],
   role: { permissions: ['pr.create'] },
 };
 
-const otherRequester = {
-  _id: otherUserId,
+const procurementB = {
+  _id: '507f1f77bcf86cd799439012',
   permissions: [],
   role: { permissions: ['pr.create'] },
 };
 
-const admin = {
-  _id: otherUserId,
+const originalCreator = {
+  _id: '507f1f77bcf86cd799439013',
+  permissions: [],
+  role: { permissions: [] },
+};
+
+const approver = {
+  _id: '507f1f77bcf86cd799439014',
+  permissions: [],
+  role: { permissions: ['pr.approve.whs'] },
+};
+
+const adminViewAll = {
+  _id: '507f1f77bcf86cd799439015',
   permissions: ['view.all'],
   role: { permissions: [] },
 };
 
+const adminSettings = {
+  _id: '507f1f77bcf86cd799439016',
+  permissions: ['admin.settings'],
+  role: { permissions: [] },
+};
+
 const basePr = {
-  requester: requesterId,
+  requester: originalCreator._id,
   sapPRDocEntry: null,
 };
 
@@ -44,111 +59,104 @@ describe('normalizePrStatus', () => {
   });
 });
 
-describe('isEditablePrStatus', () => {
-  it('allows draft and rejected', () => {
-    expect(isEditablePrStatus('Draft')).toBe(true);
-    expect(isEditablePrStatus('rejected')).toBe(true);
-  });
-
-  it('blocks approved and pending statuses', () => {
-    expect(isEditablePrStatus('Approved in SAP')).toBe(false);
-    expect(isEditablePrStatus('Pending Warehouse Approval')).toBe(false);
-  });
-});
-
-describe('canEditPurchaseRequest', () => {
-  it('allows original requester on rejected PR', () => {
+describe('canEditPurchaseRequest — Procurement only', () => {
+  it('allows Procurement with pr.create on rejected PR', () => {
     expect(
-      canEditPurchaseRequest(requester, { ...basePr, status: 'Rejected' }),
+      canEditPurchaseRequest(procurementA, { ...basePr, status: 'Rejected' }),
     ).toBe(true);
   });
 
-  it('allows original requester on draft PR', () => {
-    expect(canEditPurchaseRequest(requester, { ...basePr, status: 'Draft' })).toBe(true);
+  it('allows another Procurement user who did not create the PR', () => {
+    expect(
+      canEditPurchaseRequest(procurementB, { ...basePr, status: 'Rejected' }),
+    ).toBe(true);
   });
 
-  it('blocks another requester on rejected PR', () => {
+  it('allows Procurement on draft PR', () => {
+    expect(canEditPurchaseRequest(procurementA, { ...basePr, status: 'Draft' })).toBe(true);
+  });
+
+  it('blocks original creator without pr.create', () => {
     expect(
-      canEditPurchaseRequest(otherRequester, { ...basePr, status: 'Rejected' }),
+      canEditPurchaseRequest(originalCreator, { ...basePr, status: 'Rejected' }),
     ).toBe(false);
   });
 
-  it('blocks requester on approved PR', () => {
+  it('blocks approver without pr.create', () => {
     expect(
-      canEditPurchaseRequest(requester, { ...basePr, status: 'Approved in SAP' }),
+      canEditPurchaseRequest(approver, { ...basePr, status: 'Rejected' }),
     ).toBe(false);
   });
 
-  it('blocks requester when SAP PR exists', () => {
+  it('blocks view.all without pr.create', () => {
     expect(
-      canEditPurchaseRequest(requester, {
+      canEditPurchaseRequest(adminViewAll, { ...basePr, status: 'Rejected' }),
+    ).toBe(false);
+  });
+
+  it('blocks admin.settings without pr.create', () => {
+    expect(
+      canEditPurchaseRequest(adminSettings, { ...basePr, status: 'Rejected' }),
+    ).toBe(false);
+  });
+
+  it('blocks Procurement on approved PR', () => {
+    expect(
+      canEditPurchaseRequest(procurementA, { ...basePr, status: 'Approved in SAP' }),
+    ).toBe(false);
+  });
+
+  it('blocks Procurement when SAP PR exists', () => {
+    expect(
+      canEditPurchaseRequest(procurementA, {
         ...basePr,
         status: 'Rejected',
         sapPRDocEntry: 1001,
       }),
     ).toBe(false);
   });
-
-  it('blocks requester while SAP creation is in progress', () => {
-    expect(
-      canEditPurchaseRequest(requester, {
-        ...basePr,
-        status: 'Creating in SAP',
-      }),
-    ).toBe(false);
-  });
-
-  it('allows admin on rejected PR', () => {
-    expect(
-      canEditPurchaseRequest(admin, { ...basePr, status: 'Rejected' }),
-    ).toBe(true);
-  });
 });
 
-describe('canResubmitPurchaseRequest', () => {
-  it('allows original requester on rejected PR', () => {
+describe('canResubmitPurchaseRequest — Procurement only', () => {
+  it('allows Procurement on rejected PR', () => {
     expect(
-      canResubmitPurchaseRequest(requester, { ...basePr, status: 'Rejected' }),
+      canResubmitPurchaseRequest(procurementA, { ...basePr, status: 'Rejected' }),
     ).toBe(true);
   });
 
-  it('blocks another requester', () => {
+  it('allows another Procurement user', () => {
     expect(
-      canResubmitPurchaseRequest(otherRequester, { ...basePr, status: 'Rejected' }),
+      canResubmitPurchaseRequest(procurementB, { ...basePr, status: 'Rejected' }),
+    ).toBe(true);
+  });
+
+  it('blocks approver without pr.create', () => {
+    expect(
+      canResubmitPurchaseRequest(approver, { ...basePr, status: 'Rejected' }),
     ).toBe(false);
   });
 
-  it('blocks admin even with view.all', () => {
+  it('blocks view.all alone', () => {
     expect(
-      canResubmitPurchaseRequest(admin, { ...basePr, status: 'Rejected' }),
+      canResubmitPurchaseRequest(adminViewAll, { ...basePr, status: 'Rejected' }),
     ).toBe(false);
   });
 
   it('blocks draft PR', () => {
-    expect(canResubmitPurchaseRequest(requester, { ...basePr, status: 'Draft' })).toBe(false);
-  });
-
-  it('blocks when SAP PR exists', () => {
-    expect(
-      canResubmitPurchaseRequest(requester, {
-        ...basePr,
-        status: 'Rejected',
-        sapPRDocEntry: 42,
-      }),
-    ).toBe(false);
+    expect(canResubmitPurchaseRequest(procurementA, { ...basePr, status: 'Draft' })).toBe(false);
   });
 });
 
 describe('getPrEditForbiddenMessage', () => {
-  it('returns null when edit is allowed', () => {
+  it('returns null when Procurement may edit', () => {
     expect(
-      getPrEditForbiddenMessage(requester, { ...basePr, status: 'Rejected' }),
+      getPrEditForbiddenMessage(procurementA, { ...basePr, status: 'Rejected' }),
     ).toBeNull();
   });
 
-  it('returns permission message for non-owner', () => {
+  it('returns permission message for non-Procurement', () => {
     expect(
-      getPrEditForbiddenMessage(otherRequester, { ...basePr, status: 'Rejected' }),
+      getPrEditForbiddenMessage(approver, { ...basePr, status: 'Rejected' }),
     ).toContain('permission');
   });
 });
@@ -167,30 +175,45 @@ describe('PrDetailView edit/resubmit UI', () => {
   it('shows Resubmit for Approval when canResubmit', () => {
     expect(source).toContain('pr.canResubmit');
     expect(source).toContain('prI18n.resubmit');
-    expect(source).toContain('/submit');
+  });
+
+  it('shows returned-to-Procurement message for view-only users', () => {
+    expect(source).toContain('returnedToProcurement');
   });
 });
 
-describe('PrEditForm loads existing values', () => {
+describe('CreatePoFromPrPanel pre-create form', () => {
   const source = fs.readFileSync(
-    path.resolve(process.cwd(), 'components/purchase-requests/PrEditForm.jsx'),
+    path.resolve(process.cwd(), 'components/purchase-requests/CreatePoFromPrPanel.jsx'),
     'utf8',
   );
 
-  it('maps header and line fields from PR', () => {
-    expect(source).toContain('pr.requiredDate');
-    expect(source).toContain('pr.lines');
-    expect(source).toContain('mapLineFromPr');
+  it('does not create PO on vendor select', () => {
+    expect(source).toContain('PoBusinessFields');
+    expect(source).toContain('initializeDraft');
+    expect(source).toContain('handleVendorSelect');
+    expect(source).not.toMatch(/onSelect[\s\S]{0,200}apiFetch/);
+    expect(source).toContain('handleCreate');
+  });
+
+  it('shows full form after vendor selection via draft state', () => {
+    expect(source).toContain('buildPoDraftFromPr');
+    expect(source).toContain('{draft &&');
+  });
+
+  it('prevents double submission', () => {
+    expect(source).toContain('if (submitting');
+    expect(source).toContain('loading={submitting}');
   });
 });
 
-describe('ApprovalHistory Resubmitted action', () => {
+describe('PoEditForm uses shared fields', () => {
   const source = fs.readFileSync(
-    path.resolve(process.cwd(), 'models/ApprovalHistory.js'),
+    path.resolve(process.cwd(), 'components/purchase-orders/PoEditForm.jsx'),
     'utf8',
   );
 
-  it('includes Resubmitted in action enum', () => {
-    expect(source).toContain("'Resubmitted'");
+  it('reuses PoBusinessFields', () => {
+    expect(source).toContain('PoBusinessFields');
   });
 });

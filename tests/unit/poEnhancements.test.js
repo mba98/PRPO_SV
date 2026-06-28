@@ -191,8 +191,13 @@ describe('PO workflow stepper', () => {
 });
 
 describe('PO from PR', () => {
-  it('createPoFromPrSchema still requires vendor', () => {
-    expect(createPoFromPrSchema.safeParse({ vendor: 'V1' }).success).toBe(true);
+  it('createPoFromPrSchema requires vendor and lines', () => {
+    expect(
+      createPoFromPrSchema.safeParse({
+        vendor: 'V1',
+        lines: [{ itemCode: 'I1', quantity: 1, unitPrice: 10 }],
+      }).success,
+    ).toBe(true);
   });
 });
 

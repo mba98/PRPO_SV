@@ -4,8 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { getDictionary } from '@/lib/i18n';
 
 describe('PoEditForm compact layout', () => {
-  const source = fs.readFileSync(
+  const editForm = fs.readFileSync(
     path.resolve(process.cwd(), 'components/purchase-orders/PoEditForm.jsx'),
+    'utf8',
+  );
+  const businessFields = fs.readFileSync(
+    path.resolve(process.cwd(), 'components/purchase-orders/PoBusinessFields.jsx'),
     'utf8',
   );
   const poDetail = fs.readFileSync(
@@ -13,33 +17,34 @@ describe('PoEditForm compact layout', () => {
     'utf8',
   );
 
-  it('uses compact header card and grid', () => {
-    expect(source).toContain('rounded-3xl border border-border bg-card');
-    expect(source).toContain('sm:grid-cols-2 lg:grid-cols-3');
-    expect(source).toContain('FormField');
-    expect(source).toContain('input-field-compact');
+  it('uses shared PoBusinessFields for header and lines', () => {
+    expect(editForm).toContain('PoBusinessFields');
+    expect(businessFields).toContain('rounded-3xl border border-border bg-card');
+    expect(businessFields).toContain('sm:grid-cols-2 lg:grid-cols-3');
+    expect(businessFields).toContain('FormField');
+    expect(businessFields).toContain('PO_COMPACT_INPUT');
   });
 
   it('renders line items as compact rows without line remarks input', () => {
-    expect(source).toContain('LINE_GRID');
-    expect(source).toContain('rounded-2xl border border-border bg-muted/20');
-    expect(source).not.toMatch(/line\.remarks[\s\S]*<input/);
-    expect(source).toContain('remarks: l.remarks');
+    expect(businessFields).toContain('PO_LINE_GRID');
+    expect(businessFields).toContain('rounded-2xl border border-border bg-muted/20');
+    expect(businessFields).not.toMatch(/line\.remarks[\s\S]*<input/);
+    expect(editForm).toContain('remarks: l.remarks');
   });
 
   it('uses VendorSelect and save Button loading state', () => {
-    expect(source).toContain('VendorSelect');
-    expect(source).toContain('loadAllOnFocus');
-    expect(source).toContain('loading={saving}');
-    expect(source).toContain('t.saving');
+    expect(businessFields).toContain('VendorSelect');
+    expect(businessFields).toContain('loadAllOnFocus');
+    expect(editForm).toContain('loading={saving}');
+    expect(editForm).toContain('t.saving');
   });
 
   it('includes currency field and USD docRate defaults from poCurrency helpers', () => {
-    expect(source).toContain('resolveFormDocRateFromPo');
-    expect(source).toContain('resolveFormDocCurrencyFromPo');
-    expect(source).toContain('applyVendorCurrencyToHeader');
-    expect(source).toContain('t.docCurrency');
-    expect(source).toContain('isUsdPoCurrency(header.docCurrency)');
+    expect(editForm).toContain('resolveFormDocRateFromPo');
+    expect(editForm).toContain('resolveFormDocCurrencyFromPo');
+    expect(businessFields).toContain('applyVendorCurrencyToHeader');
+    expect(businessFields).toContain('t.docCurrency');
+    expect(businessFields).toContain('isUsdPoCurrency(header.docCurrency)');
   });
 
   it('PO detail embeds PoEditForm and WorkflowStepper', () => {

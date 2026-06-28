@@ -5,28 +5,23 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import VendorSelect from '@/components/lookups/VendorSelect';
+import PoBusinessFields from '@/components/purchase-orders/PoBusinessFields';
 import { Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
-import {
-  applyCurrencyChangeToHeader,
-  applyVendorCurrencyToHeader,
-  isUsdPoCurrency,
-  PO_DOC_CURRENCIES,
-  resolveFormDocRateFromPo,
-} from '@/lib/poCurrency.js';
+import { buildPoDraftFromPr } from '@/lib/poFromPrDraft.js';
+import { isUsdPoCurrency } from '@/lib/poCurrency.js';
 
 /**
- * Create portal PO from an SAP-created PR (one vendor per PO).
+ * Create portal PO from an SAP-created PR — vendor first, then full editable draft.
  */
 export default function CreatePoFromPrPanel({ pr, compact = false }) {
   const router = useRouter();
   const { po: poI18n } = useI18n();
   const c = poI18n.create;
-  const e = poI18n.edit;
+
   const [vendor, setVendor] = useState('');
   const [vendorLabel, setVendorLabel] = useState('');
-  const [docCurrency, setDocCurrency] = useState('USD');
-  const [docRate, setDocRate] = useState(() => resolveFormDocRateFromPo({}));
+  const [draft, setDraft] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -42,28 +37,88 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
     const defaultVendor = vendorOptions[0] || '';
     setVendor(defaultVendor);
     setVendorLabel(defaultVendor);
+    setDraft(null);
   }, [pr.id, vendorOptionsKey, vendorOptions]);
 
+  function initializeDraft(vendorCode, vendorRow) {
+    const nextDraft = buildPoDraftFromPr(pr, vendorCode, vendorRow);
+    setDraft({
+      header: {
+        vendor: nextDraft.vendor,
+        vendorLabel: nextDraft.vendorLabel,
+        postingDate: nextDraft.postingDate,
+        documentDate: nextDraft.documentDate,
+        requiredDate: nextDraft.requiredDate,
+        dueDate: nextDraft.dueDate,
+        docCurrency: nextDraft.docCurrency,
+        docRate: nextDraft.docRate,
+        remarks: nextDraft.remarks,
+      },
+      lines: nextDraft.lines,
+    });
+  }
+
+  function handleVendorSelect(code, label, vendorRow) {
+    const trimmed = (code || '').trim();
+    if (!trimmed) return;
+
+    if (draft && draft.header.vendor && draft.header.vendor !== trimmed) {
+      const confirmed = window.confirm(c.poVendorChangeConfirm);
+      if (!confirmed) return;
+    }
+
+    setVendor(trimmed);
+    setVendorLabel(label || trimmed);
+    initializeDraft(trimmed, vendorRow);
+    setError('');
+  }
+
   async function handleCreate() {
-    if (submitting) return;
-    const vendorCode = vendor.trim();
+    if (submitting || !draft) return;
+    const vendorCode = draft.header.vendor.trim();
     if (!vendorCode) {
       setError(c.vendorRequired);
       return;
     }
+    if (!draft.lines.length) {
+      setError(c.noLinesForVendor);
+      return;
+    }
+
     setSubmitting(true);
     setError('');
+
+    const { header, lines } = draft;
+    const payload = {
+      vendor: vendorCode,
+      postingDate: header.postingDate || undefined,
+      documentDate: header.documentDate || undefined,
+      requiredDate: header.requiredDate || undefined,
+      dueDate: header.dueDate || undefined,
+      docCurrency: header.docCurrency,
+      docRate:
+        header.docRate === '' || !isUsdPoCurrency(header.docCurrency)
+          ? null
+          : Number(header.docRate),
+      remarks: header.remarks || undefined,
+      lines: lines.map((line) => ({
+        relatedPRLineId: line.relatedPRLineId,
+        itemCode: line.itemCode,
+        itemName: line.itemName || undefined,
+        quantity: Number(line.quantity),
+        unitPrice: Number(line.unitPrice),
+        warehouseCode: line.warehouseCode || undefined,
+        uomCode: line.uomCode?.trim() || undefined,
+        remarks: line.remarks || undefined,
+      })),
+    };
+
     const { json } = await apiFetch(`/api/purchase-orders/from-pr/${pr.id}`, {
       method: 'POST',
-      body: JSON.stringify({
-        vendor: vendorCode,
-        docCurrency,
-        docRate:
-          docRate === '' || !isUsdPoCurrency(docCurrency)
-            ? null
-            : Number(docRate),
-      }),
+      body: JSON.stringify(payload),
+      dedupe: false,
     });
+
     if (json.success) {
       const poId = json.data.po?.id;
       if (poId) router.push(`/purchase-orders/${poId}`);
@@ -73,7 +128,7 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
       router.push(`/purchase-orders/${json.data.poId}`);
       return;
     }
-    setError(json.message || 'PO creation failed');
+    setError(json.message || c.createFailed);
     setSubmitting(false);
   }
 
@@ -85,24 +140,19 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
 
   return (
     <section className={wrapperClass}>
-      <h2 className="text-sm font-semibold text-foreground">Create Purchase Order</h2>
-      <p className="text-xs text-muted-foreground">
-        Creates a portal PO from SAP PR {pr.sapPRDocNum || pr.sapPRDocEntry}. SAP PO is created after
-        finance approval.
-      </p>
+      <h2 className="text-sm font-semibold text-foreground">{c.title}</h2>
+      <p className="text-xs text-muted-foreground">{c.fromPrHint}</p>
       {vendorOptions.length > 1 && (
-        <p className="text-xs text-amber-700 dark:text-amber-300">
-          Multiple vendors on this PR — create one PO per vendor.
-        </p>
+        <p className="text-xs text-amber-700 dark:text-amber-300">{c.multiVendorHint}</p>
       )}
       {vendorOptions.length > 0 && vendorOptions.length <= 3 && (
         <p className="text-xs text-muted-foreground">
-          Suggested: {vendorOptions.join(', ')}
+          {c.suggestedVendors}: {vendorOptions.join(', ')}
         </p>
       )}
       {existingForVendor ? (
         <p className="text-sm text-foreground">
-          PO already exists for this vendor:{' '}
+          {c.existingPoForVendor}{' '}
           <Link
             href={`/purchase-orders/${existingForVendor.id}`}
             className="font-medium text-primary hover:underline"
@@ -127,61 +177,82 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
                 failedMessage={c.failedLoadVendors}
                 debounceMs={250}
                 listLimit={100}
-                onSelect={(code, label, vendorRow) => {
-                  setVendor(code);
-                  setVendorLabel(label || code);
-                  const next = applyVendorCurrencyToHeader(vendorRow, { docCurrency, docRate });
-                  setDocCurrency(next.docCurrency);
-                  setDocRate(next.docRate);
-                }}
+                onSelect={handleVendorSelect}
               />
             </div>
           </label>
-          <label className="block text-sm">
-            <span className="form-label">{e.docCurrency}</span>
-            <select
-              className="input-field mt-1 w-full"
-              value={docCurrency}
-              disabled={submitting}
-              onChange={(ev) => {
-                const next = applyCurrencyChangeToHeader(ev.target.value, { docCurrency, docRate });
-                setDocCurrency(next.docCurrency);
-                setDocRate(next.docRate);
-              }}
-            >
-              {PO_DOC_CURRENCIES.map((code) => (
-                <option key={code} value={code}>
-                  {code}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm">
-            <span className="form-label">{e.docRate}</span>
-            <input
-              type="number"
-              min="0"
-              step="any"
-              className="input-field mt-1 w-full"
-              value={docRate}
-              disabled={submitting || !isUsdPoCurrency(docCurrency)}
-              onChange={(ev) => setDocRate(ev.target.value)}
-            />
-          </label>
-          {error && (
-            <p className="text-sm text-destructive" role="alert">
-              {error}
-            </p>
+
+          {draft && (
+            <div className="space-y-4 pt-2">
+              <PoBusinessFields
+                header={draft.header}
+                setHeader={(updater) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    header: typeof updater === 'function' ? updater(prev.header) : updater,
+                  }))
+                }
+                lines={draft.lines}
+                setLines={(updater) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    lines: typeof updater === 'function' ? updater(prev.lines) : updater,
+                  }))
+                }
+                vendorEditable
+                disabled={submitting}
+                showDocumentTotal
+                onVendorChange={(code, label, vendorRow) => {
+                  setVendor(code);
+                  setVendorLabel(label || code);
+                  if (vendorRow) {
+                    setDraft((prev) => {
+                      if (!prev) return prev;
+                      const refreshed = buildPoDraftFromPr(pr, code, vendorRow);
+                      return {
+                        header: {
+                          ...prev.header,
+                          vendor: refreshed.vendor,
+                          vendorLabel: refreshed.vendorLabel,
+                          docCurrency: refreshed.docCurrency,
+                          docRate: refreshed.docRate,
+                        },
+                        lines: prev.lines.map((line) => {
+                          const match = refreshed.lines.find(
+                            (l) =>
+                              l.relatedPRLineId === line.relatedPRLineId ||
+                              l.itemCode === line.itemCode,
+                          );
+                          return match
+                            ? {
+                                ...line,
+                                itemCode: match.itemCode,
+                                itemName: match.itemName || line.itemName,
+                                uomCode: line.uomCode || match.uomCode,
+                              }
+                            : line;
+                        }),
+                      };
+                    });
+                  }
+                }}
+              />
+              {error && (
+                <p className="text-sm text-destructive" role="alert">
+                  {error}
+                </p>
+              )}
+              <Button
+                type="button"
+                variant="primary"
+                loading={submitting}
+                disabled={submitting || !draft.header.vendor.trim()}
+                onClick={handleCreate}
+              >
+                {submitting ? c.creatingPurchaseOrder : c.createPurchaseOrder}
+              </Button>
+            </div>
           )}
-          <Button
-            type="button"
-            variant="primary"
-            loading={submitting}
-            disabled={submitting || !vendor.trim()}
-            onClick={handleCreate}
-          >
-            {submitting ? c.creatingPurchaseOrder : c.createPurchaseOrder}
-          </Button>
         </>
       )}
       {(pr.existingPOs || []).length > 0 && !existingForVendor && (

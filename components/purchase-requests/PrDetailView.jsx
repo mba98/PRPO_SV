@@ -123,6 +123,11 @@ export default function PrDetailView({ id }) {
           {pr.rejectionStepName ? ` (${pr.rejectionStepName})` : ''}
         </p>
       )}
+      {pr.rejectionReason && !pr.canResubmit && (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-muted-foreground">
+          {prI18n.returnedToProcurement}
+        </p>
+      )}
       {pr.canResubmit && !editing && (
         <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-muted-foreground">
           {prI18n.returnedForCorrection}

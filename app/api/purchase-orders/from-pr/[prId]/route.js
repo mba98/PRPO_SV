@@ -35,7 +35,11 @@ async function postHandler(request, { params }, user) {
       result.error === 'INVALID_STATUS' ||
       result.error === 'NO_SAP_PR' ||
       result.error === 'VENDOR_REQUIRED' ||
-      result.error === 'NO_LINES'
+      result.error === 'NO_LINES' ||
+      result.error === 'INVALID_LINE' ||
+      result.error === 'INVALID_QUANTITY' ||
+      result.error === 'INVALID_PRICE' ||
+      result.error === 'INVALID_WAREHOUSE'
     ) {
       return jsonError(result.message, result.error, 400);
     }

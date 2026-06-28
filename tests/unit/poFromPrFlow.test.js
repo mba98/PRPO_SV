@@ -86,6 +86,16 @@ function makePr() {
   };
 }
 
+const defaultLines = [
+  {
+    itemCode: 'ITEM1',
+    quantity: 2,
+    unitPrice: 50,
+    uomCode: 'PCS',
+    warehouseCode: 'WH1',
+  },
+];
+
 describe('portal PO from PR', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -115,7 +125,10 @@ describe('portal PO from PR', () => {
         portalPONumber: 'PO-EXISTING',
       }),
     }));
-    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, { vendor: 'VENDOR1' });
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
+      vendor: 'VENDOR1',
+      lines: defaultLines,
+    });
     expect(result.error).toBe('DUPLICATE_PO');
     expect(mocks.poCreate).not.toHaveBeenCalled();
   });
@@ -123,6 +136,7 @@ describe('portal PO from PR', () => {
   it('creates portal PO with Pending PM Approval (no SAP)', async () => {
     const result = await createPortalPoFromPr('prid1', { _id: 'u1', roleName: 'Procurement' }, {
       vendor: 'VENDOR1',
+      lines: defaultLines,
     });
     expect(result.success).toBe(true);
     expect(mocks.poCreate).toHaveBeenCalled();
@@ -146,11 +160,44 @@ describe('portal PO from PR', () => {
     expect(pr.status).toBe('Partially Ordered');
   });
 
+  it('persists edited values and recalculates line totals server-side', async () => {
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1', roleName: 'Procurement' }, {
+      vendor: 'VENDOR1',
+      remarks: 'Custom PO remarks',
+      lines: [
+        {
+          itemCode: 'ITEM1',
+          quantity: 1,
+          unitPrice: 99,
+          warehouseCode: 'WH2',
+          uomCode: 'PCS',
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+    const created = mocks.poCreate.mock.calls.at(-1)[0];
+    expect(created.remarks).toBe('Custom PO remarks');
+    expect(created.lines[0].quantity).toBe(1);
+    expect(created.lines[0].unitPrice).toBe(99);
+    expect(created.lines[0].lineTotal).toBe(99);
+    expect(created.lines[0].warehouseCode).toBe('WH2');
+  });
+
+  it('rejects lines not belonging to the source PR vendor', async () => {
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
+      vendor: 'VENDOR1',
+      lines: [{ itemCode: 'UNKNOWN', quantity: 1, unitPrice: 10, warehouseCode: 'WH1' }],
+    });
+    expect(result.error).toBe('INVALID_LINE');
+    expect(mocks.poCreate).not.toHaveBeenCalled();
+  });
+
   it('saves docCurrency and omits docRate for IQD on create from PR', async () => {
     const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
       vendor: 'VENDOR1',
       docCurrency: 'IQD',
       docRate: 1350,
+      lines: defaultLines,
     });
     expect(result.success).toBe(true);
     const created = mocks.poCreate.mock.calls[0][0];
@@ -162,7 +209,10 @@ describe('portal PO from PR', () => {
     const pr = makePr();
     pr.status = 'Approved';
     mocks.findById.mockResolvedValue(pr);
-    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, { vendor: 'VENDOR1' });
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
+      vendor: 'VENDOR1',
+      lines: defaultLines,
+    });
     expect(result.error).toBe('INVALID_STATUS');
     expect(mocks.poCreate).not.toHaveBeenCalled();
   });

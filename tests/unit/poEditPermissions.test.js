@@ -2,14 +2,17 @@ import { describe, expect, it } from 'vitest';
 import {
   PO_EDIT_FORBIDDEN_MESSAGE,
   canEditPurchaseOrder,
+  canResubmitPurchaseOrder,
   getPoEditForbiddenMessage,
   hasAnyApprovedApprovalStep,
 } from '@/lib/poEditPermissions';
 import { PO_STATUS } from '@/lib/poStatus';
 
 const procurement = { permissions: [], role: { permissions: ['po.create'] } };
+const procurementB = { _id: 'proc2', permissions: [], role: { permissions: ['po.create'] } };
 const pmUser = { permissions: [], role: { permissions: ['po.approve.pm'] } };
 const viewAll = { permissions: ['view.all'] };
+const adminSettings = { permissions: ['admin.settings'] };
 
 const basePo = { sapPODocEntry: null };
 
@@ -76,6 +79,9 @@ describe('canEditPurchaseOrder', () => {
     expect(
       canEditPurchaseOrder(viewAll, { ...basePo, status: PO_STATUS.PENDING_PM }, []),
     ).toBe(false);
+    expect(
+      canEditPurchaseOrder(adminSettings, { ...basePo, status: PO_STATUS.REJECTED }, []),
+    ).toBe(false);
   });
 
   it('blocks procurement on post-approval statuses', () => {
@@ -89,6 +95,32 @@ describe('canEditPurchaseOrder', () => {
     ]) {
       expect(canEditPurchaseOrder(procurement, { ...basePo, status }, [])).toBe(false);
     }
+  });
+});
+
+describe('canResubmitPurchaseOrder', () => {
+  it('allows Procurement on rejected PO', () => {
+    expect(
+      canResubmitPurchaseOrder(procurement, { ...basePo, status: PO_STATUS.REJECTED }, []),
+    ).toBe(true);
+  });
+
+  it('allows another Procurement user', () => {
+    expect(
+      canResubmitPurchaseOrder(procurementB, { ...basePo, status: PO_STATUS.REJECTED }, []),
+    ).toBe(true);
+  });
+
+  it('blocks approver without po.create', () => {
+    expect(
+      canResubmitPurchaseOrder(pmUser, { ...basePo, status: PO_STATUS.REJECTED }, []),
+    ).toBe(false);
+  });
+
+  it('blocks view.all without po.create', () => {
+    expect(
+      canResubmitPurchaseOrder(viewAll, { ...basePo, status: PO_STATUS.REJECTED }, []),
+    ).toBe(false);
   });
 });
 

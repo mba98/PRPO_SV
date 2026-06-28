@@ -5,22 +5,44 @@ import {
   updatePurchaseOrderSchema,
 } from '@/lib/validators/purchaseOrder';
 
+const sampleLine = {
+  itemCode: 'ITEM1',
+  quantity: 2,
+  unitPrice: 50,
+  warehouseCode: '01',
+  uomCode: 'PCS',
+};
+
 describe('purchaseOrder validators', () => {
-  it('requires vendor for PO from PR', () => {
-    expect(createPoFromPrSchema.safeParse({ vendor: 'V1' }).success).toBe(true);
-    expect(createPoFromPrSchema.safeParse({}).success).toBe(false);
+  it('requires vendor and lines for PO from PR', () => {
+    expect(
+      createPoFromPrSchema.safeParse({ vendor: 'V1', lines: [sampleLine] }).success,
+    ).toBe(true);
+    expect(createPoFromPrSchema.safeParse({ vendor: 'V1' }).success).toBe(false);
+    expect(createPoFromPrSchema.safeParse({ lines: [sampleLine] }).success).toBe(false);
   });
 
   it('accepts docCurrency USD or IQD on create from PR', () => {
     expect(
-      createPoFromPrSchema.safeParse({ vendor: 'V1', docCurrency: 'IQD', docRate: null }).success,
+      createPoFromPrSchema.safeParse({
+        vendor: 'V1',
+        docCurrency: 'IQD',
+        docRate: null,
+        lines: [sampleLine],
+      }).success,
     ).toBe(true);
     expect(
-      createPoFromPrSchema.safeParse({ vendor: 'V1', docCurrency: 'USD', docRate: 1350 }).success,
+      createPoFromPrSchema.safeParse({
+        vendor: 'V1',
+        docCurrency: 'USD',
+        docRate: 1350,
+        lines: [sampleLine],
+      }).success,
     ).toBe(true);
-    expect(createPoFromPrSchema.safeParse({ vendor: 'V1', docCurrency: 'EUR' }).success).toBe(
-      false,
-    );
+    expect(
+      createPoFromPrSchema.safeParse({ vendor: 'V1', docCurrency: 'EUR', lines: [sampleLine] })
+        .success,
+    ).toBe(false);
   });
 
   it('accepts docCurrency on PO update', () => {

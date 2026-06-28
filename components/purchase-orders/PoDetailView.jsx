@@ -122,7 +122,18 @@ export default function PoDetailView({ id }) {
       {po.rejectionReason && (
         <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">
           {poI18n.rejectionReason}: {po.rejectionReason}
+          {po.rejectedByName ? ` — ${po.rejectedByName}` : ''}
           {po.rejectionStepName ? ` (${po.rejectionStepName})` : ''}
+        </p>
+      )}
+      {po.rejectionReason && !po.canResubmit && (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-muted-foreground">
+          {poI18n.returnedToProcurement}
+        </p>
+      )}
+      {po.canResubmit && !editing && (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-muted-foreground">
+          {poI18n.returnedToProcurement}
         </p>
       )}
       {showSapFailurePanel && (
