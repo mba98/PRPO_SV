@@ -59,7 +59,7 @@ describe('PO creation paths share SAP vendor currency rules', () => {
       it('submits docCurrency from shared header state', () => {
         expect(contents).toContain('docCurrency: header.docCurrency');
         if (source.name !== 'PoEditForm') {
-          expect(contents).toContain('isUsdPoCurrency(header.docCurrency)');
+          expect(contents).toContain('requiresPoDocRate(header.docCurrency');
         }
       });
     });

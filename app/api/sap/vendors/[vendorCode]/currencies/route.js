@@ -20,8 +20,8 @@ async function getHandler(_request, { params }) {
     if (config?.error === 'NO_CURRENCIES') {
       return sapLookupFailureResponse(
         'sap/vendors/currencies',
-        { code: 'NO_CURRENCIES', message: 'No currencies are configured for this Vendor' },
-        'No currencies are configured for this Vendor',
+        { code: 'NO_CURRENCIES', message: 'Failed to load Vendor currencies from SAP.' },
+        'Failed to load Vendor currencies from SAP.',
       );
     }
     return jsonSuccessCached({
@@ -30,16 +30,14 @@ async function getHandler(_request, { params }) {
       currencyMode: config.currencyMode,
       currency: config.currency,
       defaultCurrency: config.defaultCurrency,
+      companyLocalCurrency: config.companyLocalCurrency || null,
       allowedCurrencies: (config.allowedCurrencies || []).map(({ code, name }) => ({
         code,
         name: name || code,
       })),
     });
   } catch (err) {
-    const message =
-      err?.code === 'NO_CURRENCIES'
-        ? 'No currencies are configured for this Vendor'
-        : err?.message || 'Vendor currency configuration could not be loaded from SAP';
+    const message = err?.message || 'Failed to load Vendor currencies from SAP.';
     return sapLookupFailureResponse('sap/vendors/currencies', err, message);
   }
 }

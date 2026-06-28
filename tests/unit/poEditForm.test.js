@@ -45,7 +45,7 @@ describe('PoEditForm compact layout', () => {
     expect(businessFields).toContain('fetchVendorCurrencyConfig');
     expect(businessFields).toContain('applyVendorCurrencyConfigToHeader');
     expect(businessFields).toContain('t.docCurrency');
-    expect(businessFields).toContain('isUsdPoCurrency(header.docCurrency)');
+    expect(businessFields).toContain('requiresPoDocRate(header.docCurrency');
   });
 
   it('PO detail embeds PoEditForm and WorkflowStepper', () => {

@@ -42,7 +42,9 @@ async function postHandler(request, { params }, user) {
       result.error === 'INVALID_WAREHOUSE' ||
       result.error === 'INVALID_CURRENCY' ||
       result.error === 'VENDOR_CURRENCY_CONFIG' ||
-      result.error === 'NO_CURRENCIES'
+      result.error === 'NO_CURRENCIES' ||
+      result.error === 'DOC_RATE_REQUIRED' ||
+      result.error === 'INVALID_DOC_RATE'
     ) {
       return jsonError(result.message, result.error, 400);
     }

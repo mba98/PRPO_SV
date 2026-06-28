@@ -9,7 +9,7 @@ import PoBusinessFields from '@/components/purchase-orders/PoBusinessFields';
 import { Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { buildPoDraftFromPr } from '@/lib/poFromPrDraft.js';
-import { isUsdPoCurrency } from '@/lib/poCurrency.js';
+import { requiresPoDocRate } from '@/lib/poCurrency.js';
 
 /**
  * Create portal PO from an SAP-created PR — vendor first, then full editable draft.
@@ -97,7 +97,7 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
       dueDate: header.dueDate || undefined,
       docCurrency: header.docCurrency,
       docRate:
-        header.docRate === '' || !isUsdPoCurrency(header.docCurrency)
+        header.docRate === '' || !requiresPoDocRate(header.docCurrency, header.companyLocalCurrency)
           ? null
           : Number(header.docRate),
       remarks: header.remarks || undefined,

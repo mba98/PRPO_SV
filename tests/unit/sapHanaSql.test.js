@@ -4,6 +4,7 @@ import {
   buildItemDetailSql,
   buildUomGroupsSql,
   buildWarehousesSql,
+  buildVendorCurrencySql,
   buildLimitClause,
   quoteSchema,
 } from '@/lib/sap/hanaSql';
@@ -65,10 +66,13 @@ describe('sap HANA SQL builders', () => {
     expect(sql).toContain('AS "price"');
   });
 
-  it('builds warehouses SQL from OWHS', () => {
-    const sql = buildWarehousesSql('DB', 100, 'limit');
-    expect(sql).toContain('"DB"."OWHS" T0');
-    expect(sql).toContain('T0."WhsCode" AS "value"');
-    expect(sql).toContain('T0."WhsName" AS "label"');
+  it('builds vendor currency SQL from CRD13 CurrCode and INCLUDE', () => {
+    const sql = buildVendorCurrencySql('DB');
+    expect(sql).toContain('"DB"."CRD13" T1');
+    expect(sql).toContain('T1."CurrCode" AS "currencyCode"');
+    expect(sql).toContain('T1."INCLUDE" AS "included"');
+    expect(sql).toContain('T1."Locked" AS "locked"');
+    expect(sql).toContain('T1."INCLUDE" = \'Y\'');
+    expect(sql).toContain('T0."CardCode" = ?');
   });
 });

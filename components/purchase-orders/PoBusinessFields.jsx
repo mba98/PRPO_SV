@@ -12,7 +12,7 @@ import {
   applyVendorCurrencyConfigToHeader,
   getAllowedCurrencyCodes,
   isCurrencyDropdownReadOnly,
-  isUsdPoCurrency,
+  requiresPoDocRate,
 } from '@/lib/poCurrency.js';
 import { fetchVendorCurrencyConfig } from '@/lib/vendorCurrencyClient.js';
 import {
@@ -63,6 +63,7 @@ export default function PoBusinessFields({
           if ((prev.vendor || '').trim() !== vendorCode) return prev;
           return {
             ...prev,
+            companyLocalCurrency: config.companyLocalCurrency || prev.companyLocalCurrency,
             ...applyVendorCurrencyConfigToHeader(config, prev),
           };
         });
@@ -126,6 +127,9 @@ export default function PoBusinessFields({
       : getAllowedCurrencyCodes(vendorCurrencyConfig).map((code) => ({ code, name: code }));
   const currencyReadOnly =
     !currencyLoading && !currencyError && isCurrencyDropdownReadOnly(vendorCurrencyConfig);
+  const localCurrency =
+    vendorCurrencyConfig?.companyLocalCurrency || header.companyLocalCurrency;
+  const docRateRequired = requiresPoDocRate(header.docCurrency, localCurrency);
   const showMultiCurrencyHint =
     vendorCurrencyConfig?.currencyMode === 'all' && currencyOptions.length > 1;
 
@@ -169,7 +173,7 @@ export default function PoBusinessFields({
               onChange={(e) =>
                 setHeader((h) => ({
                   ...h,
-                  ...applyCurrencyChangeToHeader(e.target.value, h),
+                  ...applyCurrencyChangeToHeader(e.target.value, h, localCurrency),
                 }))
               }
             >
@@ -201,16 +205,20 @@ export default function PoBusinessFields({
               <p className="mt-1 text-xs text-muted-foreground">{c.multiCurrencyVendorHint}</p>
             )}
           </FormField>
-          <FormField label={t.docRate}>
+          <FormField label={t.docRate} required={docRateRequired}>
             <Input
               type="number"
               min="0"
               step="any"
               className={PO_COMPACT_INPUT}
               value={header.docRate}
-              disabled={disabled || !isUsdPoCurrency(header.docCurrency)}
+              required={docRateRequired}
+              disabled={disabled || !docRateRequired}
               onChange={(e) => setHeader((h) => ({ ...h, docRate: e.target.value }))}
             />
+            {docRateRequired && (
+              <p className="mt-1 text-xs text-muted-foreground">{c.foreignDocRateRequired}</p>
+            )}
           </FormField>
           <FormField label={t.postingDate}>
             <DateInput

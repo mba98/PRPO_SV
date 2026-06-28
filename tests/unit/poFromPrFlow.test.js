@@ -59,21 +59,9 @@ vi.mock('@/lib/sap/vendorCurrencies.js', async (importOriginal) => {
       currencyMode: 'single',
       currency: 'USD',
       defaultCurrency: 'USD',
+      companyLocalCurrency: 'IQD',
       allowedCurrencies: [{ code: 'USD', name: 'USD' }],
     })),
-    validatePoDocCurrencyForVendor: vi.fn((docCurrency, config) => {
-      const normalized = String(docCurrency || config.defaultCurrency || 'USD').toUpperCase();
-      if (normalized === '##') {
-        return { ok: false, code: 'INVALID_CURRENCY', message: 'Selected currency is not allowed for this Vendor' };
-      }
-      const allowed = new Set((config.allowedCurrencies || []).map((c) => c.code));
-      if (config.currencyMode === 'single') allowed.add(config.currency || config.defaultCurrency);
-      if (!allowed.has(normalized)) {
-        return { ok: false, code: 'INVALID_CURRENCY', message: 'Selected currency is not allowed for this Vendor' };
-      }
-      return { ok: true, currency: normalized };
-    }),
-    assertPoDocCurrencyAllowedForVendor: vi.fn(),
   };
 });
 
@@ -163,6 +151,7 @@ describe('portal PO from PR', () => {
   it('creates portal PO with Pending PM Approval (no SAP)', async () => {
     const result = await createPortalPoFromPr('prid1', { _id: 'u1', roleName: 'Procurement' }, {
       vendor: 'VENDOR1',
+      docRate: 1350,
       lines: defaultLines,
     });
     expect(result.success).toBe(true);
@@ -190,6 +179,7 @@ describe('portal PO from PR', () => {
   it('persists edited values and recalculates line totals server-side', async () => {
     const result = await createPortalPoFromPr('prid1', { _id: 'u1', roleName: 'Procurement' }, {
       vendor: 'VENDOR1',
+      docRate: 1350,
       remarks: 'Custom PO remarks',
       lines: [
         {
@@ -225,6 +215,7 @@ describe('portal PO from PR', () => {
       vendorCode: 'VENDOR1',
       currencyMode: 'all',
       defaultCurrency: 'IQD',
+      companyLocalCurrency: 'IQD',
       allowedCurrencies: [
         { code: 'IQD', name: 'Iraqi Dinar' },
         { code: 'USD', name: 'US Dollar' },
@@ -243,12 +234,23 @@ describe('portal PO from PR', () => {
     expect(created.docRate).toBeUndefined();
   });
 
+  it('rejects foreign currency PO without DocRate', async () => {
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
+      vendor: 'VENDOR1',
+      docCurrency: 'USD',
+      lines: defaultLines,
+    });
+    expect(result.error).toBe('DOC_RATE_REQUIRED');
+    expect(mocks.poCreate).not.toHaveBeenCalled();
+  });
+
   it('rejects docCurrency ## on create from PR', async () => {
     const vendorCurrencies = await import('@/lib/sap/vendorCurrencies.js');
     vendorCurrencies.getVendorCurrencyConfig.mockResolvedValueOnce({
       vendorCode: 'VENDOR1',
       currencyMode: 'all',
       defaultCurrency: 'IQD',
+      companyLocalCurrency: 'IQD',
       allowedCurrencies: [{ code: 'IQD', name: 'Iraqi Dinar' }],
     });
 
@@ -268,6 +270,7 @@ describe('portal PO from PR', () => {
       currencyMode: 'single',
       currency: 'USD',
       defaultCurrency: 'USD',
+      companyLocalCurrency: 'IQD',
       allowedCurrencies: [{ code: 'USD', name: 'USD' }],
     });
 

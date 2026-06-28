@@ -75,24 +75,32 @@ describe('PO uomCode and docRate', () => {
     expect(updatePurchaseOrderSchema.safeParse({ docRate: -1 }).success).toBe(false);
   });
 
-  it('poToSap sends DocRate when provided', () => {
-    const payload = mapPoToSap({
-      vendor: 'V1',
-      docRate: 11500,
-      requiredDate: new Date('2026-05-21'),
-      lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5 }],
-    });
+  it('poToSap sends DocRate when provided for foreign currency', () => {
+    const payload = mapPoToSap(
+      {
+        vendor: 'V1',
+        docCurrency: 'USD',
+        docRate: 11500,
+        requiredDate: new Date('2026-05-21'),
+        lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5 }],
+      },
+      { localCurrency: 'IQD' },
+    );
     expect(payload.DocRate).toBe(11500);
   });
 
-  it('poToSap includes DocCurrency and default DocRate in non-production', () => {
-    const payload = mapPoToSap({
-      vendor: 'V1',
-      requiredDate: new Date('2026-05-21'),
-      lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5, warehouseCode: 'RAN004' }],
-    });
+  it('poToSap includes DocCurrency without auto DocRate when rate is missing', () => {
+    const payload = mapPoToSap(
+      {
+        vendor: 'V1',
+        docCurrency: 'USD',
+        requiredDate: new Date('2026-05-21'),
+        lines: [{ itemCode: 'A1', quantity: 1, unitPrice: 5, warehouseCode: 'RAN004' }],
+      },
+      { localCurrency: 'IQD' },
+    );
     expect(payload.DocCurrency).toBe('USD');
-    expect(payload.DocRate).toBe(1350);
+    expect(payload.DocRate).toBeUndefined();
     expect(payload.DocumentLines[0].BaseType).toBeUndefined();
   });
 

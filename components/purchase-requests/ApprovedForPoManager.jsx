@@ -8,7 +8,7 @@ import PoBusinessFields from '@/components/purchase-orders/PoBusinessFields';
 import { PortalLoader, AnimatedStatusBadge, Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { buildPoDraftFromPr } from '@/lib/poFromPrDraft.js';
-import { isUsdPoCurrency } from '@/lib/poCurrency.js';
+import { requiresPoDocRate } from '@/lib/poCurrency.js';
 
 function formatTemplate(template, vars) {
   return Object.entries(vars).reduce(
@@ -131,7 +131,8 @@ export default function ApprovedForPoManager() {
         dueDate: header.dueDate || undefined,
         docCurrency: header.docCurrency,
         docRate:
-          header.docRate === '' || !isUsdPoCurrency(header.docCurrency)
+          header.docRate === '' ||
+          !requiresPoDocRate(header.docCurrency, header.companyLocalCurrency)
             ? null
             : Number(header.docRate),
         remarks: header.remarks || undefined,
