@@ -26,15 +26,20 @@ describe('PO creation paths share SAP vendor currency rules', () => {
     'utf8',
   );
 
-  it('PoBusinessFields loads vendor currencies from SAP API', () => {
+  it('PoBusinessFields loads vendor currencies through shared hook', () => {
+    const hook = fs.readFileSync(
+      path.resolve(process.cwd(), 'lib/hooks/useVendorCurrencyConfig.js'),
+      'utf8',
+    );
     const client = fs.readFileSync(
       path.resolve(process.cwd(), 'lib/vendorCurrencyClient.js'),
       'utf8',
     );
-    expect(businessFields).toContain('fetchVendorCurrencyConfig');
+    expect(businessFields).toContain('useVendorCurrencyConfig');
+    expect(hook).toContain('fetchVendorCurrencyConfig');
     expect(client).toContain('/api/sap/vendors/');
     expect(client).toContain('/currencies');
-    expect(businessFields).toContain('applyVendorCurrencyConfigToHeader');
+    expect(businessFields).toContain('applyCurrencyChangeToHeader');
     expect(businessFields).toContain('loadingVendorCurrencies');
     expect(businessFields).not.toContain('PO_DOC_CURRENCIES');
   });

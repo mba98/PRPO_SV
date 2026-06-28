@@ -5,6 +5,7 @@ import {
   applyVendorCurrencyToHeader,
   isBlockedSapCurrencyToken,
   isLocalPoCurrency,
+  mergeHeaderWithVendorCurrency,
   normalizePoDocCurrency,
   normalizePoDocRateForStorage,
   requiresPoDocRate,
@@ -99,5 +100,15 @@ describe('poCurrency', () => {
     expect(
       applyVendorCurrencyToHeader({ currency: '##' }, { docCurrency: 'USD', docRate: '1200' }, LOCAL),
     ).toEqual({ docCurrency: 'USD', docRate: '1200' });
+  });
+
+  it('mergeHeaderWithVendorCurrency is a no-op when docCurrency and docRate unchanged', () => {
+    const header = { docCurrency: 'USD', docRate: '1400', companyLocalCurrency: LOCAL };
+    const config = normalizeVendorCurrencyConfig({
+      vendorCode: 'V000001',
+      bpCurrency: 'USD',
+      companyLocalCurrency: LOCAL,
+    });
+    expect(mergeHeaderWithVendorCurrency(header, config)).toBe(header);
   });
 });

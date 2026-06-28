@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useI18n } from '@/lib/hooks/useI18n';
+import { useVendorCurrencyConfig } from '@/lib/hooks/useVendorCurrencyConfig.js';
 import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
@@ -9,12 +10,10 @@ import { DateInput, FormField, Input } from '@/components/ui';
 import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
 import {
   applyCurrencyChangeToHeader,
-  applyVendorCurrencyConfigToHeader,
   getAllowedCurrencyCodes,
   isCurrencyDropdownReadOnly,
   requiresPoDocRate,
 } from '@/lib/poCurrency.js';
-import { fetchVendorCurrencyConfig } from '@/lib/vendorCurrencyClient.js';
 import {
   PO_COMPACT_INPUT,
   PO_LINE_GRID,
@@ -36,53 +35,13 @@ export default function PoBusinessFields({
   const t = poI18n.edit;
   const c = poI18n.create;
   const [lineDetailLoading, setLineDetailLoading] = useState({});
-  const [vendorCurrencyConfig, setVendorCurrencyConfig] = useState(null);
-  const [currencyLoading, setCurrencyLoading] = useState(false);
-  const [currencyError, setCurrencyError] = useState('');
-  const fetchIdRef = useRef(0);
 
-  useEffect(() => {
-    const vendorCode = (header.vendor || '').trim();
-    if (!vendorCode) {
-      setVendorCurrencyConfig(null);
-      setCurrencyLoading(false);
-      setCurrencyError('');
-      return undefined;
-    }
-
-    let cancelled = false;
-    const fetchId = ++fetchIdRef.current;
-    setCurrencyLoading(true);
-    setCurrencyError('');
-
-    fetchVendorCurrencyConfig(vendorCode)
-      .then((config) => {
-        if (cancelled || fetchId !== fetchIdRef.current) return;
-        setVendorCurrencyConfig(config);
-        setHeader((prev) => {
-          if ((prev.vendor || '').trim() !== vendorCode) return prev;
-          return {
-            ...prev,
-            companyLocalCurrency: config.companyLocalCurrency || prev.companyLocalCurrency,
-            ...applyVendorCurrencyConfigToHeader(config, prev),
-          };
-        });
-      })
-      .catch((err) => {
-        if (cancelled || fetchId !== fetchIdRef.current) return;
-        setVendorCurrencyConfig(null);
-        setCurrencyError(err.message || c.failedLoadVendorCurrencies);
-      })
-      .finally(() => {
-        if (!cancelled && fetchId === fetchIdRef.current) {
-          setCurrencyLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [header.vendor, setHeader, c.failedLoadVendorCurrencies]);
+  const vendorCode = String(header?.vendor || '').trim();
+  const { vendorCurrencyConfig, currencyLoading, currencyError } = useVendorCurrencyConfig(
+    vendorCode,
+    setHeader,
+    { failedLoadMessage: c.failedLoadVendorCurrencies },
+  );
 
   function updateLine(idx, patch) {
     setLines((prev) =>
