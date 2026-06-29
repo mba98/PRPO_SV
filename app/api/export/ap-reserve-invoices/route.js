@@ -3,6 +3,7 @@ import { parseExportQuery } from '@/lib/listQuery';
 import { fetchApReserveInvoicesForExport } from '@/lib/apReserveInvoicesService';
 import { apriRowsForExport, buildWorkbookBuffer, exportFilename } from '@/lib/excelExport';
 import { handleServiceError } from '@/lib/apiHelpers';
+import { userCanViewApriFinancials } from '@/lib/apriFinancialAccess.js';
 
 import { APRI_VIEW_PERMISSIONS } from '@/lib/permissions.js';
 
@@ -17,7 +18,8 @@ async function getHandler(request, _ctx, user) {
       order,
       limit,
     });
-    const rows = apriRowsForExport(items);
+    const includeFinancials = userCanViewApriFinancials(user);
+    const rows = apriRowsForExport(items, { includeFinancials });
     const buffer = buildWorkbookBuffer(rows, 'AP Reserve Invoices');
     const filename = exportFilename('ap-reserve-invoices');
     return new Response(buffer, {

@@ -5,6 +5,7 @@ import { useI18n } from '@/lib/hooks/useI18n';
 import { useVendorCurrencyConfig } from '@/lib/hooks/useVendorCurrencyConfig.js';
 import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
+import LineUomDisplay from '@/components/lookups/LineUomDisplay';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import { DateInput, FormField, Input } from '@/components/ui';
 import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
@@ -313,12 +314,7 @@ export default function PoBusinessFields({
                   <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
                     {t.uomCode}
                   </span>
-                  <Input
-                    className={PO_COMPACT_INPUT}
-                    value={line.uomCode}
-                    disabled={disabled}
-                    onChange={(e) => updateLine(idx, { uomCode: e.target.value })}
-                  />
+                  <LineUomDisplay line={line} inputClassName={PO_COMPACT_INPUT} />
                 </FormField>
 
                 <FormField className="lg:mt-0">

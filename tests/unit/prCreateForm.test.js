@@ -67,13 +67,14 @@ describe('PR create form — compact bilingual UI', () => {
     expect(itemSearch).toContain('loadingItemDetailsLabel');
   });
 
-  it('UomGroupSelect enforces minimum width for readable labels', () => {
+  it('LineUomDisplay is read-only for PR line UoM', () => {
     const uom = fs.readFileSync(
-      path.resolve(process.cwd(), 'components/lookups/UomGroupSelect.jsx'),
+      path.resolve(process.cwd(), 'components/lookups/LineUomDisplay.jsx'),
       'utf8',
     );
-    expect(uom).toContain('min-w-[180px]');
-    expect(form).toContain('minmax(11.25rem');
+    expect(uom).toContain('readOnly');
+    expect(form).toContain('LineUomDisplay');
+    expect(form).not.toContain('UomGroupSelect');
   });
 
   it('WarehouseSelect remounts when item selection changes warehouse', () => {

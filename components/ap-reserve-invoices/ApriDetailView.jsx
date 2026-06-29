@@ -26,6 +26,8 @@ function applyApriUpdatePayload(setDocument, payload, userId, id) {
     ...doc,
     canCreateInSap: payload?.canCreateInSap ?? doc?.canCreateInSap ?? false,
     canEditQuantities: payload?.canEditQuantities ?? doc?.canEditQuantities ?? false,
+    canResubmit: payload?.canResubmit ?? doc?.canResubmit ?? false,
+    canViewFinancials: payload?.canViewFinancials ?? doc?.canViewFinancials ?? true,
     canRetrySap: payload?.canRetrySap ?? doc?.canRetrySap ?? false,
     createInSapBlockReason:
       payload?.createInSapBlockReason ?? doc?.createInSapBlockReason ?? null,
@@ -37,7 +39,7 @@ function applyApriUpdatePayload(setDocument, payload, userId, id) {
 
 function isSapCreatableStatus(status) {
   const norm = normalizeApriStatus(status);
-  return norm === APRI_STATUS.WAREHOUSE_APPROVED || norm === APRI_STATUS.WAREHOUSE_REJECTED;
+  return norm === APRI_STATUS.WAREHOUSE_APPROVED;
 }
 
 export default function ApriDetailView({ id }) {
@@ -58,6 +60,7 @@ export default function ApriDetailView({ id }) {
   const [retrying, setRetrying] = useState(false);
   const [creatingSap, setCreatingSap] = useState(false);
   const [savingQty, setSavingQty] = useState(false);
+  const [resubmitting, setResubmitting] = useState(false);
   const [lineQty, setLineQty] = useState({});
   const [savedLineQty, setSavedLineQty] = useState({});
   const [emailLogs, setEmailLogs] = useState([]);
@@ -126,8 +129,16 @@ export default function ApriDetailView({ id }) {
 
   const allLinesValid = !hasQuantityErrors;
 
+  const normStatus = normalizeApriStatus(apri?.status);
+  const canCreateInSap = apri?.canCreateInSap === true;
+  const canEditQuantities = apri?.canEditQuantities === true;
+  const canResubmit = apri?.canResubmit === true;
+  const canViewFinancials = apri?.canViewFinancials !== false;
+  const canRetry = apri?.canRetrySap === true;
+  const createInSapBlockReason = apri?.createInSapBlockReason ?? null;
+
   const displayDocumentTotal = useMemo(() => {
-    if (!apri?.lines?.length) return 0;
+    if (!canViewFinancials || !apri?.lines?.length) return null;
     return apri.lines.reduce((sum, line) => {
       const validation = lineValidations[line._id];
       const qty = validation?.qty ?? normalizeQuantity(line.quantity);
@@ -138,13 +149,7 @@ export default function ApriDetailView({ id }) {
       const total = Number(line.lineTotal);
       return sum + (Number.isFinite(total) ? total : 0);
     }, 0);
-  }, [apri?.lines, lineValidations]);
-
-  const normStatus = normalizeApriStatus(apri?.status);
-  const canCreateInSap = apri?.canCreateInSap === true;
-  const canEditQuantities = apri?.canEditQuantities === true;
-  const canRetry = apri?.canRetrySap === true;
-  const createInSapBlockReason = apri?.createInSapBlockReason ?? null;
+  }, [apri?.lines, lineValidations, canViewFinancials]);
 
   const showProcurementSapArea = isSapCreatableStatus(normStatus);
   const showCreateInSap = canCreateInSap === true && showProcurementSapArea;
@@ -277,6 +282,27 @@ export default function ApriDetailView({ id }) {
     }
   }
 
+  async function handleResubmit() {
+    if (resubmitting || hasUnsavedQtyChanges || hasQuantityErrors) return;
+    const current = apriRef.current;
+    if (!current) return;
+
+    setResubmitting(true);
+    setActionError('');
+    const { json } = await apiFetch(`/api/ap-reserve-invoices/${id}/resubmit`, {
+      method: 'POST',
+      body: JSON.stringify({ __v: current.__v }),
+      dedupe: false,
+    });
+    setResubmitting(false);
+
+    if (json.success) {
+      applyApriUpdatePayload(setDocument, { document: json.data }, userId, id);
+    } else {
+      setActionError(json.message || detail.resubmitFailed);
+    }
+  }
+
   async function saveQuantities() {
     if (savingQty || !allLinesValid || !hasUnsavedQtyChanges) return;
     const current = apriRef.current;
@@ -393,6 +419,17 @@ export default function ApriDetailView({ id }) {
                 {createInSapBlockMessage}
               </span>
             )}
+            {canResubmit && (
+              <Button
+                type="button"
+                variant="primary"
+                loading={resubmitting}
+                disabled={resubmitting || hasUnsavedQtyChanges || hasQuantityErrors || savingQty}
+                onClick={handleResubmit}
+              >
+                {resubmitting ? detail.resubmitting : detail.resubmit}
+              </Button>
+            )}
             {canRetry && (
               <button type="button" className="btn-secondary" onClick={retrySap} disabled={retrying}>
                 {retrying ? detail.retrying : detail.retrySap}
@@ -447,8 +484,15 @@ export default function ApriDetailView({ id }) {
               [detail.sapPoDocNum, apri.relatedSAPPODocNum],
               [detail.sapApDocNum, apri.sapAPDocNum],
               [detail.sapApDocEntry, apri.sapAPDocEntry],
-              [detail.total, displayDocumentTotal.toLocaleString(locale === 'ar' ? 'ar' : 'en')],
-            ].map(([label, val]) => (
+              canViewFinancials && displayDocumentTotal != null
+                ? [
+                    detail.total,
+                    displayDocumentTotal.toLocaleString(locale === 'ar' ? 'ar' : 'en'),
+                  ]
+                : null,
+            ]
+              .filter(Boolean)
+              .map(([label, val]) => (
               <div key={label}>
                 <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
                 <p className="mt-1 text-sm">{val ?? '—'}</p>
@@ -497,9 +541,9 @@ export default function ApriDetailView({ id }) {
               <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="pb-2 pr-4">{detail.item}</th>
-                  <th className="pb-2 pr-4">{detail.poLine}</th>
                   <th className="pb-2 pr-4">{detail.qty}</th>
-                  <th className="pb-2">{detail.total}</th>
+                  <th className="pb-2 pr-4">{detail.uomCode}</th>
+                  {canViewFinancials && <th className="pb-2">{detail.total}</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -510,7 +554,9 @@ export default function ApriDetailView({ id }) {
                   const qty = validation.qty ?? normalizeQuantity(line.quantity);
                   const unitPrice = Number(line.unitPrice);
                   const displayTotal =
-                    qty != null && Number.isFinite(unitPrice) ? qty * unitPrice : line.lineTotal;
+                    canViewFinancials && qty != null && Number.isFinite(unitPrice)
+                      ? qty * unitPrice
+                      : line.lineTotal;
 
                   return (
                     <tr
@@ -521,7 +567,6 @@ export default function ApriDetailView({ id }) {
                         <span className="font-medium">{line.itemCode}</span>
                         <span className="ml-2 text-muted-foreground">{line.itemName}</span>
                       </td>
-                      <td className="py-2 pr-4">{line.relatedPOLineNum ?? '—'}</td>
                       <td className="py-2 pr-4 align-top">
                         {canEditQuantities && line._id ? (
                           <div className="space-y-1">
@@ -553,7 +598,10 @@ export default function ApriDetailView({ id }) {
                           line.quantity
                         )}
                       </td>
-                      <td className="py-2">{displayTotal ?? '—'}</td>
+                      <td className="py-2 pr-4">{line.uomCode || line.uom || '—'}</td>
+                      {canViewFinancials && (
+                        <td className="py-2">{displayTotal ?? '—'}</td>
+                      )}
                     </tr>
                   );
                 })}

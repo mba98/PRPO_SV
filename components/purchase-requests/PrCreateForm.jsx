@@ -14,7 +14,7 @@ import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
 import ProjectSelect from '@/components/lookups/ProjectSelect';
-import UomGroupSelect from '@/components/lookups/UomGroupSelect';
+import LineUomDisplay from '@/components/lookups/LineUomDisplay';
 import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
 import { DateInput, FormField } from '@/components/ui';
 import CreateItemModal from './CreateItemModal';
@@ -445,20 +445,7 @@ export default function PrCreateForm() {
 
                 <FormField className="lg:mt-0">
                   <span className="mb-1 block text-xs text-muted-foreground lg:hidden">{t.uom}</span>
-                  <UomGroupSelect
-                    key={`uom-${idx}-${line.itemCode}-${line.ugpEntry}`}
-                    valueEntry={line.ugpEntry}
-                    valueLabel={line.ugpName}
-                    placeholder={t.selectUom}
-                    inputClassName={COMPACT_INPUT}
-                    disabled={Boolean(lineDetailLoading[idx])}
-                    onSelect={(entry, row) =>
-                      updateLine(idx, {
-                        ugpEntry: entry,
-                        ugpName: row?.label || '',
-                      })
-                    }
-                  />
+                  <LineUomDisplay line={line} inputClassName={COMPACT_INPUT} />
                 </FormField>
 
                 <FormField className="lg:mt-0">

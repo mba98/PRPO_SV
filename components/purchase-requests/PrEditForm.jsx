@@ -8,7 +8,7 @@ import ItemSearchInput from '@/components/lookups/ItemSearchInput';
 import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
 import ProjectSelect from '@/components/lookups/ProjectSelect';
-import UomGroupSelect from '@/components/lookups/UomGroupSelect';
+import LineUomDisplay from '@/components/lookups/LineUomDisplay';
 import { DateInput, FormField, Button } from '@/components/ui';
 import CreateItemModal from './CreateItemModal';
 import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
@@ -371,20 +371,7 @@ export default function PrEditForm({ pr, onSaved, onCancel }) {
                 </FormField>
                 <FormField>
                   <span className="mb-1 block text-xs text-muted-foreground">{t.uom}</span>
-                  <UomGroupSelect
-                    key={`uom-${idx}-${line.itemCode}-${line.ugpEntry}`}
-                    valueEntry={line.ugpEntry}
-                    valueLabel={line.ugpName}
-                    placeholder={t.selectUom}
-                    inputClassName={COMPACT_INPUT}
-                    disabled={Boolean(lineDetailLoading[idx])}
-                    onSelect={(entry, row) =>
-                      updateLine(idx, {
-                        ugpEntry: entry,
-                        ugpName: row?.label || '',
-                      })
-                    }
-                  />
+                  <LineUomDisplay line={line} inputClassName={COMPACT_INPUT} />
                 </FormField>
                 <FormField>
                   <span className="mb-1 block text-xs text-muted-foreground">{t.total}</span>

@@ -94,10 +94,10 @@ describe('APRI Phase 2 workflow helpers', () => {
     expect(userCanCreateApriInSap(ADMIN_USER, apri)).toBe(true);
   });
 
-  it('allows procurement SAP creation after warehouse rejection', () => {
+  it('blocks SAP creation after warehouse rejection until resubmitted and approved', () => {
     const apri = readyApri(APRI_STATUS.WAREHOUSE_REJECTED);
-    expect(isApriReadyForSapCreation(apri.status)).toBe(true);
-    expect(userCanCreateApriInSap(PROC_USER, apri)).toBe(true);
+    expect(isApriReadyForSapCreation(apri.status)).toBe(false);
+    expect(userCanCreateApriInSap(PROC_USER, apri)).toBe(false);
     expect(userCanCreateApriInSap(FINANCE_USER, apri)).toBe(false);
   });
 
