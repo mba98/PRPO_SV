@@ -10,23 +10,30 @@ import {
 const SINGLE_IQD = {
   vendorCode: 'V000074',
   currencyMode: 'single',
+  bpCurrency: 'IQD',
   currency: 'IQD',
   defaultCurrency: 'IQD',
   companyLocalCurrency: 'IQD',
-  allowedCurrencies: [{ code: 'IQD', name: 'IQD' }],
+  companySystemCurrency: 'USD',
+  allowedCurrencies: [
+    { code: 'IQD', name: 'IQD', sources: ['local', 'bp'] },
+    { code: 'USD', name: 'USD', sources: ['system'] },
+  ],
 };
 
 const MULTI = {
   vendorCode: 'V000096',
   currencyMode: 'all',
+  bpCurrency: null,
   currency: null,
   defaultCurrency: 'IQD',
   companyLocalCurrency: 'IQD',
+  companySystemCurrency: 'USD',
   allowedCurrencies: [
-    { code: 'EUR', name: 'Euro' },
-    { code: 'GBP', name: 'British Pound' },
-    { code: 'IQD', name: 'Iraqi Dinar' },
-    { code: 'USD', name: 'US Dollar' },
+    { code: 'EUR', name: 'Euro', sources: ['bp'] },
+    { code: 'GBP', name: 'British Pound', sources: ['bp'] },
+    { code: 'IQD', name: 'Iraqi Dinar', sources: ['local', 'bp'] },
+    { code: 'USD', name: 'US Dollar', sources: ['system', 'bp'] },
   ],
 };
 
@@ -37,6 +44,7 @@ describe('mergeHeaderWithVendorCurrency', () => {
       docCurrency: 'IQD',
       docRate: '',
       companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
     };
     expect(mergeHeaderWithVendorCurrency(header, MULTI)).toBe(header);
   });
@@ -47,6 +55,7 @@ describe('mergeHeaderWithVendorCurrency', () => {
       docCurrency: 'USD',
       docRate: '1350',
       companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
     };
     expect(mergeHeaderWithVendorCurrency(header, MULTI)).toBe(header);
   });
@@ -58,17 +67,27 @@ describe('mergeHeaderWithVendorCurrency', () => {
       docCurrency: 'IQD',
       docRate: '',
       companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
     });
   });
 
-  it('preserves single-currency vendor behavior', () => {
+  it('preserves single-currency vendor default while allowing system currency selection', () => {
     const header = { vendor: 'V000074', docCurrency: '', docRate: '' };
     expect(mergeHeaderWithVendorCurrency(header, SINGLE_IQD)).toEqual({
       vendor: 'V000074',
       docCurrency: 'IQD',
       docRate: '',
       companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
     });
+    const usdHeader = {
+      vendor: 'V000074',
+      docCurrency: 'USD',
+      docRate: '1450',
+      companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
+    };
+    expect(mergeHeaderWithVendorCurrency(usdHeader, SINGLE_IQD)).toBe(usdHeader);
   });
 });
 

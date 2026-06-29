@@ -28,12 +28,15 @@ async function getHandler(_request, { params }) {
       vendorCode: config.vendorCode,
       vendorName: config.vendorName,
       currencyMode: config.currencyMode,
-      currency: config.currency,
+      bpCurrency: config.bpCurrency ?? config.currency ?? null,
+      currency: config.currency ?? config.bpCurrency ?? null,
       defaultCurrency: config.defaultCurrency,
       companyLocalCurrency: config.companyLocalCurrency || null,
-      allowedCurrencies: (config.allowedCurrencies || []).map(({ code, name }) => ({
+      companySystemCurrency: config.companySystemCurrency || null,
+      allowedCurrencies: (config.allowedCurrencies || []).map(({ code, name, sources }) => ({
         code,
         name: name || code,
+        sources: sources || [],
       })),
     });
   } catch (err) {

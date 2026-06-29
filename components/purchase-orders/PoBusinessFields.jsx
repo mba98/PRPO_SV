@@ -11,6 +11,7 @@ import { DateInput, FormField, Input } from '@/components/ui';
 import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
 import {
   applyCurrencyChangeToHeader,
+  formatPoCurrencyOptionLabel,
   getAllowedCurrencyCodes,
   isCurrencyDropdownReadOnly,
   requiresPoDocRate,
@@ -90,8 +91,12 @@ export default function PoBusinessFields({
   const localCurrency =
     vendorCurrencyConfig?.companyLocalCurrency || header.companyLocalCurrency;
   const docRateRequired = requiresPoDocRate(header.docCurrency, localCurrency);
-  const showMultiCurrencyHint =
-    vendorCurrencyConfig?.currencyMode === 'all' && currencyOptions.length > 1;
+  const currencySourceLabels = {
+    local: c.currencySourceLocal,
+    system: c.currencySourceSystem,
+    bp: c.currencySourceBp,
+  };
+  const showMultiCurrencyHint = currencyOptions.length > 1;
 
   return (
     <>
@@ -150,9 +155,9 @@ export default function PoBusinessFields({
               )}
               {!currencyLoading &&
                 !currencyError &&
-                currencyOptions.map(({ code, name }) => (
-                  <option key={code} value={code}>
-                    {name && name !== code ? `${code} — ${name}` : code}
+                currencyOptions.map((entry) => (
+                  <option key={entry.code} value={entry.code}>
+                    {formatPoCurrencyOptionLabel(entry, currencySourceLabels)}
                   </option>
                 ))}
             </select>

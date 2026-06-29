@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { clearLookupCache } from '@/lib/sapLookupCache.js';
 import {
   SAP_ALL_CURRENCIES_TOKEN,
+  buildPoAllowedCurrencies,
   extractBpCurrencyCollection,
   isSapAllCurrenciesToken,
   normalizeCurrencyCode,
@@ -24,40 +25,64 @@ describe('vendorCurrencies normalization', () => {
     expect(normalizeCurrencyCode('##')).toBeNull();
   });
 
-  it('normalizes single-currency vendor from OCRD header', () => {
+  it('normalizes single-currency vendor with local and system union', () => {
     expect(
       normalizeVendorCurrencyConfig({
         vendorCode: 'V000001',
         bpCurrency: 'USD',
         currencyRows: [],
         companyLocalCurrency: 'IQD',
+        companySystemCurrency: 'USD',
       }),
     ).toMatchObject({
       currencyMode: 'single',
+      bpCurrency: 'USD',
       defaultCurrency: 'USD',
-      allowedCurrencies: [{ code: 'USD', name: 'USD' }],
       companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
     });
+    const codes = normalizeVendorCurrencyConfig({
+      vendorCode: 'V000001',
+      bpCurrency: 'USD',
+      companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
+    }).allowedCurrencies.map((c) => c.code);
+    expect(codes.sort()).toEqual(['IQD', 'USD']);
   });
 
-  it('returns IQD only for single-currency IQD vendor', () => {
+  it('IQD BP vendor includes system currency USD in allowed list', () => {
     const config = normalizeVendorCurrencyConfig({
       vendorCode: 'V000002',
       bpCurrency: 'IQD',
       companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
     });
-    expect(config.allowedCurrencies.map((c) => c.code)).toEqual(['IQD']);
+    expect(config.defaultCurrency).toBe('IQD');
+    expect(config.allowedCurrencies.map((c) => c.code).sort()).toEqual(['IQD', 'USD']);
+    const iqd = config.allowedCurrencies.find((c) => c.code === 'IQD');
+    expect(iqd.sources).toEqual(expect.arrayContaining(['local', 'bp']));
+    const usd = config.allowedCurrencies.find((c) => c.code === 'USD');
+    expect(usd.sources).toEqual(['system']);
   });
 
-  it('loads multi-currency vendor rows from CRD13 with INCLUDE = Y', () => {
+  it('loads multi-currency vendor rows from CRD13 with company union', () => {
     const config = normalizeVendorCurrencyConfig({
       vendorCode: 'V000018',
       bpCurrency: SAP_ALL_CURRENCIES_TOKEN,
       currencyRows: V000018_HANA_ROWS,
       companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
     });
     expect(config.currencyMode).toBe('all');
-    expect(config.allowedCurrencies.map((c) => c.code)).toEqual(['EUR', 'GBP', 'IQD', 'USD']);
+    expect(config.allowedCurrencies.map((c) => c.code).sort()).toEqual(
+      ['EUR', 'GBP', 'IQD', 'USD'].sort(),
+    );
+    expect(config.allowedCurrencies.find((c) => c.code === 'IQD')?.sources).toEqual(
+      expect.arrayContaining(['local', 'bp']),
+    );
+    expect(config.allowedCurrencies.find((c) => c.code === 'USD')?.sources).toEqual(
+      expect.arrayContaining(['system', 'bp']),
+    );
     expect(config.allowedCurrencies.find((c) => c.code === 'IQD')?.name).toBe('Iraqi Dinar');
   });
 
@@ -116,14 +141,16 @@ describe('vendorCurrencies normalization', () => {
     expect(rows).toHaveLength(1);
   });
 
-  it('validates submitted currency against vendor config', () => {
+  it('validates submitted currency against SAP union config', () => {
     const single = normalizeVendorCurrencyConfig({
       vendorCode: 'V1',
-      bpCurrency: 'USD',
+      bpCurrency: 'IQD',
       companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
     });
+    expect(validatePoDocCurrencyForVendor('IQD', single).ok).toBe(true);
     expect(validatePoDocCurrencyForVendor('USD', single).ok).toBe(true);
-    expect(validatePoDocCurrencyForVendor('IQD', single).ok).toBe(false);
+    expect(validatePoDocCurrencyForVendor('EUR', single).ok).toBe(false);
     expect(validatePoDocCurrencyForVendor('##', single).ok).toBe(false);
 
     const all = normalizeVendorCurrencyConfig({
@@ -185,7 +212,20 @@ describe('readField ODBC aliases', () => {
         currencyRows: [row],
         companyLocalCurrency: 'IQD',
       }).allowedCurrencies,
-    ).toEqual([{ code: 'USD', name: 'US Dollar' }]);
+    ).toEqual([
+      { code: 'IQD', name: 'IQD', sources: ['local'] },
+      { code: 'USD', name: 'US Dollar', sources: ['bp'] },
+    ]);
+  });
+
+  it('buildPoAllowedCurrencies deduplicates overlapping sources', () => {
+    const entries = buildPoAllowedCurrencies({
+      companyLocalCurrency: 'IQD',
+      companySystemCurrency: 'USD',
+      bpCurrency: 'IQD',
+    });
+    expect(entries.map((e) => e.code).sort()).toEqual(['IQD', 'USD']);
+    expect(entries.find((e) => e.code === 'IQD').sources.sort()).toEqual(['bp', 'local']);
   });
 });
 
@@ -206,6 +246,10 @@ describe('getVendorCurrencyConfig ## fallback', () => {
     vi.doMock('@/lib/sapHana.js', () => ({
       listVendorCrd13CurrencyRows: vi.fn(),
       getVendorHeaderFromHana: vi.fn(),
+      getCompanyCurrencies: vi.fn().mockResolvedValue({
+        localCurrency: 'IQD',
+        systemCurrency: 'USD',
+      }),
       getCompanyLocalCurrency: vi.fn().mockResolvedValue('IQD'),
     }));
 
@@ -228,6 +272,10 @@ describe('getVendorCurrencyConfig ## fallback', () => {
       }),
     }));
     vi.doMock('@/lib/sapHana.js', () => ({
+      getCompanyCurrencies: vi.fn().mockResolvedValue({
+        localCurrency: 'IQD',
+        systemCurrency: 'USD',
+      }),
       getCompanyLocalCurrency: vi.fn().mockResolvedValue('IQD'),
       getVendorHeaderFromHana: vi.fn().mockResolvedValue({
         cardCode: 'V000096',
@@ -240,7 +288,9 @@ describe('getVendorCurrencyConfig ## fallback', () => {
     const { getVendorCurrencyConfig } = await import('@/lib/sap/vendorCurrencies.js');
     const config = await getVendorCurrencyConfig('V000096');
     expect(config.currencyMode).toBe('all');
-    expect(config.allowedCurrencies.map((c) => c.code)).toEqual(['EUR', 'GBP', 'IQD', 'USD']);
+    expect(config.allowedCurrencies.map((c) => c.code).sort()).toEqual(
+      ['EUR', 'GBP', 'IQD', 'USD'].sort(),
+    );
     expect(config.defaultCurrency).toBe('IQD');
   });
 
@@ -249,6 +299,10 @@ describe('getVendorCurrencyConfig ## fallback', () => {
       getBusinessPartner: vi.fn().mockRejectedValue(new Error('SL unavailable')),
     }));
     vi.doMock('@/lib/sapHana.js', () => ({
+      getCompanyCurrencies: vi.fn().mockResolvedValue({
+        localCurrency: 'IQD',
+        systemCurrency: 'USD',
+      }),
       getCompanyLocalCurrency: vi.fn().mockResolvedValue('IQD'),
       getVendorHeaderFromHana: vi.fn().mockResolvedValue({
         cardCode: 'V000096',
