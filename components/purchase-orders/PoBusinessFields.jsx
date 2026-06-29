@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { useVendorCurrencyConfig } from '@/lib/hooks/useVendorCurrencyConfig.js';
+import { usePoExchangeRate } from '@/lib/hooks/usePoExchangeRate.js';
 import VendorSelect from '@/components/lookups/VendorSelect';
 import WarehouseSelect from '@/components/lookups/WarehouseSelect';
 import LineUomDisplay from '@/components/lookups/LineUomDisplay';
 import ItemSearchInput from '@/components/lookups/ItemSearchInput';
-import { DateInput, FormField, Input } from '@/components/ui';
+import { DateInput, FormField, Input, Button } from '@/components/ui';
 import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
 import {
   applyCurrencyChangeToHeader,
@@ -32,6 +33,7 @@ export default function PoBusinessFields({
   disabled = false,
   showDocumentTotal = false,
   onVendorChange,
+  onExchangeRateStateChange,
 }) {
   const { po: poI18n } = useI18n();
   const t = poI18n.edit;
@@ -91,6 +93,25 @@ export default function PoBusinessFields({
   const localCurrency =
     vendorCurrencyConfig?.companyLocalCurrency || header.companyLocalCurrency;
   const docRateRequired = requiresPoDocRate(header.docCurrency, localCurrency);
+  const { rateLoading, rateError, loadingMessage, reloadRate } = usePoExchangeRate(
+    header.docCurrency,
+    header.documentDate,
+    localCurrency,
+    setHeader,
+    {
+      failedLoadMessage: c.sapExchangeRateMissing,
+      loadingMessage: c.loadingExchangeRate,
+    },
+  );
+
+  useEffect(() => {
+    onExchangeRateStateChange?.({
+      rateLoading,
+      rateError,
+      needsRate: docRateRequired,
+    });
+  }, [onExchangeRateStateChange, rateLoading, rateError, docRateRequired]);
+
   const currencySourceLabels = {
     local: c.currencySourceLocal,
     system: c.currencySourceSystem,
@@ -172,17 +193,38 @@ export default function PoBusinessFields({
           </FormField>
           <FormField label={t.docRate} required={docRateRequired}>
             <Input
-              type="number"
-              min="0"
-              step="any"
+              type="text"
+              inputMode="decimal"
               className={PO_COMPACT_INPUT}
-              value={header.docRate}
-              required={docRateRequired}
-              disabled={disabled || !docRateRequired}
-              onChange={(e) => setHeader((h) => ({ ...h, docRate: e.target.value }))}
+              value={rateLoading ? '' : header.docRate}
+              placeholder={rateLoading ? loadingMessage : ''}
+              readOnly
+              disabled={disabled || !docRateRequired || rateLoading}
+              aria-readonly="true"
             />
-            {docRateRequired && (
-              <p className="mt-1 text-xs text-muted-foreground">{c.foreignDocRateRequired}</p>
+            {rateLoading && (
+              <p className="mt-1 text-xs text-muted-foreground" role="status">
+                {loadingMessage}
+              </p>
+            )}
+            {rateError && (
+              <div className="mt-1 space-y-1">
+                <p className="text-xs text-destructive" role="alert">
+                  {rateError}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={disabled || rateLoading}
+                  onClick={reloadRate}
+                >
+                  {c.reloadExchangeRate}
+                </Button>
+              </div>
+            )}
+            {docRateRequired && !rateLoading && !rateError && (
+              <p className="mt-1 text-xs text-muted-foreground">{c.exchangeRateFromSapHint}</p>
             )}
           </FormField>
           <FormField label={t.postingDate}>

@@ -44,6 +44,14 @@ describe('PO creation paths share SAP vendor currency rules', () => {
     expect(businessFields).not.toContain('PO_DOC_CURRENCIES');
   });
 
+  it('PoBusinessFields auto-loads SAP exchange rates as read-only DocRate', () => {
+    expect(businessFields).toContain('usePoExchangeRate');
+    expect(businessFields).toContain('loadingExchangeRate');
+    expect(businessFields).toContain('reloadExchangeRate');
+    expect(businessFields).toContain('readOnly');
+    expect(businessFields).not.toMatch(/onChange=\{.*docRate/);
+  });
+
   for (const source of PO_CREATION_SOURCES) {
     describe(source.name, () => {
       const contents = fs.readFileSync(path.resolve(process.cwd(), source.path), 'utf8');
@@ -61,11 +69,11 @@ describe('PO creation paths share SAP vendor currency rules', () => {
         expect(contents).not.toContain('applyCurrencyChangeToHeader');
       });
 
-      it('submits docCurrency from shared header state', () => {
+      it('submits docCurrency from shared header state without client docRate', () => {
         expect(contents).toContain('docCurrency: header.docCurrency');
-        if (source.name !== 'PoEditForm') {
-          expect(contents).toContain('requiresPoDocRate(header.docCurrency');
-        }
+        expect(contents).toContain('getPoExchangeRateSubmitBlocker');
+        expect(contents).toContain('onExchangeRateStateChange');
+        expect(contents).not.toMatch(/docRate:\s*[\n\r\s]*header\.docRate/);
       });
     });
   }

@@ -65,6 +65,20 @@ vi.mock('@/lib/sap/vendorCurrencies.js', async (importOriginal) => {
   };
 });
 
+vi.mock('@/lib/sap/exchangeRates.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    resolvePoExchangeRateForDocument: vi.fn(async ({ currency, localCurrency }) => {
+      const { requiresPoDocRate } = await import('@/lib/poCurrency.js');
+      if (!requiresPoDocRate(currency, localCurrency)) {
+        return { docRate: undefined, source: null };
+      }
+      return { docRate: 1450, source: 'SAP' };
+    }),
+  };
+});
+
 import { createPortalPoFromPr, findDuplicatePo } from '@/lib/sap/poFromPrSap';
 
 function makePr() {
@@ -148,6 +162,18 @@ describe('portal PO from PR', () => {
     expect(mocks.poCreate).not.toHaveBeenCalled();
   });
 
+  it('persists SAP-resolved DocRate for foreign currency (ignores client docRate)', async () => {
+    const result = await createPortalPoFromPr('prid1', { _id: 'u1', roleName: 'Procurement' }, {
+      vendor: 'VENDOR1',
+      docRate: 9999,
+      lines: defaultLines,
+    });
+    expect(result.success).toBe(true);
+    const created = mocks.poCreate.mock.calls[0][0];
+    expect(created.docCurrency).toBe('USD');
+    expect(created.docRate).toBe(1450);
+  });
+
   it('creates portal PO with Pending PM Approval (no SAP)', async () => {
     const result = await createPortalPoFromPr('prid1', { _id: 'u1', roleName: 'Procurement' }, {
       vendor: 'VENDOR1',
@@ -156,8 +182,9 @@ describe('portal PO from PR', () => {
     });
     expect(result.success).toBe(true);
     expect(mocks.poCreate).toHaveBeenCalled();
-    const created = mocks.poCreate.mock.calls[0][0];
+    const created = mocks.poCreate.mock.calls.at(-1)[0];
     expect(created.docCurrency).toBe('USD');
+    expect(created.docRate).toBe(1450);
     expect(created.status).toBe('pending_pm');
     expect(created.currentApprovalStep).toBe(1);
     expect(created.relatedSAPPRDocEntry).toBe(99);
@@ -234,13 +261,20 @@ describe('portal PO from PR', () => {
     expect(created.docRate).toBeUndefined();
   });
 
-  it('rejects foreign currency PO without DocRate', async () => {
+  it('rejects foreign currency PO when SAP has no exchange rate', async () => {
+    const exchangeRates = await import('@/lib/sap/exchangeRates.js');
+    exchangeRates.resolvePoExchangeRateForDocument.mockRejectedValueOnce(
+      Object.assign(new Error('No SAP exchange rate is configured for the selected currency and document date.'), {
+        code: 'SAP_EXCHANGE_RATE_NOT_FOUND',
+      }),
+    );
+
     const result = await createPortalPoFromPr('prid1', { _id: 'u1' }, {
       vendor: 'VENDOR1',
       docCurrency: 'USD',
       lines: defaultLines,
     });
-    expect(result.error).toBe('DOC_RATE_REQUIRED');
+    expect(result.error).toBe('SAP_EXCHANGE_RATE_NOT_FOUND');
     expect(mocks.poCreate).not.toHaveBeenCalled();
   });
 

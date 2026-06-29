@@ -9,7 +9,7 @@ import PoBusinessFields from '@/components/purchase-orders/PoBusinessFields';
 import { Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { buildPoDraftFromPr } from '@/lib/poFromPrDraft.js';
-import { requiresPoDocRate } from '@/lib/poCurrency.js';
+import { getPoExchangeRateSubmitBlocker } from '@/lib/poCurrency.js';
 
 /**
  * Create portal PO from an SAP-created PR — vendor first, then full editable draft.
@@ -24,6 +24,11 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
   const [draft, setDraft] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [exchangeRateState, setExchangeRateState] = useState({
+    rateLoading: false,
+    rateError: '',
+    needsRate: false,
+  });
 
   const pendingVendors = pr.pendingVendors || [];
   const suggestedVendors = pr.suggestedVendors || [];
@@ -85,6 +90,20 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
       return;
     }
 
+    const rateBlocker = getPoExchangeRateSubmitBlocker(
+      draft.header,
+      draft.header.companyLocalCurrency,
+      exchangeRateState,
+      {
+        loading: c.loadingExchangeRate,
+        missing: c.sapExchangeRateMissing,
+      },
+    );
+    if (rateBlocker) {
+      setError(rateBlocker);
+      return;
+    }
+
     setSubmitting(true);
     setError('');
 
@@ -96,10 +115,6 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
       requiredDate: header.requiredDate || undefined,
       dueDate: header.dueDate || undefined,
       docCurrency: header.docCurrency,
-      docRate:
-        header.docRate === '' || !requiresPoDocRate(header.docCurrency, header.companyLocalCurrency)
-          ? null
-          : Number(header.docRate),
       remarks: header.remarks || undefined,
       lines: lines.map((line) => ({
         relatedPRLineId: line.relatedPRLineId,
@@ -202,6 +217,7 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
                 vendorEditable
                 disabled={submitting}
                 showDocumentTotal
+                onExchangeRateStateChange={setExchangeRateState}
                 onVendorChange={(code, label) => {
                   setVendor(code);
                   setVendorLabel(label || code);
@@ -247,7 +263,12 @@ export default function CreatePoFromPrPanel({ pr, compact = false }) {
                 type="button"
                 variant="primary"
                 loading={submitting}
-                disabled={submitting || !draft.header.vendor.trim()}
+                disabled={
+                  submitting ||
+                  !draft.header.vendor.trim() ||
+                  exchangeRateState.rateLoading ||
+                  Boolean(exchangeRateState.rateError)
+                }
                 onClick={handleCreate}
               >
                 {submitting ? c.creatingPurchaseOrder : c.createPurchaseOrder}

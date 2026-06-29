@@ -8,7 +8,7 @@ import PoBusinessFields from '@/components/purchase-orders/PoBusinessFields';
 import { PortalLoader, AnimatedStatusBadge, Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
 import { buildPoDraftFromPr } from '@/lib/poFromPrDraft.js';
-import { requiresPoDocRate } from '@/lib/poCurrency.js';
+import { getPoExchangeRateSubmitBlocker } from '@/lib/poCurrency.js';
 
 function formatTemplate(template, vars) {
   return Object.entries(vars).reduce(
@@ -30,6 +30,11 @@ export default function ApprovedForPoManager() {
   const [draft, setDraft] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [exchangeRateState, setExchangeRateState] = useState({
+    rateLoading: false,
+    rateError: '',
+    needsRate: false,
+  });
 
   const selected = items.find((prItem) => prItem.id === selectedId);
 
@@ -116,6 +121,20 @@ export default function ApprovedForPoManager() {
       return;
     }
 
+    const rateBlocker = getPoExchangeRateSubmitBlocker(
+      draft.header,
+      draft.header.companyLocalCurrency,
+      exchangeRateState,
+      {
+        loading: c.loadingExchangeRate,
+        missing: c.sapExchangeRateMissing,
+      },
+    );
+    if (rateBlocker) {
+      setError(rateBlocker);
+      return;
+    }
+
     setSubmitting(true);
     setError('');
     setMessage('');
@@ -130,11 +149,6 @@ export default function ApprovedForPoManager() {
         requiredDate: header.requiredDate || undefined,
         dueDate: header.dueDate || undefined,
         docCurrency: header.docCurrency,
-        docRate:
-          header.docRate === '' ||
-          !requiresPoDocRate(header.docCurrency, header.companyLocalCurrency)
-            ? null
-            : Number(header.docRate),
         remarks: header.remarks || undefined,
         lines: lines.map((line) => ({
           relatedPRLineId: line.relatedPRLineId,
@@ -328,6 +342,7 @@ export default function ApprovedForPoManager() {
                       vendorEditable
                       disabled={submitting}
                       showDocumentTotal
+                      onExchangeRateStateChange={setExchangeRateState}
                       onVendorChange={(code, label) => {
                         setVendor(code);
                         setVendorLabel(label || code);
@@ -369,7 +384,12 @@ export default function ApprovedForPoManager() {
                       variant="primary"
                       className="w-full"
                       loading={submitting}
-                      disabled={submitting || !draft.header.vendor.trim()}
+                      disabled={
+                        submitting ||
+                        !draft.header.vendor.trim() ||
+                        exchangeRateState.rateLoading ||
+                        Boolean(exchangeRateState.rateError)
+                      }
                       onClick={handleCreatePo}
                     >
                       {submitting ? c.creatingPurchaseOrder : c.createPurchaseOrder}

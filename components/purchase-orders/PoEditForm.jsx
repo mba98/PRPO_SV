@@ -8,6 +8,7 @@ import PoBusinessFields from '@/components/purchase-orders/PoBusinessFields';
 import {
   resolveFormDocCurrencyFromPo,
   resolveFormDocRateFromPo,
+  getPoExchangeRateSubmitBlocker,
 } from '@/lib/poCurrency.js';
 import { toPoDateInput } from '@/lib/poFormUtils.js';
 
@@ -43,10 +44,30 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [exchangeRateState, setExchangeRateState] = useState({
+    rateLoading: false,
+    rateError: '',
+    needsRate: false,
+  });
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (saving) return;
+
+    const rateBlocker = getPoExchangeRateSubmitBlocker(
+      header,
+      header.companyLocalCurrency,
+      exchangeRateState,
+      {
+        loading: poI18n.create.loadingExchangeRate,
+        missing: poI18n.create.sapExchangeRateMissing,
+      },
+    );
+    if (rateBlocker) {
+      setError(rateBlocker);
+      return;
+    }
+
     setSaving(true);
     setError('');
 
@@ -59,7 +80,6 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
       requiredDate: header.requiredDate || undefined,
       dueDate: header.dueDate || undefined,
       docCurrency: header.docCurrency,
-      docRate: header.docRate === '' ? null : header.docRate ? Number(header.docRate) : undefined,
       lines: lines.map((l) => ({
         _id: l._id,
         itemCode: l.itemCode,
@@ -105,9 +125,16 @@ export default function PoEditForm({ po, onSaved, onCancel }) {
         setLines={setLines}
         vendorEditable={vendorEditable}
         disabled={saving}
+        onExchangeRateStateChange={setExchangeRateState}
       />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={saving} disabled={saving}>
+        <Button
+          type="submit"
+          loading={saving}
+          disabled={
+            saving || exchangeRateState.rateLoading || Boolean(exchangeRateState.rateError)
+          }
+        >
           {saving ? t.saving : t.saveChanges}
         </Button>
         {onCancel && (
