@@ -386,7 +386,9 @@ export default function PoBusinessFields({
                     <span className="lg:hidden text-xs font-normal text-muted-foreground">
                       {t.total}:{' '}
                     </span>
-                    {line.lineTotal || '—'}
+                    {line.lineTotal !== '' && line.lineTotal != null
+                      ? line.lineTotal
+                      : '—'}
                   </p>
                 </div>
               </div>

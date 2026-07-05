@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { useI18n } from '@/lib/hooks/useI18n';
@@ -12,6 +12,8 @@ import LineUomDisplay from '@/components/lookups/LineUomDisplay';
 import { DateInput, FormField, Button } from '@/components/ui';
 import CreateItemModal from './CreateItemModal';
 import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
+import { parseNumberAllowZero } from '@/lib/numberParsing.js';
+import { sumPrDocumentTotal, formatDocumentTotalAmount } from '@/lib/documentTotals.js';
 
 const COMPACT_INPUT = 'input-field-compact';
 const LINE_GRID =
@@ -44,9 +46,9 @@ function mapLineFromPr(line) {
 }
 
 function recalcTotal(line) {
-  const q = parseFloat(line.quantity) || 0;
-  const p = parseFloat(line.estimatedUnitPrice) || 0;
-  return q && p ? String(q * p) : line.estimatedTotal;
+  const q = parseNumberAllowZero(line.quantity, 0);
+  const p = parseNumberAllowZero(line.estimatedUnitPrice, 0);
+  return String(q * p);
 }
 
 function validateForm(header, lines, labels) {
@@ -74,7 +76,7 @@ function validateForm(header, lines, labels) {
 }
 
 export default function PrEditForm({ pr, onSaved, onCancel }) {
-  const { pr: prI18n, common } = useI18n();
+  const { pr: prI18n, common, detail } = useI18n();
   const t = { ...prI18n.create, ...prI18n.edit };
   const canCreateItem = useAuthStore((s) => s.hasPermission('items.create'));
 
@@ -95,6 +97,8 @@ export default function PrEditForm({ pr, onSaved, onCancel }) {
   const [itemModal, setItemModal] = useState(false);
   const [itemModalLine, setItemModalLine] = useState(0);
   const [lineDetailLoading, setLineDetailLoading] = useState({});
+
+  const documentTotal = useMemo(() => sumPrDocumentTotal(lines), [lines]);
 
   function updateHeader(patch) {
     setHeader((prev) => {
@@ -381,6 +385,9 @@ export default function PrEditForm({ pr, onSaved, onCancel }) {
             </div>
           ))}
         </div>
+        <p className="text-sm font-semibold text-foreground">
+          {detail.documentTotal}: {formatDocumentTotalAmount(documentTotal)}
+        </p>
       </section>
 
       <div className="flex flex-wrap gap-2">

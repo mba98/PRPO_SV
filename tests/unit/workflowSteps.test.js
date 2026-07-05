@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildApprovalWorkflowSteps,
   buildDocumentWorkflow,
   buildReturnedToProcurementStep,
   canApproveCurrentWorkflowStep,
@@ -127,5 +128,15 @@ describe('APRI workflow', () => {
       2,
     );
     expect(step.state).toBe('completed');
+  });
+
+  it('APRI created in SAP with currentApprovalStep 0 marks warehouse completed', () => {
+    const workflow = buildApprovalWorkflowSteps(
+      APRI_STEPS,
+      { status: APRI_STATUS.CREATED_IN_SAP, currentApprovalStep: 0, sapAPDocEntry: 100 },
+      'APRI',
+      { permissions: [] },
+    );
+    expect(workflow[0].state).toBe('completed');
   });
 });

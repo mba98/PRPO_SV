@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
@@ -19,6 +19,8 @@ import AttachmentDropzone from '@/components/attachments/AttachmentDropzone';
 import { DateInput, FormField } from '@/components/ui';
 import CreateItemModal from './CreateItemModal';
 import { fetchSapItemDetails, mapItemDetailsToLinePatch } from '@/lib/itemLineSelection';
+import { parseNumberAllowZero } from '@/lib/numberParsing.js';
+import { sumPrDocumentTotal, formatDocumentTotalAmount } from '@/lib/documentTotals.js';
 
 const COMPACT_INPUT = 'input-field-compact';
 
@@ -43,9 +45,9 @@ const EMPTY_LINE = () => ({
 });
 
 function recalcTotal(line) {
-  const q = parseFloat(line.quantity) || 0;
-  const p = parseFloat(line.estimatedUnitPrice) || 0;
-  return q && p ? String(q * p) : line.estimatedTotal;
+  const q = parseNumberAllowZero(line.quantity, 0);
+  const p = parseNumberAllowZero(line.estimatedUnitPrice, 0);
+  return String(q * p);
 }
 
 function validateForm(header, lines, labels) {
@@ -74,7 +76,7 @@ function validateForm(header, lines, labels) {
 
 export default function PrCreateForm() {
   const router = useRouter();
-  const { pr, common } = useI18n();
+  const { pr, common, detail } = useI18n();
   const t = pr.create;
   const canCreateItem = useAuthStore((s) => s.hasPermission('items.create'));
 
@@ -95,6 +97,8 @@ export default function PrCreateForm() {
   const [itemModal, setItemModal] = useState(false);
   const [itemModalLine, setItemModalLine] = useState(0);
   const [lineDetailLoading, setLineDetailLoading] = useState({});
+
+  const documentTotal = useMemo(() => sumPrDocumentTotal(lines), [lines]);
 
   function updateHeader(patch) {
     setHeader((prev) => {
@@ -467,6 +471,9 @@ export default function PrCreateForm() {
             </div>
           ))}
         </div>
+        <p className="text-sm font-semibold text-foreground">
+          {detail.documentTotal}: {formatDocumentTotalAmount(documentTotal)}
+        </p>
       </section>
 
       <section className="card space-y-3 p-4 sm:p-5">

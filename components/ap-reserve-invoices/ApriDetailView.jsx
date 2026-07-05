@@ -10,6 +10,7 @@ import AttachmentPanel from '@/components/attachments/AttachmentPanel';
 import CommentsPanel from '@/components/comments/CommentsPanel';
 import ApprovalTimeline from '@/components/approval-history/ApprovalTimeline';
 import { useI18n } from '@/lib/hooks/useI18n';
+import { formatDocumentTotalAmount } from '@/lib/documentTotals.js';
 import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
 import { primePortalDocument } from '@/lib/documentClientCache';
 import {
@@ -607,6 +608,16 @@ export default function ApriDetailView({ id }) {
                 })}
               </tbody>
             </table>
+            {canViewFinancials ? (
+              <p className="mt-4 text-sm font-semibold text-foreground">
+                {detail.documentTotal}:{' '}
+                {formatDocumentTotalAmount(apri.documentTotal ?? 0)}
+              </p>
+            ) : (
+              <p className="mt-4 text-sm font-semibold text-foreground">
+                {detail.totalQuantity}: {apri.totalQuantity ?? 0}
+              </p>
+            )}
           </section>
         </>
       )}

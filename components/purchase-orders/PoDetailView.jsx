@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { PortalLoader, AnimatedStatusBadge, AnimatedTabs, Button } from '@/components/ui';
 import { useI18n } from '@/lib/hooks/useI18n';
+import { formatDocumentTotalAmount } from '@/lib/documentTotals.js';
 import { usePortalDocument } from '@/lib/hooks/usePortalDocument';
 import { primePortalDocument } from '@/lib/documentClientCache';
 import { WorkflowStepper } from '@/components/workflow';
@@ -292,11 +293,17 @@ export default function PoDetailView({ id }) {
                     <td className="py-2 pr-4">{line.unitPrice ?? '—'}</td>
                     <td className="py-2 pr-4">{line.uomCode || line.uom || '—'}</td>
                     <td className="py-2 pr-4">{line.warehouseCode || '—'}</td>
-                    <td className="py-2">{line.lineTotal ?? '—'}</td>
+                    <td className="py-2">
+                      {line.lineTotal != null && line.lineTotal !== '' ? line.lineTotal : '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <p className="mt-4 text-sm font-semibold text-foreground">
+              {detail.documentTotal}:{' '}
+              {formatDocumentTotalAmount(po.documentTotal ?? 0)}
+            </p>
           </section>
         </>
       )}
