@@ -27,4 +27,13 @@ describe('ApriDetailView source', () => {
     expect(source.match(/onClick=\{handleCreateInSap\}/g)?.length).toBe(1);
     expect(source).not.toMatch(/saveQuantities[\s\S]{0,400}apriI18n\.createInSap/);
   });
+
+  it('renders labeled resubmit action with danger styling and apri i18n keys', () => {
+    expect(source).toContain("variant=\"danger\"");
+    expect(source).toContain('apriI18n.resubmit');
+    expect(source).toContain('apriI18n.resubmitting');
+    expect(source).not.toContain('detail.resubmit');
+    expect(source).toContain('ResubmitIcon');
+    expect(source).toContain('hasUnsavedQtyChanges || hasQuantityErrors');
+  });
 });
