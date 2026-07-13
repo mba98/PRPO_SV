@@ -69,7 +69,7 @@ const APRI_STEPS = [
   {
     stepOrder: 1,
     stepName: 'Warehouse Approval',
-    requiredPermission: 'pr.approve.whs',
+    requiredPermission: 'apri.approve.whs',
     completionPolicy: 'ANY_ONE',
     isActive: true,
     approverRole: { _id: 'role-whs', name: 'WHS Approver' },
@@ -249,9 +249,13 @@ describe('ANY_ONE documentApprovalAuth', () => {
     ).toBe(true);
   });
 
-  it('APRI warehouse regression', () => {
+  it('APRI warehouse regression: apri.approve.whs approves; pr.approve.whs alone does not', () => {
     const apri = { status: 'pending_warehouse', currentApprovalStep: 1 };
-    const whs = {
+    const apriWhs = {
+      permissions: ['apri.approve.whs'],
+      role: { _id: 'role-whs', name: 'WHS Approver' },
+    };
+    const prOnlyWhs = {
       permissions: ['pr.approve.whs'],
       role: { _id: 'role-whs', name: 'WHS Approver' },
     };
@@ -259,11 +263,20 @@ describe('ANY_ONE documentApprovalAuth', () => {
       canUserApproveDocument({
         documentType: 'APRI',
         document: apri,
-        user: whs,
+        user: apriWhs,
         approvalSteps: APRI_STEPS,
         logDiagnostics: false,
       }),
     ).toBe(true);
+    expect(
+      canUserApproveDocument({
+        documentType: 'APRI',
+        document: apri,
+        user: prOnlyWhs,
+        approvalSteps: APRI_STEPS,
+        logDiagnostics: false,
+      }),
+    ).toBe(false);
   });
 
   it('skips inactive matrix step via active steps list only', () => {

@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
     {
       stepOrder: 1,
       stepName: 'Warehouse Approval',
-      requiredPermission: 'pr.approve.whs',
+      requiredPermission: 'apri.approve.whs',
       pendingStatus: 'Pending Warehouse Approval',
     },
   ],
@@ -26,7 +26,8 @@ import {
 } from '@/lib/apriPermissions.js';
 import { userIsApriMatrixApprover } from '@/lib/permissions.js';
 
-const WHS_USER = { _id: 'whs1', permissions: ['pr.approve.whs'] };
+const WHS_USER = { _id: 'whs1', permissions: ['apri.approve.whs'] };
+const PR_ONLY_WHS = { _id: 'whs2', permissions: ['pr.approve.whs'] };
 const PROC_USER = { _id: 'proc1', permissions: ['apinvoice.create'] };
 const OTHER_USER = { _id: 'other1', permissions: ['pr.create'] };
 
@@ -43,6 +44,7 @@ describe('apriPermissions', () => {
   });
 
   it('identifies matrix approvers from sync permission superset', () => {
+    expect(userIsApriMatrixApprover(['apri.approve.whs'])).toBe(true);
     expect(userIsApriMatrixApprover(['pr.approve.whs'])).toBe(true);
     expect(userIsApriMatrixApprover(['apinvoice.create'])).toBe(false);
   });
@@ -80,5 +82,9 @@ describe('apriPermissions', () => {
 
   it('denies unrelated users from viewing pending APRI', async () => {
     expect(await userCanViewApriDocument(OTHER_USER, PENDING_APRI)).toBe(false);
+  });
+
+  it('denies pr.approve.whs alone from viewing pending APRI at warehouse step', async () => {
+    expect(await userCanViewApriDocument(PR_ONLY_WHS, PENDING_APRI)).toBe(false);
   });
 });

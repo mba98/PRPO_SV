@@ -47,6 +47,9 @@ describe('apriStatus', () => {
 
   it('maps matrix permission to pending warehouse', () => {
     expect(
+      pendingApriStatusForStep({ requiredPermission: 'apri.approve.whs', stepName: 'Warehouse Approval' }),
+    ).toBe(APRI_STATUS.PENDING_WAREHOUSE);
+    expect(
       pendingApriStatusForStep({ requiredPermission: 'pr.approve.whs', stepName: 'Warehouse Approval' }),
     ).toBe(APRI_STATUS.PENDING_WAREHOUSE);
   });
@@ -63,7 +66,7 @@ describe('apriStatus', () => {
 });
 
 describe('APRI Phase 2 workflow helpers', () => {
-  const APRI_STEPS = [{ stepOrder: 1, requiredPermission: 'pr.approve.whs' }];
+  const APRI_STEPS = [{ stepOrder: 1, requiredPermission: 'apri.approve.whs' }];
 
   it('warehouse final approval transitions to warehouse_approved without SAP status', () => {
     const after = getStateAfterApproval(APRI_STEPS, 1, 'APRI');

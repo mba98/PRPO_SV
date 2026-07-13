@@ -26,7 +26,7 @@ vi.mock('@/lib/approvalEngine.js', async (importOriginal) => {
       {
         stepOrder: 1,
         stepName: 'Warehouse Approval',
-        requiredPermission: 'pr.approve.whs',
+        requiredPermission: 'apri.approve.whs',
         pendingStatus: 'Pending Warehouse Approval',
       },
     ]),
@@ -144,7 +144,7 @@ describe('assertCanAccessDocument', () => {
     ).resolves.toBeTruthy();
   });
 
-  it('allows pr.approve.whs users to access APRI pending warehouse approval', async () => {
+  it('allows apri.approve.whs users to access APRI pending warehouse approval', async () => {
     mocks.apriFindById.mockReturnValueOnce(
       lean({
         _id: APRI_ID,
@@ -155,11 +155,29 @@ describe('assertCanAccessDocument', () => {
     );
     await expect(
       assertCanAccessDocument(
-        { _id: 'u6', permissions: ['pr.approve.whs'] },
+        { _id: 'u6', permissions: ['apri.approve.whs'] },
         'APRI',
         APRI_ID,
       ),
     ).resolves.toBeTruthy();
+  });
+
+  it('forbids pr.approve.whs alone from accessing APRI pending warehouse approval', async () => {
+    mocks.apriFindById.mockReturnValueOnce(
+      lean({
+        _id: APRI_ID,
+        createdBy: 'someoneElse',
+        status: 'Pending Warehouse Approval',
+        currentApprovalStep: 1,
+      }),
+    );
+    await expect(
+      assertCanAccessDocument(
+        { _id: 'u6b', permissions: ['pr.approve.whs'] },
+        'APRI',
+        APRI_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 
   it('forbids users without matrix or procurement access from APRI', async () => {

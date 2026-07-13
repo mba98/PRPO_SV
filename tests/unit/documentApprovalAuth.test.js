@@ -110,4 +110,73 @@ describe('documentApprovalAuth', () => {
     ).toBe(true);
     expect(matchesApproverRole(REQUESTER, PR_STEPS[0])).toBe(false);
   });
+
+  const APRI_STEPS = [
+    {
+      stepOrder: 1,
+      stepName: 'Warehouse Approval',
+      requiredPermission: 'apri.approve.whs',
+      isActive: true,
+      approverRole: { _id: 'role-whs', name: 'WHS Approver' },
+    },
+  ];
+
+  const APRI_WHS_USER = {
+    _id: 'user-apri-whs',
+    permissions: ['apri.approve.whs'],
+    role: { _id: 'role-whs', name: 'WHS Approver' },
+    roleName: 'WHS Approver',
+  };
+
+  const PR_ONLY_WHS_USER = {
+    _id: 'user-pr-whs',
+    permissions: ['pr.approve.whs'],
+    role: { _id: 'role-whs', name: 'WHS Approver' },
+    roleName: 'WHS Approver',
+  };
+
+  it('allows apri.approve.whs on pending warehouse APRI step', () => {
+    const apri = {
+      id: 'apri1',
+      status: 'pending_warehouse',
+      currentApprovalStep: 1,
+    };
+
+    expect(
+      canUserApproveDocument({
+        documentType: 'APRI',
+        document: apri,
+        user: APRI_WHS_USER,
+        approvalSteps: APRI_STEPS,
+        logDiagnostics: false,
+      }),
+    ).toBe(true);
+
+    const access = buildDocumentApprovalAccess({
+      documentType: 'APRI',
+      document: apri,
+      user: APRI_WHS_USER,
+      approvalSteps: APRI_STEPS,
+    });
+    expect(access.canApprove).toBe(true);
+    expect(access.approveUrl).toBe('/ap-reserve-invoices/apri1/approve');
+  });
+
+  it('denies pr.approve.whs alone on pending warehouse APRI step', () => {
+    const apri = {
+      id: 'apri1',
+      status: 'pending_warehouse',
+      currentApprovalStep: 1,
+    };
+
+    expect(
+      canUserApproveDocument({
+        documentType: 'APRI',
+        document: apri,
+        user: PR_ONLY_WHS_USER,
+        approvalSteps: APRI_STEPS,
+        logDiagnostics: false,
+      }),
+    ).toBe(false);
+  });
 });

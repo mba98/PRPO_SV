@@ -57,6 +57,7 @@ describe('seed data definitions', () => {
     expect(prSteps).toHaveLength(1);
     expect(poSteps).toHaveLength(3);
     expect(apriSteps).toHaveLength(1);
+    expect(apriSteps[0].requiredPermission).toBe('apri.approve.whs');
     expect(lpSteps).toHaveLength(2);
   });
 

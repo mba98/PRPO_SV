@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"eventKey":{"$numberInt":"1"}},"name":"eventKey_1","background":true,"unique":true}],"uuid":"f87070ef005b4f2b91ee0fe5c322ea9a","collectionName":"emailgroups","type":"collection"}

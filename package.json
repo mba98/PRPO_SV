@@ -22,8 +22,12 @@
     "migrate:approval-matrix-policy": "node scripts/migrate-approval-matrix-completion-policy.js",
     "migrate:apri-status-keys": "node scripts/migrate-apri-status-keys.js",
     "migrate:apri-sap-permission": "node scripts/migrate-apri-sap-permission.js",
+    "migrate:apri-matrix-whs-permission": "node scripts/migrate-apri-matrix-whs-permission.js",
     "migrate:local-purchase": "node scripts/migrate-local-purchase.js",
     "migrate:po-email-groups": "node scripts/migrate-po-email-groups.js",
+    "cleanup:test-data": "node scripts/cleanup-test-transaction-data.js",
+    "preflight:approval-matrix": "node scripts/preflight-approval-matrix.js",
+    "export:sap-references": "node scripts/export-sap-references.js",
     "permissions:audit": "node scripts/permissions-audit.js",
     "permissions:sync": "node scripts/permissions-sync.js"
   },

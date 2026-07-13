@@ -39,7 +39,7 @@ export const DEFAULT_APPROVAL_MATRIX = [
     documentType: 'APRI',
     stepOrder: 1,
     stepName: 'Warehouse Approval',
-    requiredPermission: 'pr.approve.whs',
+    requiredPermission: 'apri.approve.whs',
     approverRoleName: 'WHS Approver',
   },
   {

@@ -1,0 +1,1145 @@
+{
+  "exportedAt": "2026-07-13T10:28:54.628Z",
+  "database": "prpo_sv",
+  "hosts": "ac-pho8zfj-shard-00-00.z4b5pj7.mongodb.net:27017,ac-pho8zfj-shard-00-01.z4b5pj7.mongodb.net:27017,ac-pho8zfj-shard-00-02.z4b5pj7.mongodb.net:27017",
+  "counts": {
+    "PR": 48,
+    "PO": 40,
+    "APRI": 30,
+    "LOCAL_PURCHASE": 7,
+    "total": 125
+  },
+  "sapLinked": {
+    "PR": 43,
+    "PO": 31,
+    "APRI": 23
+  },
+  "note": "Local Purchase has no SAP DocEntry/DocNum fields in the portal schema. Deleting MongoDB data does not delete SAP documents.",
+  "rows": [
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260522-0003",
+      "mongoId": "6a10c3647bee9414e77d8d51",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "Failed to Create in SAP",
+      "createdAt": "2026-05-22T20:58:12.396Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260522-0004",
+      "mongoId": "6a10c82ebba74f7c8804018b",
+      "sapDocEntry": 52,
+      "sapDocNum": "2600009",
+      "status": "Created in SAP",
+      "createdAt": "2026-05-22T21:18:38.531Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260523-0001",
+      "mongoId": "6a1150df23e658b5a508f508",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "Failed to Create in SAP",
+      "createdAt": "2026-05-23T07:01:51.965Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260523-0002",
+      "mongoId": "6a11668fc5661ef1c057d099",
+      "sapDocEntry": 53,
+      "sapDocNum": "2600010",
+      "status": "Fully Ordered",
+      "createdAt": "2026-05-23T08:34:23.988Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260523-0003",
+      "mongoId": "6a1193888f3680bbac697adc",
+      "sapDocEntry": 76,
+      "sapDocNum": "2600017",
+      "status": "Fully Ordered",
+      "createdAt": "2026-05-23T11:46:16.181Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260525-0001",
+      "mongoId": "6a13e260d6053ce48e56334d",
+      "sapDocEntry": 79,
+      "sapDocNum": "2600018",
+      "status": "Fully Ordered",
+      "createdAt": "2026-05-25T05:47:12.702Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260525-0002",
+      "mongoId": "6a13e8afd6053ce48e563370",
+      "sapDocEntry": 89,
+      "sapDocNum": "2600022",
+      "status": "Fully Ordered",
+      "createdAt": "2026-05-25T06:14:07.624Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260525-0003",
+      "mongoId": "6a13e8c6d6053ce48e563393",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "Failed to Create in SAP",
+      "createdAt": "2026-05-25T06:14:30.437Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260531-0001",
+      "mongoId": "6a1c142845ed2dfc45a6a7d0",
+      "sapDocEntry": 84,
+      "sapDocNum": "2600020",
+      "status": "Fully Ordered",
+      "createdAt": "2026-05-31T10:57:44.685Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260531-0002",
+      "mongoId": "6a1c2112e6afd98e3cead087",
+      "sapDocEntry": 87,
+      "sapDocNum": "2600021",
+      "status": "Created in SAP",
+      "createdAt": "2026-05-31T11:52:50.734Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260531-0003",
+      "mongoId": "6a1c2ede572a2746c330599d",
+      "sapDocEntry": 98,
+      "sapDocNum": "2600025",
+      "status": "Fully Ordered",
+      "createdAt": "2026-05-31T12:51:42.806Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260531-0004",
+      "mongoId": "6a1c303aad8d46680c0af31e",
+      "sapDocEntry": 90,
+      "sapDocNum": "2600023",
+      "status": "Fully Ordered",
+      "createdAt": "2026-05-31T12:57:30.141Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260601-0001",
+      "mongoId": "6a1d1a41dc901533eb9a3e03",
+      "sapDocEntry": 97,
+      "sapDocNum": "2600024",
+      "status": "Partially Ordered",
+      "createdAt": "2026-06-01T05:36:01.616Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260602-0001",
+      "mongoId": "6a1e8aadebb29d47dc6321fd",
+      "sapDocEntry": 100,
+      "sapDocNum": "2600026",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-02T07:47:57.660Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260602-0002",
+      "mongoId": "6a1e8ed0ebb29d47dc63276a",
+      "sapDocEntry": 101,
+      "sapDocNum": "2600027",
+      "status": "Partially Ordered",
+      "createdAt": "2026-06-02T08:05:36.401Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260602-0003",
+      "mongoId": "6a1e97e9ebb29d47dc632b72",
+      "sapDocEntry": 103,
+      "sapDocNum": "2600028",
+      "status": "Partially Ordered",
+      "createdAt": "2026-06-02T08:44:25.808Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260602-0004",
+      "mongoId": "6a1eb7488145db752d7a9839",
+      "sapDocEntry": 105,
+      "sapDocNum": "2600029",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-02T10:58:16.277Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260603-0001",
+      "mongoId": "6a1fe0358179d647bd8e601a",
+      "sapDocEntry": 107,
+      "sapDocNum": "2600030",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-03T08:05:09.667Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260603-0002",
+      "mongoId": "6a1fe2ab8179d647bd8e6419",
+      "sapDocEntry": 108,
+      "sapDocNum": "2600031",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-03T08:15:39.150Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260607-0001",
+      "mongoId": "6a2538d3d438093adf602cf3",
+      "sapDocEntry": 110,
+      "sapDocNum": "2600032",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-07T09:24:35.069Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260607-0002",
+      "mongoId": "6a254a69d438093adf602f86",
+      "sapDocEntry": 112,
+      "sapDocNum": "2600033",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-07T10:39:37.709Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260611-0001",
+      "mongoId": "6a2a6c9a29312a8cc14187b0",
+      "sapDocEntry": 34,
+      "sapDocNum": "2600009",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-11T08:06:50.252Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260611-0002",
+      "mongoId": "6a2a70149b27fc95577140f4",
+      "sapDocEntry": 20,
+      "sapDocNum": "2600001",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-11T08:21:40.367Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260611-0003",
+      "mongoId": "6a2aac126ca01e0d17a5834f",
+      "sapDocEntry": 22,
+      "sapDocNum": "2600002",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-11T12:37:38.489Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260616-0001",
+      "mongoId": "6a30fb3286c780605f1045cc",
+      "sapDocEntry": 24,
+      "sapDocNum": "2600003",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-16T07:28:50.330Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260616-0002",
+      "mongoId": "6a30ff62bb184f05200523a0",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "Rejected",
+      "createdAt": "2026-06-16T07:46:42.605Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260616-0003",
+      "mongoId": "6a312d62bb184f05200526a8",
+      "sapDocEntry": 26,
+      "sapDocNum": "2600004",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-16T11:02:58.436Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260618-0001",
+      "mongoId": "6a33d5a02f3e2566836cf01c",
+      "sapDocEntry": 28,
+      "sapDocNum": "2600005",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-18T11:25:20.047Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260618-0002",
+      "mongoId": "6a33e3cc4f4eb174c8c7267e",
+      "sapDocEntry": 29,
+      "sapDocNum": "2600006",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-18T12:25:48.770Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260619-0001",
+      "mongoId": "6a358f9320118278034f25d3",
+      "sapDocEntry": 31,
+      "sapDocNum": "2600007",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-19T18:50:59.828Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260619-0002",
+      "mongoId": "6a359fb3c9d21ec43d781767",
+      "sapDocEntry": 32,
+      "sapDocNum": "2600008",
+      "status": "Partially Ordered",
+      "createdAt": "2026-06-19T19:59:47.370Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260621-0001",
+      "mongoId": "6a37cce8694957a38d894f34",
+      "sapDocEntry": 36,
+      "sapDocNum": "2600010",
+      "status": "Partially Ordered",
+      "createdAt": "2026-06-21T11:37:12.248Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260628-0001",
+      "mongoId": "6a40f36e6904cf172fd7df20",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "Rejected",
+      "createdAt": "2026-06-28T10:11:58.724Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260628-0002",
+      "mongoId": "6a40f4bf6904cf172fd7dfad",
+      "sapDocEntry": 42,
+      "sapDocNum": "2600014",
+      "status": "Created in SAP",
+      "createdAt": "2026-06-28T10:17:35.174Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260628-0003",
+      "mongoId": "6a40f5a2c125d9c0ab632a32",
+      "sapDocEntry": 41,
+      "sapDocNum": "2600013",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-28T10:21:22.682Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260628-0004",
+      "mongoId": "6a40fd8e448f6245635aafe5",
+      "sapDocEntry": 38,
+      "sapDocNum": "2600011",
+      "status": "Partially Ordered",
+      "createdAt": "2026-06-28T10:55:10.074Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260628-0005",
+      "mongoId": "6a41631efe378908f8ca92b2",
+      "sapDocEntry": 40,
+      "sapDocNum": "2600012",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-28T18:08:30.806Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260629-0001",
+      "mongoId": "6a42468ed8719b8b0de89cf8",
+      "sapDocEntry": 44,
+      "sapDocNum": "2600015",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-29T10:18:54.639Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260629-0002",
+      "mongoId": "6a42cf64f883f4dbe1d5fd0c",
+      "sapDocEntry": 47,
+      "sapDocNum": "2600016",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-29T20:02:44.971Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260630-0001",
+      "mongoId": "6a43a68df3d9b4f054dc8f66",
+      "sapDocEntry": 49,
+      "sapDocNum": "2600017",
+      "status": "Fully Ordered",
+      "createdAt": "2026-06-30T11:20:45.291Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260630-0002",
+      "mongoId": "6a43b9d3f3d9b4f054dc93ef",
+      "sapDocEntry": 50,
+      "sapDocNum": "2600018",
+      "status": "Partially Ordered",
+      "createdAt": "2026-06-30T12:42:59.198Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260701-0001",
+      "mongoId": "6a44e441f3d9b4f054dc9b70",
+      "sapDocEntry": 54,
+      "sapDocNum": "2600019",
+      "status": "Fully Ordered",
+      "createdAt": "2026-07-01T09:56:17.546Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260702-0001",
+      "mongoId": "6a465da1f3d9b4f054dca3e2",
+      "sapDocEntry": 56,
+      "sapDocNum": "2600020",
+      "status": "Fully Ordered",
+      "createdAt": "2026-07-02T12:46:25.208Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260705-0001",
+      "mongoId": "6a49ff78fd1ba4b5048846f2",
+      "sapDocEntry": 58,
+      "sapDocNum": "2600021",
+      "status": "Created in SAP",
+      "createdAt": "2026-07-05T06:53:44.889Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260705-0002",
+      "mongoId": "6a49ffd2fd1ba4b504884819",
+      "sapDocEntry": 60,
+      "sapDocNum": "2600022",
+      "status": "Fully Ordered",
+      "createdAt": "2026-07-05T06:55:14.280Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260712-0001",
+      "mongoId": "6a53686ef4f90f867f12bb37",
+      "sapDocEntry": 62,
+      "sapDocNum": "2600023",
+      "status": "Fully Ordered",
+      "createdAt": "2026-07-12T10:11:58.331Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260713-0001",
+      "mongoId": "6a54b8bf0bec1447ca845df3",
+      "sapDocEntry": 64,
+      "sapDocNum": "2600024",
+      "status": "Created in SAP",
+      "createdAt": "2026-07-13T10:06:55.194Z"
+    },
+    {
+      "portalDocumentType": "PR",
+      "portalNumber": "PR-20260713-0002",
+      "mongoId": "6a54b9600bec1447ca845f41",
+      "sapDocEntry": 66,
+      "sapDocNum": "2600025",
+      "status": "Fully Ordered",
+      "createdAt": "2026-07-13T10:09:36.756Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260523-0001",
+      "mongoId": "6a115a370bf49fa6b479ccd9",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "Failed to Create in SAP",
+      "createdAt": "2026-05-23T07:41:43.225Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260523-0002",
+      "mongoId": "6a11670ec5661ef1c057d1c3",
+      "sapDocEntry": 458,
+      "sapDocNum": "2600016",
+      "status": "Created in SAP",
+      "createdAt": "2026-05-23T08:36:30.056Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260523-0003",
+      "mongoId": "6a11941c8f3680bbac697c16",
+      "sapDocEntry": 489,
+      "sapDocNum": "2600023",
+      "status": "Created in SAP",
+      "createdAt": "2026-05-23T11:48:44.843Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260525-0001",
+      "mongoId": "6a13f921d6053ce48e563639",
+      "sapDocEntry": 491,
+      "sapDocNum": "2600024",
+      "status": "Created in SAP",
+      "createdAt": "2026-05-25T07:24:17.743Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260531-0001",
+      "mongoId": "6a1c1aeee6afd98e3ceacda2",
+      "sapDocEntry": 494,
+      "sapDocNum": "2600025",
+      "status": "Created in SAP",
+      "createdAt": "2026-05-31T11:26:38.146Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260531-0002",
+      "mongoId": "6a1c2336e6afd98e3cead44b",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "rejected",
+      "createdAt": "2026-05-31T12:01:58.759Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260531-0003",
+      "mongoId": "6a1c2af0799a39d0e9ac24dc",
+      "sapDocEntry": 497,
+      "sapDocNum": "2600026",
+      "status": "Created in SAP",
+      "createdAt": "2026-05-31T12:34:56.873Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260531-0004",
+      "mongoId": "6a1c30f5ad8d46680c0af42a",
+      "sapDocEntry": 499,
+      "sapDocNum": "2600027",
+      "status": "Created in SAP",
+      "createdAt": "2026-05-31T13:00:37.058Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260601-0001",
+      "mongoId": "6a1d2d93f4c3f40ee66eddf5",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "Failed to Create in SAP",
+      "createdAt": "2026-06-01T06:58:27.233Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260601-0002",
+      "mongoId": "6a1d3110f4c3f40ee66edf87",
+      "sapDocEntry": 503,
+      "sapDocNum": "2600028",
+      "status": "Created in SAP",
+      "createdAt": "2026-06-01T07:13:20.453Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260602-0001",
+      "mongoId": "6a1e8be4ebb29d47dc6323b8",
+      "sapDocEntry": 507,
+      "sapDocNum": "2600029",
+      "status": "Created in SAP",
+      "createdAt": "2026-06-02T07:53:08.562Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260602-0002",
+      "mongoId": "6a1e8fd1ebb29d47dc632831",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "failed_sap",
+      "createdAt": "2026-06-02T08:09:53.779Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260602-0003",
+      "mongoId": "6a1e98caebb29d47dc632d42",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "Failed to Create in SAP",
+      "createdAt": "2026-06-02T08:48:10.527Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260602-0004",
+      "mongoId": "6a1eb8838145db752d7a9a11",
+      "sapDocEntry": 512,
+      "sapDocNum": "2600030",
+      "status": "Created in SAP",
+      "createdAt": "2026-06-02T11:03:31.254Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260603-0001",
+      "mongoId": "6a1fe0c18179d647bd8e61a1",
+      "sapDocEntry": 514,
+      "sapDocNum": "2600031",
+      "status": "Created in SAP",
+      "createdAt": "2026-06-03T08:07:29.378Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260603-0002",
+      "mongoId": "6a1fe3578179d647bd8e65fb",
+      "sapDocEntry": 515,
+      "sapDocNum": "2600032",
+      "status": "Created in SAP",
+      "createdAt": "2026-06-03T08:18:31.214Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260607-0001",
+      "mongoId": "6a253946d438093adf602dc4",
+      "sapDocEntry": 517,
+      "sapDocNum": "2600033",
+      "status": "Created in SAP",
+      "createdAt": "2026-06-07T09:26:30.873Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260607-0002",
+      "mongoId": "6a2550ced438093adf603247",
+      "sapDocEntry": 519,
+      "sapDocNum": "2600034",
+      "status": "Created in SAP",
+      "createdAt": "2026-06-07T11:06:54.802Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260611-0004",
+      "mongoId": "6a2a757dbfff6c907a194298",
+      "sapDocEntry": 78,
+      "sapDocNum": "2600007",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-11T08:44:45.929Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260611-0005",
+      "mongoId": "6a2aac486ca01e0d17a5839c",
+      "sapDocEntry": 91,
+      "sapDocNum": "2600014",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-11T12:38:32.634Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260616-0001",
+      "mongoId": "6a30ffcdbb184f0520052427",
+      "sapDocEntry": 81,
+      "sapDocNum": "2600008",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-16T07:48:29.247Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260616-0002",
+      "mongoId": "6a312de0bb184f0520052737",
+      "sapDocEntry": 83,
+      "sapDocNum": "2600009",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-16T11:05:04.492Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260618-0001",
+      "mongoId": "6a33d5e02f3e2566836cf068",
+      "sapDocEntry": 85,
+      "sapDocNum": "2600010",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-18T11:26:24.967Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260618-0002",
+      "mongoId": "6a33e4384f4eb174c8c72769",
+      "sapDocEntry": 86,
+      "sapDocNum": "2600011",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-18T12:27:36.329Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260619-0001",
+      "mongoId": "6a358fcd20118278034f2632",
+      "sapDocEntry": 88,
+      "sapDocNum": "2600012",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-19T18:51:57.329Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260619-0002",
+      "mongoId": "6a359fffc9d21ec43d781805",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "rejected",
+      "createdAt": "2026-06-19T20:01:03.482Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260619-0003",
+      "mongoId": "6a35a00fc9d21ec43d78182a",
+      "sapDocEntry": 89,
+      "sapDocNum": "2600013",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-19T20:01:19.722Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260627-0001",
+      "mongoId": "6a3f839b1081f96700001563",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "failed_sap",
+      "createdAt": "2026-06-27T08:02:35.501Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260628-0001",
+      "mongoId": "6a411954fe378908f8ca9168",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "rejected",
+      "createdAt": "2026-06-28T12:53:40.321Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260628-0002",
+      "mongoId": "6a4163f0fe378908f8ca9356",
+      "sapDocEntry": 95,
+      "sapDocNum": "2600015",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-28T18:12:00.641Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260628-0003",
+      "mongoId": "6a417ad44e5d2aff2ca85b6a",
+      "sapDocEntry": 97,
+      "sapDocNum": "2600016",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-28T19:49:40.848Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260629-0001",
+      "mongoId": "6a424965d8719b8b0de89e6f",
+      "sapDocEntry": 99,
+      "sapDocNum": "2600017",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-29T10:31:01.900Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260630-0001",
+      "mongoId": "6a435c41f3d9b4f054dc8b1c",
+      "sapDocEntry": 102,
+      "sapDocNum": "2600018",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-30T06:03:45.864Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260630-0002",
+      "mongoId": "6a43b505f3d9b4f054dc9354",
+      "sapDocEntry": 104,
+      "sapDocNum": "2600019",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-30T12:22:29.673Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260630-0003",
+      "mongoId": "6a43babef3d9b4f054dc946f",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "failed_sap",
+      "createdAt": "2026-06-30T12:46:55.001Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260702-0001",
+      "mongoId": "6a45fb5ef3d9b4f054dc9fc3",
+      "sapDocEntry": 106,
+      "sapDocNum": "2600020",
+      "status": "created_in_sap",
+      "createdAt": "2026-07-02T05:47:10.900Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260702-0002",
+      "mongoId": "6a465e39f3d9b4f054dca45d",
+      "sapDocEntry": 108,
+      "sapDocNum": "2600021",
+      "status": "created_in_sap",
+      "createdAt": "2026-07-02T12:48:57.862Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260705-0001",
+      "mongoId": "6a49fff7fd1ba4b504884887",
+      "sapDocEntry": 111,
+      "sapDocNum": "2600022",
+      "status": "created_in_sap",
+      "createdAt": "2026-07-05T06:55:51.294Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260712-0001",
+      "mongoId": "6a536a1df4f90f867f12bbce",
+      "sapDocEntry": 113,
+      "sapDocNum": "2600023",
+      "status": "created_in_sap",
+      "createdAt": "2026-07-12T10:19:09.179Z"
+    },
+    {
+      "portalDocumentType": "PO",
+      "portalNumber": "PO-20260713-0001",
+      "mongoId": "6a54b9ae0bec1447ca845fe3",
+      "sapDocEntry": 115,
+      "sapDocNum": "2600024",
+      "status": "created_in_sap",
+      "createdAt": "2026-07-13T10:10:54.203Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260523-0001",
+      "mongoId": "6a1196158f3680bbac697d87",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "failed_sap",
+      "createdAt": "2026-05-23T11:57:09.219Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260524-0001",
+      "mongoId": "6a12df21490a1a51223d5663",
+      "sapDocEntry": 1179,
+      "sapDocNum": "2600071",
+      "status": "created_in_sap",
+      "createdAt": "2026-05-24T11:21:05.660Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260525-0001",
+      "mongoId": "6a13fa50d6053ce48e563770",
+      "sapDocEntry": 1182,
+      "sapDocNum": "2600072",
+      "status": "created_in_sap",
+      "createdAt": "2026-05-25T07:29:20.528Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260531-0001",
+      "mongoId": "6a1c1ca1e6afd98e3ceacf5f",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "failed_sap",
+      "createdAt": "2026-05-31T11:33:53.092Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260531-0002",
+      "mongoId": "6a1c2b8d799a39d0e9ac266f",
+      "sapDocEntry": 1185,
+      "sapDocNum": "2600073",
+      "status": "created_in_sap",
+      "createdAt": "2026-05-31T12:37:33.896Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260531-0003",
+      "mongoId": "6a1c31b4ad8d46680c0af570",
+      "sapDocEntry": 1187,
+      "sapDocNum": "2600074",
+      "status": "created_in_sap",
+      "createdAt": "2026-05-31T13:03:48.575Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260601-0001",
+      "mongoId": "6a1d39faf54b5bf598d560a4",
+      "sapDocEntry": 1189,
+      "sapDocNum": "2600075",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-01T07:51:22.343Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260602-0001",
+      "mongoId": "6a1e8d0eebb29d47dc6325a9",
+      "sapDocEntry": 1191,
+      "sapDocNum": "2600076",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-02T07:58:06.875Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260602-0002",
+      "mongoId": "6a1ebe8e0d24fa68047638bd",
+      "sapDocEntry": 1194,
+      "sapDocNum": "2600077",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-02T11:29:18.892Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260603-0001",
+      "mongoId": "6a1fe1428179d647bd8e62c7",
+      "sapDocEntry": 1196,
+      "sapDocNum": "2600078",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-03T08:09:38.766Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260603-0002",
+      "mongoId": "6a1fe3bb8179d647bd8e6725",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "failed_sap",
+      "createdAt": "2026-06-03T08:20:11.395Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260607-0001",
+      "mongoId": "6a25535ed438093adf603356",
+      "sapDocEntry": 1198,
+      "sapDocNum": "2600079",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-07T11:17:50.686Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260611-0001",
+      "mongoId": "6a2a81d03589f13272ad55ff",
+      "sapDocEntry": 535,
+      "sapDocNum": "2600043",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-11T09:37:20.619Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260611-0002",
+      "mongoId": "6a2aa3eb83aaf3e62f971e37",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "failed_sap",
+      "createdAt": "2026-06-11T12:02:51.113Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260616-0001",
+      "mongoId": "6a3100f6bb184f05200525ac",
+      "sapDocEntry": 537,
+      "sapDocNum": "2600044",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-16T07:53:26.936Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260616-0002",
+      "mongoId": "6a312e62bb184f0520052883",
+      "sapDocEntry": 539,
+      "sapDocNum": "2600045",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-16T11:07:14.755Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260618-0001",
+      "mongoId": "6a33dfe8ffbde52bf4f864be",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "warehouse_rejected",
+      "createdAt": "2026-06-18T12:09:12.668Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260618-0002",
+      "mongoId": "6a33e4ad4f4eb174c8c7291c",
+      "sapDocEntry": 543,
+      "sapDocNum": "2600047",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-18T12:29:33.941Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260619-0001",
+      "mongoId": "6a35906020118278034f276e",
+      "sapDocEntry": 541,
+      "sapDocNum": "2600046",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-19T18:54:24.088Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260628-0001",
+      "mongoId": "6a416476fe378908f8ca94ac",
+      "sapDocEntry": 545,
+      "sapDocNum": "2600048",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-28T18:14:14.471Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260629-0001",
+      "mongoId": "6a424bb6d8719b8b0de8a065",
+      "sapDocEntry": 549,
+      "sapDocNum": "2600050",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-29T10:40:54.393Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260629-0002",
+      "mongoId": "6a424bc3d8719b8b0de8a07d",
+      "sapDocEntry": 547,
+      "sapDocNum": "2600049",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-29T10:41:07.422Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260630-0001",
+      "mongoId": "6a435d3ff3d9b4f054dc8e06",
+      "sapDocEntry": 551,
+      "sapDocNum": "2600051",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-30T06:07:59.740Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260630-0002",
+      "mongoId": "6a43bcb5f3d9b4f054dc96bb",
+      "sapDocEntry": 554,
+      "sapDocNum": "2600052",
+      "status": "created_in_sap",
+      "createdAt": "2026-06-30T12:55:17.251Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260702-0001",
+      "mongoId": "6a4655fbf3d9b4f054dca2c4",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "pending_warehouse",
+      "createdAt": "2026-07-02T12:13:47.314Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260702-0002",
+      "mongoId": "6a46647ef3d9b4f054dca5d9",
+      "sapDocEntry": 557,
+      "sapDocNum": "2600053",
+      "status": "created_in_sap",
+      "createdAt": "2026-07-02T13:15:42.424Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260705-0001",
+      "mongoId": "6a4a01a7fd1ba4b504884a1a",
+      "sapDocEntry": 559,
+      "sapDocNum": "2600054",
+      "status": "created_in_sap",
+      "createdAt": "2026-07-05T07:03:03.583Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260712-0001",
+      "mongoId": "6a536ea3f4f90f867f12bf11",
+      "sapDocEntry": 561,
+      "sapDocNum": "2600055",
+      "status": "created_in_sap",
+      "createdAt": "2026-07-12T10:38:27.584Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260713-0001",
+      "mongoId": "6a54aeebf4f90f867f12c311",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "warehouse_rejected",
+      "createdAt": "2026-07-13T09:24:59.432Z"
+    },
+    {
+      "portalDocumentType": "APRI",
+      "portalNumber": "APRI-20260713-0002",
+      "mongoId": "6a54ba740bec1447ca846160",
+      "sapDocEntry": 563,
+      "sapDocNum": "2600056",
+      "status": "created_in_sap",
+      "createdAt": "2026-07-13T10:14:12.282Z"
+    },
+    {
+      "portalDocumentType": "LOCAL_PURCHASE",
+      "portalNumber": "LP-20260620-0001",
+      "mongoId": "6a36221ca353e33f7580e43a",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "draft",
+      "createdAt": "2026-06-20T05:16:12.517Z"
+    },
+    {
+      "portalDocumentType": "LOCAL_PURCHASE",
+      "portalNumber": "LP-20260620-0002",
+      "mongoId": "6a362ccd20566ae422d1f6fa",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "draft",
+      "createdAt": "2026-06-20T06:01:49.674Z"
+    },
+    {
+      "portalDocumentType": "LOCAL_PURCHASE",
+      "portalNumber": "LP-20260620-0003",
+      "mongoId": "6a362fb2dc1ed519984b71ed",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "completed",
+      "createdAt": "2026-06-20T06:14:10.634Z"
+    },
+    {
+      "portalDocumentType": "LOCAL_PURCHASE",
+      "portalNumber": "LP-20260620-0004",
+      "mongoId": "6a3632531721d6e98a80606e",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "completed",
+      "createdAt": "2026-06-20T06:25:23.029Z"
+    },
+    {
+      "portalDocumentType": "LOCAL_PURCHASE",
+      "portalNumber": "LP-20260620-0005",
+      "mongoId": "6a363575b5cb1e6faf28261d",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "completed",
+      "createdAt": "2026-06-20T06:38:45.521Z"
+    },
+    {
+      "portalDocumentType": "LOCAL_PURCHASE",
+      "portalNumber": "LP-20260620-0006",
+      "mongoId": "6a363f4daa010d2f65676e47",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "pending_pm",
+      "createdAt": "2026-06-20T07:20:45.879Z"
+    },
+    {
+      "portalDocumentType": "LOCAL_PURCHASE",
+      "portalNumber": "LP-20260620-0007",
+      "mongoId": "6a3652b71b59be05af718f81",
+      "sapDocEntry": "",
+      "sapDocNum": "",
+      "status": "completed",
+      "createdAt": "2026-06-20T08:43:35.409Z"
+    }
+  ]
+}
