@@ -137,4 +137,42 @@ describe('emailNotify', () => {
     const { notifyWorkflowEmail } = await import('@/lib/emailNotify.js');
     await expect(notifyWorkflowEmail('unknown.event', {}, {})).resolves.toBeDefined();
   });
+
+  it('prefers step recipients over static fallback when EmailGroup is absent', async () => {
+    mocks.emailGroupFindOne.mockReturnValue({
+      lean: vi.fn().mockResolvedValue(null),
+    });
+    mocks.roleFind.mockReturnValue({
+      lean: vi.fn().mockResolvedValue([{ _id: 'role-om', name: 'Operation Manager' }]),
+    });
+    mocks.userFind.mockReturnValue({
+      lean: vi.fn().mockResolvedValue([{ email: 'fallback-om@example.com' }]),
+    });
+
+    const { resolveEventRecipients } = await import('@/lib/emailNotify.js');
+    const result = await resolveEventRecipients('po.pm.approved', {
+      stepRecipientEmails: ['matrix-om@example.com'],
+    });
+
+    expect(result.to).toEqual(['matrix-om@example.com']);
+    expect(result.to).not.toContain('fallback-om@example.com');
+  });
+
+  it('does not append step recipients when active EmailGroup is configured', async () => {
+    mocks.emailGroupFindOne.mockReturnValue({
+      lean: vi.fn().mockResolvedValue({
+        isActive: true,
+        recipients: [{ email: 'admin@example.com' }],
+        ccRoles: [],
+      }),
+    });
+
+    const { resolveEventRecipients } = await import('@/lib/emailNotify.js');
+    const result = await resolveEventRecipients('po.pm.approved', {
+      stepRecipientEmails: ['matrix-om@example.com'],
+      requiredPermission: 'po.approve.om',
+    });
+
+    expect(result.to).toEqual(['admin@example.com']);
+  });
 });

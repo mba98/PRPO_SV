@@ -362,7 +362,7 @@ Seeded admin login should work after deploy when MongoDB is connected and seed h
 - **Approval matrix (PO):** PM (`po.approve.pm`) → Finance (`po.approve.finance`); SAP only after final approval
 - **Pages:** `/purchase-orders`, `/purchase-orders/[id]`, `/purchase-orders/[id]/approve`, `/purchase-orders/ready-for-ap-reserve-invoice`
 - **APIs:** list, get, put, approve, reject, create-sap-po, retry-sap, from-pr, ready-for-ap-reserve-invoice
-- **Emails:** `po.created`, `po.pm.approved`, `po.finance.approved`, `po.rejected`, `po.sap.created`, `po.sap.failed`
+- **Emails:** `po.created`, `po.pm.approved`, `po.om.approved`, `po.finance.approved`, `po.rejected`, `po.sap.created`, `po.sap.failed`
 - **Guards:** duplicate portal PO per PR/vendor; duplicate SAP on `sapPODocEntry`
 - **Admin SAP:** `POST .../create-sap-po` and `retry-sap` for manual retry (view.all / admin.settings)
 

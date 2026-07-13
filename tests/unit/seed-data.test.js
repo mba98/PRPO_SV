@@ -65,9 +65,14 @@ describe('seed data definitions', () => {
   });
 
   it('defines email groups for all Phase 8 events', () => {
-    expect(DEFAULT_EMAIL_GROUPS.length).toBeGreaterThanOrEqual(16);
+    expect(DEFAULT_EMAIL_GROUPS.length).toBeGreaterThanOrEqual(17);
     const keys = DEFAULT_EMAIL_GROUPS.map((g) => g.eventKey);
-    expect(new Set(keys).size).toBe(16);
+    expect(new Set(keys).size).toBe(17);
+    expect(keys).toContain('po.om.approved');
+    const pmApproved = DEFAULT_EMAIL_GROUPS.find((g) => g.eventKey === 'po.pm.approved');
+    expect(pmApproved.roleNames).toEqual(['Operation Manager']);
+    const omApproved = DEFAULT_EMAIL_GROUPS.find((g) => g.eventKey === 'po.om.approved');
+    expect(omApproved.roleNames).toEqual(['Finance']);
   });
 
   it('ALL_PERMISSIONS export includes legacy migration keys', () => {

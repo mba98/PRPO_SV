@@ -71,4 +71,23 @@ describe('emailTemplates', () => {
     expect(subject).toContain('created in SAP');
     expect(html).toContain('12345');
   });
+
+  it('builds po.pm.approved template for Operation Manager step', () => {
+    const { subject, html } = buildWorkflowEmail('po.pm.approved', {
+      portalPONumber: 'PO-55',
+      documentId: 'doc1',
+    });
+    expect(subject).toContain('pending Operation Manager');
+    expect(html).toContain('Pending Operation Manager Approval');
+    expect(html).not.toContain('Pending Finance Approval');
+  });
+
+  it('builds po.om.approved template for Finance step', () => {
+    const { subject, html } = buildWorkflowEmail('po.om.approved', {
+      portalPONumber: 'PO-55',
+      documentId: 'doc1',
+    });
+    expect(subject).toContain('pending Finance');
+    expect(html).toContain('Pending Finance Approval');
+  });
 });
