@@ -3,7 +3,8 @@ import {
   buildItemSearchSql,
   buildItemDetailSql,
   buildAccountsSql,
-  buildCompanyValuesSql,
+  buildCompanyValidValuesSql,
+  buildCompanyUsedValuesSql,
   buildUomGroupsSql,
   buildWarehousesSql,
   buildVendorCrd13CurrencySql,
@@ -64,15 +65,25 @@ describe('sap HANA SQL builders', () => {
     expect(sql).toContain('LIMIT ?');
   });
 
-  it('builds parameterized OITM Company valid-values SQL', () => {
-    const sql = buildCompanyValuesSql('SBODEMOUS');
+  it('builds parameterized OITM Company valid-values SQL (CUFD + UFD1)', () => {
+    const sql = buildCompanyValidValuesSql('SBODEMOUS');
     expect(sql).toContain('"SBODEMOUS"."CUFD" T0');
     expect(sql).toContain('INNER JOIN "SBODEMOUS"."UFD1" T1');
     expect(sql).toContain('T0."TableID" = \'OITM\'');
-    expect(sql).toContain('T0."AliasID" = \'Company\'');
+    expect(sql).toContain('UPPER(T0."AliasID") = \'COMPANY\'');
     expect(sql).toContain('UPPER(T1."FldValue") LIKE UPPER(?)');
     expect(sql).toContain('UPPER(COALESCE(T1."Descr", \'\')) LIKE UPPER(?)');
     expect(sql).toContain('ORDER BY T1."IndexID"');
+    expect(sql).toContain('LIMIT ?');
+  });
+
+  it('builds parameterized OITM.U_Company used-values SQL', () => {
+    const sql = buildCompanyUsedValuesSql('SBODEMOUS');
+    expect(sql).toContain('SELECT DISTINCT');
+    expect(sql).toContain('"SBODEMOUS"."OITM" T0');
+    expect(sql).toContain('TRIM(T0."U_Company") AS "code"');
+    expect(sql).toContain('TRIM(COALESCE(T0."U_Company", \'\')) <> \'\'');
+    expect(sql).toContain('UPPER(TRIM(T0."U_Company")) LIKE UPPER(?)');
     expect(sql).toContain('LIMIT ?');
   });
 
