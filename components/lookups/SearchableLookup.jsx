@@ -43,6 +43,7 @@ export default function SearchableLookup({
   loadAllOnFocus = true,
   formatOption = defaultFormat,
   minChars = 0,
+  clearSelectionOnInput = false,
 }) {
   const [query, setQuery] = useState(label || (value ? String(value) : ''));
   const [results, setResults] = useState([]);
@@ -51,21 +52,26 @@ export default function SearchableLookup({
   const [fetched, setFetched] = useState(false);
   const [error, setError] = useState('');
   const timer = useRef(null);
+  const requestSequence = useRef(0);
   const queryMin = Math.max(minChars, 0);
   const externalKey = `${value ?? ''}|${label ?? ''}`;
 
   useEffect(() => {
-    setQuery(label || (value != null && value !== '' ? String(value) : ''));
-  }, [externalKey, value, label]);
+    if (!focused) {
+      setQuery(label || (value != null && value !== '' ? String(value) : ''));
+    }
+  }, [externalKey, value, label, focused]);
 
   const loadOptions = useCallback(
     async (searchQuery) => {
       const trimmed = searchQuery.trim();
       const cacheKey = `${endpoint}|${limit}`;
+      const requestId = ++requestSequence.current;
       setLoading(true);
       setError('');
       try {
         if (loadAllOnFocus && !trimmed && listCache.has(cacheKey)) {
+          if (requestId !== requestSequence.current) return;
           setResults(listCache.get(cacheKey));
           setFetched(true);
           setLoading(false);
@@ -74,6 +80,7 @@ export default function SearchableLookup({
         const params = new URLSearchParams({ limit: String(limit) });
         if (trimmed) params.set('query', trimmed);
         const { json, status } = await apiFetch(`${endpoint}?${params}`);
+        if (requestId !== requestSequence.current) return;
         if (json.success) {
           const rows = json.data || [];
           if (loadAllOnFocus && !trimmed) {
@@ -86,11 +93,12 @@ export default function SearchableLookup({
         }
         setFetched(true);
       } catch (err) {
+        if (requestId !== requestSequence.current) return;
         setResults([]);
         setFetched(true);
         setError(err.message || 'Lookup failed');
       }
-      setLoading(false);
+      if (requestId === requestSequence.current) setLoading(false);
     },
     [endpoint, limit, loadAllOnFocus],
   );
@@ -130,6 +138,12 @@ export default function SearchableLookup({
     setFetched(Boolean(listCache.get(`${endpoint}|${limit}`)?.length));
   }
 
+  function closeDropdown() {
+    requestSequence.current += 1;
+    setFocused(false);
+    setLoading(false);
+  }
+
   const showDropdown = focused && (loading || fetched);
 
   return (
@@ -141,11 +155,22 @@ export default function SearchableLookup({
         disabled={disabled}
         placeholder={placeholder}
         onChange={(e) => {
-          setQuery(e.target.value);
-          if (!e.target.value) clearSelection();
+          const nextQuery = e.target.value;
+          setQuery(nextQuery);
+          if (clearSelectionOnInput && value != null && value !== '') {
+            onSelect?.('', '', null);
+          } else if (!nextQuery) {
+            clearSelection();
+          }
         }}
         onFocus={() => setFocused(true)}
-        onBlur={() => setTimeout(() => setFocused(false), 200)}
+        onBlur={() => setTimeout(closeDropdown, 200)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            closeDropdown();
+          }
+        }}
       />
       {error && (
         <p className="mt-1 text-xs text-destructive" role="alert">

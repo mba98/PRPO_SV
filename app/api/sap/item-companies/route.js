@@ -1,5 +1,5 @@
 import { withAuth } from '@/lib/auth';
-import { searchSapAccounts } from '@/lib/sapHanaLookups.js';
+import { searchSapCompanies } from '@/lib/sapHanaLookups.js';
 import { jsonSuccessCached, jsonValidation } from '@/lib/apiHelpers';
 import { parseItemCreationLookupQuery } from '@/lib/validators/sapLookup';
 import { sapLookupFailureResponse } from '@/lib/sapLookupApi';
@@ -10,11 +10,15 @@ async function getHandler(request) {
   try {
     const { searchParams } = new URL(request.url);
     const { query, limit } = parseItemCreationLookupQuery(searchParams);
-    const items = await searchSapAccounts(query, limit);
+    const items = await searchSapCompanies(query, limit);
     return jsonSuccessCached(items);
   } catch (err) {
     if (err?.name === 'ZodError') return jsonValidation(err);
-    return sapLookupFailureResponse('sap/accounts', err, 'Failed to load accounts');
+    return sapLookupFailureResponse(
+      'sap/item-companies',
+      err,
+      'Failed to load item companies',
+    );
   }
 }
 

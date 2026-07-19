@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   buildItemSearchSql,
   buildItemDetailSql,
+  buildAccountsSql,
+  buildCompanyValuesSql,
   buildUomGroupsSql,
   buildWarehousesSql,
   buildVendorCrd13CurrencySql,
@@ -50,6 +52,28 @@ describe('sap HANA SQL builders', () => {
     expect(sql).toContain('T0."UgpCode" AS "code"');
     expect(sql).toContain('ORDER BY T0."UgpName"');
     expect(sql).toContain('LIMIT 50');
+  });
+
+  it('builds parameterized postable account search SQL', () => {
+    const sql = buildAccountsSql('SBODEMOUS');
+    expect(sql).toContain('"SBODEMOUS"."OACT" T0');
+    expect(sql).toContain('T0."Postable" = \'Y\'');
+    expect(sql).toContain('UPPER(T0."AcctCode") LIKE UPPER(?)');
+    expect(sql).toContain('UPPER(COALESCE(T0."AcctName", \'\')) LIKE UPPER(?)');
+    expect(sql).toContain('ORDER BY T0."AcctCode"');
+    expect(sql).toContain('LIMIT ?');
+  });
+
+  it('builds parameterized OITM Company valid-values SQL', () => {
+    const sql = buildCompanyValuesSql('SBODEMOUS');
+    expect(sql).toContain('"SBODEMOUS"."CUFD" T0');
+    expect(sql).toContain('INNER JOIN "SBODEMOUS"."UFD1" T1');
+    expect(sql).toContain('T0."TableID" = \'OITM\'');
+    expect(sql).toContain('T0."AliasID" = \'Company\'');
+    expect(sql).toContain('UPPER(T1."FldValue") LIKE UPPER(?)');
+    expect(sql).toContain('UPPER(COALESCE(T1."Descr", \'\')) LIKE UPPER(?)');
+    expect(sql).toContain('ORDER BY T1."IndexID"');
+    expect(sql).toContain('LIMIT ?');
   });
 
   it('builds item detail SQL with OITW warehouse fallback and response aliases', () => {

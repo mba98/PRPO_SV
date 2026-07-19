@@ -175,6 +175,10 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             inputClassName="input-field mt-1"
             loadAllOnFocus
             minChars={0}
+            limit={20}
+            emptyMessage="No results found"
+            loadingMessage="Loading…"
+            clearSelectionOnInput
           />
           {fieldErrors.U_AcctCode && (
             <p className="mt-1 text-xs text-destructive">{fieldErrors.U_AcctCode}</p>
@@ -184,7 +188,7 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
         <label className="block text-sm">
           <span className="text-muted-foreground">Company (U_Company)</span>
           <SearchableLookup
-            endpoint="/api/sap/companies"
+            endpoint="/api/sap/item-companies"
             value={form.U_Company}
             label={labels.company}
             onSelect={(value, display) => {
@@ -195,6 +199,10 @@ export default function CreateItemModal({ open, onClose, onCreated, relatedPRNum
             inputClassName="input-field mt-1"
             loadAllOnFocus
             minChars={0}
+            limit={20}
+            emptyMessage="No results found"
+            loadingMessage="Loading…"
+            clearSelectionOnInput
           />
           {fieldErrors.U_Company && (
             <p className="mt-1 text-xs text-destructive">{fieldErrors.U_Company}</p>
